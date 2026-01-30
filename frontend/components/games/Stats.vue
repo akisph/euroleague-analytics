@@ -11,6 +11,7 @@
       <v-alert type="error" v-if="error">{{ error }}</v-alert>
 
       <v-row v-if="!isLoading && !error">
+   
         <v-col cols="12" md="6">
           <v-card>
             <v-card-title class="d-flex align-center justify-space-between">
@@ -20,24 +21,16 @@
             <v-card-text>
               <v-list density="compact">
                 <v-list-item>
-                  <v-list-item-title>Accuracy (Attempted)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ homeTotals.accuracyAttempted ?? '-' }}</v-list-item-subtitle>
-                </v-list-item>
-                <v-list-item>
-                  <v-list-item-title>Accuracy (Made)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ homeTotals.accuracyMade ?? '-' }}</v-list-item-subtitle>
+                  <v-list-item-title>Accuracy</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">{{ homeTotals.accuracyPct != null ? `${homeTotals.accuracyPct}%` : '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
                   <v-list-item-title>Assists</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.assistances ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Blocks (Favour)</v-list-item-title>
+                  <v-list-item-title>Blocks</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.blocksFavour ?? '-' }}</v-list-item-subtitle>
-                </v-list-item>
-                <v-list-item>
-                  <v-list-item-title>Blocks (Against)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ homeTotals.blocksAgainst ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
                   <v-list-item-title>Defensive Rebounds</v-list-item-title>
@@ -60,7 +53,7 @@
                   <v-list-item-subtitle class="text-right">{{ homeTotals.fieldGoalsMadeTotal ?? '-' }} / {{ homeTotals.fieldGoalsAttemptedTotal ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Fouls Committed</v-list-item-title>
+                  <v-list-item-title>Fouls</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.foulsCommited ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
@@ -71,10 +64,7 @@
                   <v-list-item-title>Free Throws (Made / Attempted)</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.freeThrowsMade ?? '-' }} / {{ homeTotals.freeThrowsAttempted ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
-                <v-list-item>
-                  <v-list-item-title>Plus / Minus</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ homeTotals.plusMinus ?? '-' }}</v-list-item-subtitle>
-                </v-list-item>
+                
                 <v-list-item>
                   <v-list-item-title>Points</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.points ?? '-' }}</v-list-item-subtitle>
@@ -83,10 +73,7 @@
                   <v-list-item-title>Steals</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.steals ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
-                <v-list-item>
-                  <v-list-item-title>Time Played (sec)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ homeTotals.timePlayed ?? '-' }}</v-list-item-subtitle>
-                </v-list-item>
+                
                 <v-list-item>
                   <v-list-item-title>Total Rebounds</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.totalRebounds ?? '-' }}</v-list-item-subtitle>
@@ -113,24 +100,16 @@
             <v-card-text>
               <v-list density="compact">
                 <v-list-item>
-                  <v-list-item-title>Accuracy (Attempted)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ awayTotals.accuracyAttempted ?? '-' }}</v-list-item-subtitle>
-                </v-list-item>
-                <v-list-item>
-                  <v-list-item-title>Accuracy (Made)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ awayTotals.accuracyMade ?? '-' }}</v-list-item-subtitle>
+                  <v-list-item-title>Accuracy</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">{{ awayTotals.accuracyPct != null ? `${awayTotals.accuracyPct}%` : '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
                   <v-list-item-title>Assists</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.assistances ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Blocks (Favour)</v-list-item-title>
+                  <v-list-item-title>Blocks</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.blocksFavour ?? '-' }}</v-list-item-subtitle>
-                </v-list-item>
-                <v-list-item>
-                  <v-list-item-title>Blocks (Against)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ awayTotals.blocksAgainst ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
                   <v-list-item-title>Defensive Rebounds</v-list-item-title>
@@ -153,7 +132,7 @@
                   <v-list-item-subtitle class="text-right">{{ awayTotals.fieldGoalsMadeTotal ?? '-' }} / {{ awayTotals.fieldGoalsAttemptedTotal ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Fouls Committed</v-list-item-title>
+                  <v-list-item-title>Fouls</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.foulsCommited ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
@@ -164,10 +143,7 @@
                   <v-list-item-title>Free Throws (Made / Attempted)</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.freeThrowsMade ?? '-' }} / {{ awayTotals.freeThrowsAttempted ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
-                <v-list-item>
-                  <v-list-item-title>Plus / Minus</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ awayTotals.plusMinus ?? '-' }}</v-list-item-subtitle>
-                </v-list-item>
+                
                 <v-list-item>
                   <v-list-item-title>Points</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.points ?? '-' }}</v-list-item-subtitle>
@@ -176,10 +152,7 @@
                   <v-list-item-title>Steals</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.steals ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
-                <v-list-item>
-                  <v-list-item-title>Time Played (sec)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ awayTotals.timePlayed ?? '-' }}</v-list-item-subtitle>
-                </v-list-item>
+                
                 <v-list-item>
                   <v-list-item-title>Total Rebounds</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.totalRebounds ?? '-' }}</v-list-item-subtitle>
@@ -289,6 +262,8 @@ const extractTotals = (side: 'local' | 'road') => {
 
 const homeTotals = computed(() => extractTotals('local'))
 const awayTotals = computed(() => extractTotals('road'))
+
+// Stats.vue shows numeric totals per team; chart moved to TeamComparison component
 </script>
 
 <style scoped></style>

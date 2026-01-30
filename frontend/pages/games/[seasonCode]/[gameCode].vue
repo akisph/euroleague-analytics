@@ -62,14 +62,14 @@ import { ref } from "vue"
                   <div class="d-flex align-center justify-center">
                     <span
                       class="text-h2 font-weight-bold"
-                      :class="isHomeWinner ? 'text-success' : 'text-medium-emphasis'"
+                      :class="isHomeWinner ? 'text-success' : 'text-error'"
                     >
                       {{ game.homeScore }}
                     </span>
-                    <span class="text-h3 mx-4 text-medium-emphasis">-</span>
+                    <span class="text-h3 mx-4 text-medium-error">-</span>
                     <span
                       class="text-h2 font-weight-bold"
-                      :class="isAwayWinner ? 'text-success' : 'text-medium-emphasis'"
+                      :class="isAwayWinner ? 'text-success' : 'text-medium-error'"
                     >
                       {{ game.awayScore }}
                     </span>
@@ -106,9 +106,11 @@ import { ref } from "vue"
         </v-card>
 
         <!-- Tabs: Game Info / Stats / Related -->
-        <v-tabs  v-model="activeTab" color="primary" class="mt-6 bg-secondary">
+        <v-tabs  v-model="activeTab" color="primary" class="mt-6 text-secondary">
             <v-tab value="game-info">Game Info</v-tab>
-            <v-tab value="stats">Stats</v-tab>
+          <v-tab value="stats">Stats</v-tab>
+            <v-tab value="team-comparison">Team Comparison</v-tab>
+            <v-tab value="players">Players</v-tab>
         </v-tabs>
 
         <v-tabs-items v-model="activeTab">
@@ -119,6 +121,14 @@ import { ref } from "vue"
             <v-tab-item value="stats" v-show="activeTab === 'stats'">
               <GamesStats :game="game" />
             </v-tab-item>
+
+              <v-tab-item value="team-comparison" v-show="activeTab === 'team-comparison'">
+                <GamesTeamComparison :game="game" />
+              </v-tab-item>
+
+                <v-tab-item value="players" v-show="activeTab === 'players'">
+                  <GamesPlayersStats :game="game" />
+                </v-tab-item>
 
           
         </v-tabs-items>
