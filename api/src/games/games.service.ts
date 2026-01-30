@@ -1,7 +1,7 @@
 import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { GamesQueryDto } from './dto';
+import { GameDto, GamesQueryDto } from './dto';
 
 @Injectable()
 export class GamesService {
@@ -15,10 +15,31 @@ export class GamesService {
     this.baseUrl = this.configService.get<string>('EUROLEAGUE_API_BASE_URL', 'https://api-live.euroleague.net');
   }
 
+  private transformGame(data: any): GameDto {
+    return {
+      gameCode: data.gameCode,
+      seasonCode: data.season?.code || data.seasonCode, // fallback if flat
+      roundNumber: data.round,
+      phaseTypeCode: data.phaseType?.code,
+      phaseTypeName: data.phaseType?.name,
+      gameDate: data.date,
+      homeTeamCode: data.local?.club?.code,
+      homeTeamName: data.local?.club?.name,
+      homeScore: data.local?.score,
+      awayTeamCode: data.road?.club?.code,
+      awayTeamName: data.road?.club?.name,
+      awayScore: data.road?.score,
+      played: data.played,
+      arena: data.venue?.name,
+      attendance: data.audience,
+      groupName: data.group?.name,
+    } as GameDto;
+  }
+
   async getSeasonGames(
     seasonCode: string,
     filters?: Partial<GamesQueryDto>,
-  ): Promise<any> {
+  ): Promise<GameDto[]> {
     try {
       this.logger.log(`Fetching games for season: ${seasonCode}`);
 
@@ -46,7 +67,9 @@ export class GamesService {
       }
 
       const response = await this.httpService.get<any>(url, { params }).toPromise();
-      return response.data;
+      // API returns { data: Game[], total: number }, we need just the data array
+      const rawGames = response.data?.data || response.data || [];
+      return rawGames.map(game => this.transformGame(game));
     } catch (error) {
       this.logger.error(`Error fetching games: ${error.message}`, error.stack);
       throw new HttpException(
@@ -59,7 +82,7 @@ export class GamesService {
   async getGameDetails(
     seasonCode: string,
     gameCode: number,
-  ): Promise<any> {
+  ): Promise<GameDto> {
     try {
       this.logger.log(`Fetching game ${gameCode} for season: ${seasonCode}`);
 
@@ -67,7 +90,7 @@ export class GamesService {
       const url = `${this.baseUrl}/v2/competitions/${competitionCode}/seasons/${seasonCode}/games/${gameCode}`;
 
       const response = await this.httpService.get<any>(url).toPromise();
-      return response.data;
+      return this.transformGame(response.data);
     } catch (error) {
       this.logger.error(`Error fetching game details: ${error.message}`, error.stack);
       throw new HttpException(
@@ -80,7 +103,7 @@ export class GamesService {
   async getGamesByTeam(
     seasonCode: string,
     teamCode: string,
-  ): Promise<any> {
+  ): Promise<GameDto[]> {
     try {
       this.logger.log(`Fetching games for team: ${teamCode}, season: ${seasonCode}`);
       return this.getSeasonGames(seasonCode, { teamCode });
@@ -96,7 +119,7 @@ export class GamesService {
   async getGamesByRound(
     seasonCode: string,
     roundNumber: number,
-  ): Promise<any> {
+  ): Promise<GameDto[]> {
     try {
       this.logger.log(`Fetching games for round: ${roundNumber}, season: ${seasonCode}`);
       return this.getSeasonGames(seasonCode, { roundNumber });

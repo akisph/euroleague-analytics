@@ -1,9 +1,10 @@
 <template>
-  <PageHeader
-    :title="gameTitle"
-    :subtitle="game?.arena"
-    :breadcrumbs="breadcrumbs"
-  >
+  <div>
+    <PageHeader
+      :title="gameTitle"
+      :subtitle="game?.arena"
+      :breadcrumbs="breadcrumbs"
+    >
       <template #actions>
         <v-btn
           variant="outlined"
@@ -239,6 +240,7 @@
         @action="navigateTo('/games')"
       />
     </LoadingState>
+  </div>
 </template>
 
 <script setup lang="ts">

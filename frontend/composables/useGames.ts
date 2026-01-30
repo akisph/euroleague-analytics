@@ -21,10 +21,13 @@ export const useGames = () => {
       if (filters?.teamCode) params.teamCode = filters.teamCode
 
       const response = await api.get<Game[]>(`/games/season/${seasonCode}`, params)
+      console.log('Games API Response:', response)
+      console.log('Total games fetched:', response?.length || 0)
       games.value = response
       return response
     } catch (e: unknown) {
       error.value = e instanceof Error ? e.message : 'Failed to fetch games'
+      console.error('Error fetching games:', e)
       throw e
     } finally {
       isLoading.value = false

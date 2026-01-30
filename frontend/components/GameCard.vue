@@ -1,5 +1,9 @@
 <template>
-  <v-card :class="cardClass" class="game-card">
+  <v-card 
+    :class="[cardClass, { 'game-played': game.played, 'game-scheduled': !game.played }]" 
+    class="game-card"
+    :elevation="game.played ? 2 : 1"
+  >
     <v-card-text class="pa-4">
       <!-- Game Header -->
       <div class="d-flex align-center justify-space-between mb-3">
@@ -155,10 +159,19 @@ const formattedDate = computed(() => {
 <style scoped>
 .game-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-left: 4px solid transparent;
+}
+
+.game-card.game-played {
+  border-left-color: rgb(var(--v-theme-success));
+}
+
+.game-card.game-scheduled {
+  border-left-color: rgb(var(--v-theme-info));
 }
 
 .game-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
 }
 </style>

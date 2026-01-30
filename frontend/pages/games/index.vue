@@ -1,8 +1,9 @@
 <template>
-  <PageHeader
-    title="Games"
-    subtitle="All games for the current season"
-  >
+  <div>
+    <PageHeader
+      title="Games"
+      subtitle="All games for the current season"
+    >
       <template #actions>
         <div class="d-flex gap-2 flex-wrap">
           <v-select
@@ -47,6 +48,20 @@
     />
 
     <LoadingState :loading="isLoading" message="Loading games...">
+      <!-- Legend for game status -->
+      <v-card v-if="games.length" variant="tonal" class="mb-4 pa-3">
+        <div class="d-flex align-center gap-4 flex-wrap">
+          <div class="d-flex align-center">
+            <div class="legend-indicator bg-success mr-2"></div>
+            <span class="text-caption">Completed Games</span>
+          </div>
+          <div class="d-flex align-center">
+            <div class="legend-indicator bg-info mr-2"></div>
+            <span class="text-caption">Scheduled Games</span>
+          </div>
+        </div>
+      </v-card>
+
       <!-- Game Filters Summary -->
       <div v-if="hasActiveFilters" class="mb-4 d-flex align-center gap-2 flex-wrap">
         <v-chip
@@ -74,70 +89,130 @@
 
       <!-- Grid View -->
       <template v-if="viewMode === 'grid'">
-        <v-row v-if="games.length">
-          <v-col
-            v-for="game in games"
-            :key="game.gameCode"
-            cols="12"
-            sm="6"
-            lg="4"
+        <div v-if="games.length">
+          <!-- Group games by round -->
+          <div
+            v-for="(roundGames, roundNum) in gamesByRound"
+            :key="roundNum"
+            class="mb-8"
           >
-            <GameCard
-              :game="game"
-              show-details
-              show-action
-              @view-details="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
-            />
-          </v-col>
-        </v-row>
+            <!-- Round Header -->
+            <div class="d-flex align-center mb-4">
+              <v-chip
+                color="primary"
+                variant="tonal"
+                size="large"
+                class="mr-3"
+              >
+                <v-icon icon="mdi-basketball" class="mr-2" />
+                Round {{ roundNum }}
+              </v-chip>
+              <v-chip
+                variant="outlined"
+                size="small"
+                class="mr-3"
+              >
+                {{ roundGames.length }} {{ roundGames.length === 1 ? 'game' : 'games' }}
+              </v-chip>
+              <v-divider class="flex-grow-1" />
+            </div>
+            
+            <!-- Games Grid -->
+            <v-row>
+              <v-col
+                v-for="game in roundGames"
+                :key="game.gameCode"
+                cols="12"
+                sm="6"
+                lg="4"
+              >
+                <GameCard
+                  :game="game"
+                  show-details
+                  show-action
+                  @view-details="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
+                />
+              </v-col>
+            </v-row>
+          </div>
+        </div>
       </template>
 
       <!-- List View -->
       <template v-else>
-        <v-card v-if="games.length">
-          <v-data-table
-            :headers="gamesHeaders"
-            :items="games"
-            :items-per-page="20"
-            class="elevation-0"
+        <div v-if="games.length">
+          <!-- Group games by round -->
+          <div
+            v-for="(roundGames, roundNum) in gamesByRound"
+            :key="roundNum"
+            class="mb-6"
           >
-            <template #item.roundNumber="{ item }">
-              <v-chip size="small" variant="tonal">
-                R{{ item.roundNumber }}
+            <!-- Round Header -->
+            <div class="d-flex align-center mb-3">
+              <v-chip
+                color="primary"
+                variant="tonal"
+                class="mr-3"
+              >
+                <v-icon icon="mdi-basketball" class="mr-2" size="small" />
+                Round {{ roundNum }}
               </v-chip>
-            </template>
-            <template #item.teams="{ item }">
-              <div class="d-flex align-center">
-                <span :class="{ 'font-weight-bold': item.played && (item.homeScore || 0) > (item.awayScore || 0) }">
-                  {{ item.homeTeamName }}
-                </span>
-                <span class="mx-2 text-medium-emphasis">vs</span>
-                <span :class="{ 'font-weight-bold': item.played && (item.awayScore || 0) > (item.homeScore || 0) }">
-                  {{ item.awayTeamName }}
-                </span>
-              </div>
-            </template>
-            <template #item.score="{ item }">
-              <template v-if="item.played">
-                <span class="font-weight-bold">{{ item.homeScore }} - {{ item.awayScore }}</span>
-              </template>
-              <template v-else>
-                <v-chip size="x-small" color="info" variant="flat">Scheduled</v-chip>
-              </template>
-            </template>
-            <template #item.gameDate="{ item }">
-              {{ formatDate(item.gameDate) }}
-            </template>
-            <template #item.actions="{ item }">
-              <v-btn
-                icon="mdi-eye"
+              <v-chip
+                variant="outlined"
                 size="small"
-                variant="text"
-                @click="navigateTo(`/games/${selectedSeasonCode}/${item.gameCode}`)"
-              />
-            </template>
-          </v-data-table>
-        </v-card>
+              >
+                {{ roundGames.length }} {{ roundGames.length === 1 ? 'game' : 'games' }}
+              </v-chip>
+            </div>
+
+            <!-- Round Games Table -->
+            <v-card class="mb-4">
+              <v-data-table
+                :headers="gamesHeaders"
+                :items="roundGames"
+                :items-per-page="-1"
+                class="elevation-0"
+                hide-default-footer
+              >
+                <template #item.roundNumber="{ item }">
+                  <v-chip size="small" variant="tonal" color="primary">
+                    R{{ item.roundNumber }}
+                  </v-chip>
+                </template>
+                <template #item.teams="{ item }">
+                  <div class="d-flex align-center">
+                    <span :class="{ 'font-weight-bold': item.played && (item.homeScore || 0) > (item.awayScore || 0) }">
+                      {{ item.homeTeamName }}
+                    </span>
+                    <span class="mx-2 text-medium-emphasis">vs</span>
+                    <span :class="{ 'font-weight-bold': item.played && (item.awayScore || 0) > (item.homeScore || 0) }">
+                      {{ item.awayTeamName }}
+                    </span>
+                  </div>
+                </template>
+                <template #item.score="{ item }">
+                  <template v-if="item.played">
+                    <span class="font-weight-bold">{{ item.homeScore }} - {{ item.awayScore }}</span>
+                  </template>
+                  <template v-else>
+                    <v-chip size="x-small" color="info" variant="flat">Scheduled</v-chip>
+                  </template>
+                </template>
+                <template #item.gameDate="{ item }">
+                  {{ formatDate(item.gameDate) }}
+                </template>
+                <template #item.actions="{ item }">
+                  <v-btn
+                    icon="mdi-eye"
+                    size="small"
+                    variant="text"
+                    @click="navigateTo(`/games/${selectedSeasonCode}/${item.gameCode}`)"
+                  />
+                </template>
+              </v-data-table>
+            </v-card>
+          </div>
+        </div>
       </template>
 
       <EmptyState
@@ -149,6 +224,7 @@
         @action="clearFilters"
       />
     </LoadingState>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -173,6 +249,28 @@ const teamOptions = computed(() => {
 
 const hasActiveFilters = computed(() => {
   return selectedRound.value !== null || selectedTeam.value !== ''
+})
+
+// Group games by round for better visualization
+const gamesByRound = computed(() => {
+  const grouped: Record<number, typeof games.value> = {}
+  
+  games.value.forEach((game) => {
+    const round = game.roundNumber || 0
+    if (!grouped[round]) {
+      grouped[round] = []
+    }
+    grouped[round].push(game)
+  })
+  
+  // Sort rounds in descending order (latest first)
+  return Object.keys(grouped)
+    .map(Number)
+    .sort((a, b) => b - a)
+    .reduce((acc, roundNum) => {
+      acc[roundNum] = grouped[roundNum]
+      return acc
+    }, {} as Record<number, typeof games.value>)
 })
 
 const gamesHeaders = [
@@ -246,3 +344,11 @@ onMounted(() => {
   }
 })
 </script>
+
+<style scoped>
+.legend-indicator {
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+}
+</style>
