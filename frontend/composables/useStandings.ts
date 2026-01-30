@@ -14,9 +14,21 @@ export const useStandings = () => {
     try {
       isLoading.value = true
       error.value = null
-      const response = await api.get<Standings[]>(`/standings/season/${seasonCode}/round/${roundNumber}`)
-      standings.value = response
-      return response
+      const response = await api.get<any>(`/standings/season/${seasonCode}/round/${roundNumber}`)
+      // The standings endpoint returns data directly or might have nested structure
+      if (response.teams) {
+        // Single group standings - wrap it in an array
+        standings.value = [{
+          groupCode: response.groupCode || 'default',
+          groupName: response.groupName || 'Standings',
+          standings: response.teams
+        }]
+      } else if (Array.isArray(response)) {
+        standings.value = response
+      } else {
+        standings.value = []
+      }
+      return standings.value
     } catch (e: unknown) {
       error.value = e instanceof Error ? e.message : 'Failed to fetch standings'
       throw e

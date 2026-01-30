@@ -151,34 +151,74 @@ const bestDefenseTeam = computed(() => {
 })
 
 const loadStandings = async () => {
-  if (!selectedSeasonCode.value || !selectedRound.value) return
+  if (!selectedSeasonCode.value || !selectedRound.value) {
+    console.log('Cannot load standings - missing:', { season: selectedSeasonCode.value, round: selectedRound.value })
+    return
+  }
+  console.log('Loading standings for:', selectedSeasonCode.value, 'round:', selectedRound.value)
   await fetchSeasonStandings(selectedSeasonCode.value, selectedRound.value)
 }
 
 const loadInitialData = async () => {
-  if (!selectedSeasonCode.value) return
+  console.log('=== loadInitialData called ===')
+  console.log('Selected season:', selectedSeasonCode.value)
   
-  // First load rounds to get the latest round
-  await fetchSeasonRounds(selectedSeasonCode.value)
-  
-  // Set default round to latest
-  if (latestRound.value && !selectedRound.value) {
-    selectedRound.value = latestRound.value.roundNumber
+  if (!selectedSeasonCode.value) {
+    console.log('No season selected - waiting for season store')
+    return
   }
   
-  // Load standings
-  await loadStandings()
+  try {
+    console.log('Loading rounds for season:', selectedSeasonCode.value)
+    await fetchSeasonRounds(selectedSeasonCode.value)
+    
+    console.log('Rounds loaded:', rounds.value.length)
+    console.log('Latest round:', latestRound.value?.roundNumber)
+    console.log('Round options:', roundOptions.value)
+    
+    if (latestRound.value) {
+      selectedRound.value = latestRound.value.roundNumber
+      console.log('Selected round set to:', selectedRound.value)
+      
+      if (selectedRound.value) {
+        console.log('Calling fetchSeasonStandings...')
+        await fetchSeasonStandings(selectedSeasonCode.value, selectedRound.value)
+        console.log('Standings loaded:', standings.value.length)
+      }
+    } else {
+      console.log('No latest round found')
+    }
+  } catch (err) {
+    console.error('Failed to load initial data:', err)
+  }
 }
 
 // Watch for season changes
-watch(selectedSeasonCode, () => {
-  selectedRound.value = null
-  loadInitialData()
-}, { immediate: true })
+watch(selectedSeasonCode, async (newSeason) => {
+  console.log('Season changed to:', newSeason)
+  if (newSeason) {
+    selectedRound.value = null
+    await loadInitialData()
+  }
+})
 
-onMounted(() => {
-  if (selectedSeasonCode.value) {
-    loadInitialData()
+onMounted(async () => {
+  console.log('=== Standings page mounted ===')
+  console.log('Initial season code:', selectedSeasonCode.value)
+  
+  // Wait for season to be loaded if not available yet
+  if (!selectedSeasonCode.value) {
+    console.log('Waiting for season to be loaded...')
+    // Watch for when season becomes available
+    const unwatch = watch(selectedSeasonCode, async (newSeason) => {
+      if (newSeason) {
+        console.log('Season now available:', newSeason)
+        unwatch() // Stop watching
+        await loadInitialData()
+      }
+    })
+  } else {
+    await loadInitialData()
   }
 })
 </script>

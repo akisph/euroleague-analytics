@@ -14,9 +14,10 @@ export const useRounds = () => {
     try {
       isLoading.value = true
       error.value = null
-      const response = await api.get<Round[]>(`/rounds/season/${seasonCode}`)
-      rounds.value = response
-      return response
+      const response = await api.get<any>(`/rounds/season/${seasonCode}`)
+      // Check if response has a data property (wrapped response)
+      rounds.value = response.data || response
+      return rounds.value
     } catch (e: unknown) {
       error.value = e instanceof Error ? e.message : 'Failed to fetch rounds'
       throw e
