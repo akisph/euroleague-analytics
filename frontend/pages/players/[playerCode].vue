@@ -118,7 +118,7 @@
           </v-row>
         </template>
 
-        <EmptyState
+        <SharedEmptyState
           v-else
           title="Player Not Found"
           message="The requested player could not be found"
@@ -131,10 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import PageHeader from '~/components/shared/PageHeader.vue'
-import ErrorAlert from '~/components/shared/ErrorAlert.vue'
-import LoadingState from '~/components/shared/LoadingState.vue'
-import EmptyState from '~/components/shared/EmptyState.vue'
+
 
 const route = useRoute()
 const { fetchPlayerByCode, currentPlayer: player, isLoading, error } = useTeams()

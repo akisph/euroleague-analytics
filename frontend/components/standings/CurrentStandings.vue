@@ -17,7 +17,7 @@
           />
         </template>
 
-        <EmptyState
+        <SharedEmptyState
           v-else
           title="No Standings Available"
           message="Standings data will appear once games are played"

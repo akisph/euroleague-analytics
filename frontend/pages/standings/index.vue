@@ -15,9 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import PageHeader from '~/components/shared/PageHeader.vue'
-import LoadingState from '~/components/shared/LoadingState.vue'
-import CurrentStandings from '~/components/standings/CurrentStandings.vue'
+
 </script>
 
 <style scoped>

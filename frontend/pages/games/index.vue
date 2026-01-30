@@ -62,7 +62,7 @@
                   <div v-if="gamesByRound[roundNum].completed.length > 0" class="mb-8">
                     <div class="d-flex align-center mb-4">
                       <v-icon icon="mdi-check-circle" color="success" class="mr-2" />
-                      <span class="font-weight-bold text-h6">Completed ({{ gamesByRound[roundNum].completed.length }})</span>
+                      <span class="text-success font-weight-bold text-h6">Completed ({{ gamesByRound[roundNum].completed.length }})</span>
                     </div>
 
                     <!-- Grid View for Completed -->
@@ -75,7 +75,7 @@
                           sm="6"
                           lg="4"
                         >
-                          <GameCard
+                          <GamesCard
                             :game="game"
                             show-details
                             show-action
@@ -93,7 +93,7 @@
                           :key="dayItem.date"
                           class="mb-4"
                         >
-                          <div class="text-subtitle-2 font-weight-bold mb-2 pa-2 bg-light rounded">
+                          <div class="text-subtitle-2 font-weight-bold mb-2 pa-2 bg-light rounded text-black">
                             {{ dayItem.date }}
                           </div>
                           <v-card variant="outlined" class="table-card">
@@ -152,7 +152,7 @@
                   <div v-if="gamesByRound[roundNum].scheduled.length > 0">
                     <div class="d-flex align-center mb-4">
                       <v-icon icon="mdi-clock-outline" color="info" class="mr-2" />
-                      <span class="font-weight-bold text-h6">Scheduled ({{ gamesByRound[roundNum].scheduled.length }})</span>
+                      <span class="font-weight-bold text-h6 text-info">Scheduled ({{ gamesByRound[roundNum].scheduled.length }})</span>
                     </div>
 
                     <!-- Grid View for Scheduled -->
@@ -165,7 +165,7 @@
                           sm="6"
                           lg="4"
                         >
-                          <GameCard
+                          <GamesCard
                             :game="game"
                             show-details
                             show-action
@@ -183,7 +183,7 @@
                           :key="dayItem.date"
                           class="mb-4"
                         >
-                          <div class="text-subtitle-2 font-weight-bold mb-2 pa-2 bg-light rounded">
+                          <div class="text-subtitle-2 font-weight-bold mb-2 pa-2 bg-light rounded text-black">
                             {{ dayItem.date }}
                           </div>
                           <v-card variant="outlined" class="table-card">
@@ -239,7 +239,7 @@
         </v-card>
       </template>
 
-      <EmptyState
+      <SharedEmptyState
         v-if="!games.length"
         title="No Games Found"
         :message="hasActiveFilters ? 'No games match your filter criteria' : 'No games available for this season'"
@@ -252,11 +252,7 @@
 </template>
 
 <script setup lang="ts">
-import PageHeader from '~/components/shared/PageHeader.vue'
-import ErrorAlert from '~/components/shared/ErrorAlert.vue'
-import LoadingState from '~/components/shared/LoadingState.vue'
-import EmptyState from '~/components/shared/EmptyState.vue'
-import GameCard from '~/components/games/GameCard.vue'
+
 
 const route = useRoute()
 const seasonStore = useSeasonStore()

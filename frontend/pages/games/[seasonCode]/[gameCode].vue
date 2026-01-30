@@ -231,7 +231,7 @@
         </v-card>
       </template>
 
-      <EmptyState
+      <SharedEmptyState
         v-else
         title="Game Not Found"
         message="The requested game could not be found"
@@ -244,10 +244,6 @@
 </template>
 
 <script setup lang="ts">
-import PageHeader from '~/components/shared/PageHeader.vue'
-import ErrorAlert from '~/components/shared/ErrorAlert.vue'
-import LoadingState from '~/components/shared/LoadingState.vue'
-import EmptyState from '~/components/shared/EmptyState.vue'
 
 const route = useRoute()
 const { fetchGameDetails, currentGame: game, isLoading, error } = useGames()
