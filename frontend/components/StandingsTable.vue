@@ -13,6 +13,7 @@
       :items-per-page="-1"
       class="elevation-0"
       density="compact"
+      hide-default-footer
     >
       <!-- Position -->
       <template #item.position="{ item }">
