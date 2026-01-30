@@ -71,3 +71,24 @@ const teamInitials = computed(() => {
   return props.teamCode.substring(0, 3).toUpperCase()
 })
 </script>
+
+<style scoped>
+:deep(.v-card) {
+  background-color: #ffffff;
+  border: 1px solid #e0e6f0;
+}
+
+:deep(.text-h6) {
+  color: #1a2742 !important;
+}
+
+:deep(.text-primary) {
+  color: #F05323 !important;
+}
+
+@media (max-width: 768px) {
+  :deep(.v-card) {
+    border-radius: 8px;
+  }
+}
+</style>

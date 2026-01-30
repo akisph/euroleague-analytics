@@ -94,3 +94,33 @@ const formattedBirthDate = computed(() => {
   })
 })
 </script>
+
+<style scoped>
+:deep(.v-card) {
+  background-color: #ffffff;
+  border: 1px solid #e0e6f0;
+}
+
+:deep(.text-h6) {
+  color: #1a2742 !important;
+}
+
+:deep(.v-chip) {
+  background-color: rgba(240, 83, 35, 0.1) !important;
+  color: #F05323 !important;
+}
+
+:deep(.text-medium-emphasis) {
+  color: #8a92a2 !important;
+}
+
+:deep(.text-caption) {
+  color: #b0b8c8 !important;
+}
+
+@media (max-width: 768px) {
+  :deep(.v-card) {
+    border-radius: 8px;
+  }
+}
+</style>

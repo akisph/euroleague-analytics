@@ -27,3 +27,9 @@ withDefaults(defineProps<Props>(), {
   size: 48,
 })
 </script>
+
+<style scoped>
+.loading-container {
+  width: 100%;
+}
+</style>

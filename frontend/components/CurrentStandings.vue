@@ -8,20 +8,22 @@
     />
 
     <LoadingState :loading="isLoading" message="Loading standings...">
-      <template v-if="allTeamStandings.length">
-        <StandingsTable
-          :standings="allTeamStandings"
-          :title="title"
-          :subtitle="subtitle"
-        />
-      </template>
+      <div class="standings-wrapper">
+        <template v-if="allTeamStandings.length">
+          <StandingsTable
+            :standings="allTeamStandings"
+            :title="title"
+            :subtitle="subtitle"
+          />
+        </template>
 
-      <EmptyState
-        v-else
-        title="No Standings Available"
-        message="Standings data will appear once games are played"
-        icon="mdi-format-list-numbered"
-      />
+        <EmptyState
+          v-else
+          title="No Standings Available"
+          message="Standings data will appear once games are played"
+          icon="mdi-format-list-numbered"
+        />
+      </div>
     </LoadingState>
   </div>
 </template>
@@ -71,3 +73,26 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+.standings-wrapper {
+  background-color: #ffffff;
+  border: 1px solid #e0e6f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.standings-wrapper :deep(.v-card) {
+  background-color: #ffffff;
+  border: none;
+  box-shadow: none;
+}
+
+@media (max-width: 768px) {
+  .standings-wrapper {
+    border-radius: 12px;
+  }
+}
+</style>
+

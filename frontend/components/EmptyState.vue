@@ -30,3 +30,30 @@ defineEmits<{
   (e: 'action'): void
 }>()
 </script>
+
+<style scoped>
+.empty-state {
+  background-color: #ffffff !important;
+  border: 1px solid #e0e6f0 !important;
+  color: #8a92a2;
+}
+
+.empty-state :deep(.v-icon) {
+  color: #c8d1e0 !important;
+}
+
+.empty-state :deep(.text-h6) {
+  color: #1a2742 !important;
+  font-weight: 700;
+}
+
+.empty-state :deep(.text-body-2) {
+  color: #8a92a2 !important;
+}
+
+@media (max-width: 768px) {
+  .empty-state {
+    padding: 2rem 1rem !important;
+  }
+}
+</style>

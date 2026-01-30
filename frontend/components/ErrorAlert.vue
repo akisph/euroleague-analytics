@@ -40,3 +40,13 @@ defineEmits<{
   (e: 'dismiss'): void
 }>()
 </script>
+
+<style scoped>
+.v-alert {
+  border-radius: 8px !important;
+}
+
+.v-alert :deep(.v-alert__title) {
+  font-weight: 700;
+}
+</style>

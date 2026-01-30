@@ -2,96 +2,180 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom global styles */
+/* Color System */
 :root {
-  --euroleague-orange: #F05323;
-  --euroleague-dark: #1a1a2e;
+  --color-primary: #F05323;
+  --color-secondary: #1a2742;
+  --color-background: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-text-dark: #1a1a1a;
+  --color-text-body: #3a3a4a;
+  --color-text-muted: #8a92a2;
+  --color-text-light: #b0b8c8;
+  --color-border: #e0e6f0;
+  --color-border-light: #eff1f5;
+  --color-success: #28a745;
+  --color-error: #dc3545;
+  --color-warning: #ffc107;
+  --color-info: #17a2b8;
 }
 
-/* Smooth transitions for theme switching */
-.v-theme--light,
-.v-theme--dark {
-  transition: background-color 0.3s ease, color 0.3s ease;
+/* Typography */
+html {
+  background-color: var(--color-background);
 }
 
-/* Custom scrollbar */
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-body);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.3px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-secondary);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+h4 {
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+}
+
+p {
+  margin: 0 0 1rem 0;
+  color: var(--color-text-body);
+}
+
+/* Links */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #ff6b3d;
+  text-decoration: underline;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--color-background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: var(--color-text-light);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--color-text-muted);
 }
 
-/* Data table enhancements */
+/* Global Component Styles */
+.v-card {
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s ease;
+}
+
+.v-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+}
+
+.v-btn {
+  text-transform: none;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.v-btn--flat {
+  background-color: var(--color-primary) !important;
+  color: #ffffff !important;
+}
+
+.v-btn--flat:hover {
+  background-color: #ff6b3d !important;
+}
+
+.v-btn--outlined {
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-dark) !important;
+}
+
+.v-chip {
+  border-radius: 6px !important;
+  font-weight: 500;
+}
+
+/* Data Table */
 .v-data-table {
-  @apply rounded-lg overflow-hidden;
+  background-color: var(--color-surface) !important;
 }
 
-/* Card hover effects */
-.stats-card {
-  @apply transition-all duration-300;
+.v-data-table th {
+  background-color: var(--color-primary) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.3px;
 }
 
-.stats-card:hover {
-  @apply shadow-lg;
-  transform: translateY(-2px);
+.v-data-table td {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text-body) !important;
+  border-bottom: 1px solid var(--color-border) !important;
 }
 
-/* Basketball-themed gradient */
-.basketball-gradient {
-  background: linear-gradient(135deg, #F05323 0%, #b92a1a 100%);
+.v-data-table tbody tr:hover {
+  background-color: var(--color-background) !important;
 }
 
-/* Score highlight */
-.score-win {
-  @apply text-green-600 font-bold;
+/* Text Utilities */
+.text-muted {
+  color: var(--color-text-muted) !important;
 }
 
-.score-loss {
-  @apply text-red-600;
+.text-light {
+  color: var(--color-text-light) !important;
 }
 
-/* Loading skeleton animation */
-.skeleton-loading {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton 1.5s infinite;
-}
-
-@keyframes skeleton {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* Team logo placeholder */
-.team-logo-placeholder {
-  @apply bg-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold;
-}
-
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  .v-data-table__wrapper {
-    @apply text-sm;
-  }
-}
-
-/* Navigation highlight */
-.nav-item-active {
-  background: rgba(240, 83, 35, 0.1) !important;
-  border-left: 3px solid var(--euroleague-orange) !important;
+/* Badge/Chips */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }

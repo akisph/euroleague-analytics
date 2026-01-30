@@ -137,10 +137,31 @@ onMounted(() => {
 .club-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+  background-color: #ffffff;
+  border: 1px solid #e0e6f0;
 }
 
 .club-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.club-card :deep(.v-card-text) {
+  background-color: #ffffff;
+}
+
+.club-card :deep(.text-h6) {
+  color: #1a2742 !important;
+}
+
+.club-card :deep(.v-chip) {
+  background-color: rgba(240, 83, 35, 0.1) !important;
+  color: #F05323 !important;
+}
+
+@media (max-width: 768px) {
+  .club-card {
+    border-radius: 8px;
+  }
 }
 </style>

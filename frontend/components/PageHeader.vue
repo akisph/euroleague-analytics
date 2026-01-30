@@ -1,19 +1,11 @@
 <template>
-  <div class="page-header mb-6">
-    <div class="d-flex align-center justify-space-between flex-wrap">
-      <div>
-        <v-breadcrumbs
-          v-if="breadcrumbs && breadcrumbs.length > 0"
-          :items="breadcrumbs"
-          class="pa-0 mb-1"
-          density="compact"
-        />
-        <h1 class="text-h4 font-weight-bold">{{ title }}</h1>
-        <p v-if="subtitle" class="text-body-1 text-medium-emphasis mt-1">
-          {{ subtitle }}
-        </p>
+  <div class="page-header">
+    <div class="header-top">
+      <div class="header-left">
+        <h1 class="page-title">{{ title }}</h1>
+        <p v-if="subtitle" class="page-subtitle">{{ subtitle }}</p>
       </div>
-      <div v-if="$slots.actions" class="mt-2 mt-md-0">
+      <div v-if="$slots.actions" class="header-actions">
         <slot name="actions" />
       </div>
     </div>
@@ -35,3 +27,63 @@ interface Props {
 
 defineProps<Props>()
 </script>
+
+<style scoped>
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  color: #1a2742;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: #8a92a2;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .header-top {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+}
+</style>

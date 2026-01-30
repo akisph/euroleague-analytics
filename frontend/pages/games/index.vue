@@ -495,23 +495,73 @@ onMounted(() => {
 
 .table-card {
   margin-bottom: 0;
+  background-color: #ffffff;
+  border: 1px solid #e0e6f0;
 }
 
-.fixed-table :deep(table) {
+.table-card :deep(.v-data-table) {
+  background-color: #ffffff;
+}
+
+.table-card :deep(table) {
   table-layout: fixed;
   width: 100%;
 }
 
-.fixed-table :deep(thead th) {
+.table-card :deep(thead) {
+  background-color: #F05323;
+}
+
+.table-card :deep(thead th) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #ffffff !important;
+  font-weight: 700 !important;
 }
 
-.fixed-table :deep(tbody td) {
+.table-card :deep(tbody td) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 8px 4px !important;
+  background-color: #ffffff;
+  color: #1a1a1a;
+}
+
+.table-card :deep(tbody tr:hover) {
+  background-color: #f9fafb !important;
+}
+
+:deep(.v-card) {
+  background-color: #ffffff;
+  border: 1px solid #e0e6f0;
+}
+
+:deep(.v-tabs__bar) {
+  background-color: #1a2742 !important;
+}
+
+:deep(.v-tabs) {
+  background-color: transparent !important;
+}
+
+:deep(.v-tab) {
+  color: #8a92a2 !important;
+}
+
+:deep(.v-tab--selected) {
+  color: #F05323 !important;
+  font-weight: 700;
+}
+
+:deep(.v-slide-group__content) {
+  border-bottom: 2px solid transparent;
+}
+
+@media (max-width: 768px) {
+  .table-card {
+    border-radius: 8px;
+  }
 }
 </style>

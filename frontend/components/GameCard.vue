@@ -1,121 +1,101 @@
 <template>
-  <v-card 
-    :class="[cardClass, { 'game-played': game.played, 'game-scheduled': !game.played }]" 
-    class="game-card"
-    :elevation="game.played ? 2 : 1"
-  >
-    <v-card-text class="pa-4">
-      <!-- Game Header -->
-      <div class="d-flex align-center justify-space-between mb-3">
-        <v-chip
-          v-if="game.phaseTypeName"
-          size="small"
-          variant="tonal"
-          color="primary"
-        >
-          {{ game.phaseTypeName }}
-        </v-chip>
-        <div class="text-caption text-medium-emphasis">
-          Round {{ game.roundNumber }}
+  <div class="game-card-wrapper">
+    <v-card 
+      :class="['game-card', { 'game-card--played': game.played, 'game-card--scheduled': !game.played }]"
+    >
+      <div class="card-header">
+        <div class="header-left">
+          <v-chip
+            v-if="game.phaseTypeName"
+            size="x-small"
+            variant="flat"
+            color="primary"
+            class="phase-badge"
+          >
+            {{ game.phaseTypeName }}
+          </v-chip>
+        </div>
+        <div class="header-right">
+          <span class="round-label">Round {{ game.roundNumber }}</span>
         </div>
       </div>
 
-      <!-- Teams -->
-      <div class="d-flex align-center justify-space-between mb-3">
-        <!-- Home Team -->
-        <div class="team-section text-center flex-grow-1">
-          <v-avatar size="48" color="grey-lighten-3" class="mb-2">
-            <span class="text-subtitle-2 font-weight-bold">
-              {{ game.homeTeamCode?.substring(0, 3) }}
-            </span>
-          </v-avatar>
-          <div
-            class="text-body-2 font-weight-medium text-truncate"
-            :class="game.played && isHomeWinner ? 'text-success' : ''"
-            style="max-width: 100px;"
-          >
-            {{ game.homeTeamName }}
+      <div class="card-content">
+        <!-- Teams Section -->
+        <div class="teams-container">
+          <!-- Home Team -->
+          <div class="team-info">
+            <v-avatar size="48" color="#e0e6f0">
+              <span class="team-code">{{ game.homeTeamCode?.substring(0, 3) }}</span>
+            </v-avatar>
+            <div class="team-name">{{ game.homeTeamName }}</div>
+          </div>
+
+          <!-- Score Section -->
+          <div class="score-container">
+            <template v-if="game.played">
+              <div class="score-display">
+                <span class="score" :class="isHomeWinner ? 'score--win' : ''">
+                  {{ game.homeScore }}
+                </span>
+                <span class="score-divider">-</span>
+                <span class="score" :class="isAwayWinner ? 'score--win' : ''">
+                  {{ game.awayScore }}
+                </span>
+              </div>
+              <v-chip
+                size="x-small"
+                color="success"
+                variant="flat"
+                class="status-badge"
+              >
+                Final
+              </v-chip>
+            </template>
+            <template v-else>
+              <div class="score-display">VS</div>
+              <div v-if="formattedDate" class="game-date">
+                {{ formattedDate }}
+              </div>
+            </template>
+          </div>
+
+          <!-- Away Team -->
+          <div class="team-info">
+            <v-avatar size="48" color="#e0e6f0">
+              <span class="team-code">{{ game.awayTeamCode?.substring(0, 3) }}</span>
+            </v-avatar>
+            <div class="team-name">{{ game.awayTeamName }}</div>
           </div>
         </div>
 
-        <!-- Score -->
-        <div class="score-section mx-4 text-center">
-          <template v-if="game.played">
-            <div class="d-flex align-center justify-center">
-              <span
-                class="text-h4 font-weight-bold"
-                :class="isHomeWinner ? 'text-success' : ''"
-              >
-                {{ game.homeScore }}
-              </span>
-              <span class="text-h5 mx-2 text-medium-emphasis">-</span>
-              <span
-                class="text-h4 font-weight-bold"
-                :class="isAwayWinner ? 'text-success' : ''"
-              >
-                {{ game.awayScore }}
-              </span>
-            </div>
-            <v-chip
-              size="x-small"
-              color="success"
-              variant="flat"
-              class="mt-1"
-            >
-              Final
-            </v-chip>
-          </template>
-          <template v-else>
-            <div class="text-h5 font-weight-bold text-medium-emphasis">VS</div>
-            <div v-if="formattedDate" class="text-caption text-medium-emphasis mt-1">
-              {{ formattedDate }}
-            </div>
-          </template>
-        </div>
-
-        <!-- Away Team -->
-        <div class="team-section text-center flex-grow-1">
-          <v-avatar size="48" color="grey-lighten-3" class="mb-2">
-            <span class="text-subtitle-2 font-weight-bold">
-              {{ game.awayTeamCode?.substring(0, 3) }}
-            </span>
-          </v-avatar>
-          <div
-            class="text-body-2 font-weight-medium text-truncate"
-            :class="game.played && isAwayWinner ? 'text-success' : ''"
-            style="max-width: 100px;"
-          >
-            {{ game.awayTeamName }}
+        <!-- Game Details -->
+        <div v-if="showDetails && (game.arena || game.attendance)" class="game-details">
+          <div v-if="game.arena" class="detail-item">
+            <v-icon size="16" icon="mdi-stadium" class="mr-1" />
+            <span>{{ game.arena }}</span>
+          </div>
+          <div v-if="game.attendance" class="detail-item">
+            <v-icon size="16" icon="mdi-account-group" class="mr-1" />
+            <span>{{ game.attendance?.toLocaleString() }}</span>
           </div>
         </div>
-      </div>
 
-      <!-- Game Info -->
-      <v-divider v-if="showDetails" class="my-3" />
-      <div v-if="showDetails" class="d-flex align-center justify-space-between text-caption text-medium-emphasis">
-        <div v-if="game.arena">
-          <v-icon size="14" icon="mdi-stadium" class="mr-1" />
-          {{ game.arena }}
-        </div>
-        <div v-if="game.attendance">
-          <v-icon size="14" icon="mdi-account-group" class="mr-1" />
-          {{ game.attendance?.toLocaleString() }}
-        </div>
-      </div>
-
-      <!-- Action Button -->
-      <div v-if="showAction" class="mt-3">
+        <!-- Action Button -->
         <v-btn
+          v-if="showAction"
           block
-          variant="tonal"
           color="primary"
+          variant="flat"
+          size="small"
+          class="action-btn"
           @click="$emit('view-details')"
         >
           View Details
         </v-btn>
       </div>
-    </v-card-text>
-  </v-card>
+    </v-card>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -165,21 +145,171 @@ const formattedDate = computed(() => {
 </script>
 
 <style scoped>
+.game-card-wrapper {
+  height: 100%;
+}
+
 .game-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border-left: 4px solid transparent;
+  background-color: #ffffff !important;
+  border: 2px solid transparent !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: all 0.3s ease;
+  overflow: hidden;
 }
 
-.game-card.game-played {
-  border-left-color: rgb(var(--v-theme-success));
+.game-card--played {
+  border-left-color: #28a745 !important;
 }
 
-.game-card.game-scheduled {
-  border-left-color: rgb(var(--v-theme-info));
+.game-card--scheduled {
+  border-left-color: #17a2b8 !important;
 }
 
 .game-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #e0e6f0;
+  background-color: #f9fafb;
+}
+
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.phase-badge {
+  background-color: rgba(240, 83, 35, 0.1) !important;
+  color: #F05323 !important;
+}
+
+.round-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8a92a2;
+  letter-spacing: 0.3px;
+}
+
+.card-content {
+  padding: 1.5rem 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.teams-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 0.5rem;
+}
+
+.team-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.team-code {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1a2742;
+}
+
+.team-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a2742;
+  text-align: center;
+  word-break: break-word;
+}
+
+.score-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  min-width: fit-content;
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1a2742;
+}
+
+.score {
+  line-height: 1;
+}
+
+.score--win {
+  color: #28a745;
+}
+
+.score-divider {
+  opacity: 0.5;
+  font-size: 1.5rem;
+}
+
+.game-date {
+  font-size: 0.75rem;
+  color: #8a92a2;
+  font-weight: 500;
+}
+
+.status-badge {
+  background-color: rgba(40, 167, 69, 0.2) !important;
+  color: #28a745 !important;
+}
+
+.game-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: #f9fafb;
+  border-radius: 8px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #8a92a2;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  margin-top: auto;
+}
+
+@media (max-width: 768px) {
+  .card-content {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .score-display {
+    font-size: 1.5rem;
+  }
 }
 </style>

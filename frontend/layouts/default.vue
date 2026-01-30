@@ -1,122 +1,82 @@
 <template>
-  <div class="tailwind">
-    <!-- Navigation Drawer -->
-    <v-navigation-drawer
-      v-model="drawer"
-      :rail="rail"
-      permanent
-      class="bg-surface"
-    >
-      <v-list-item
-        prepend-icon="mdi-basketball"
-        title="Euroleague"
-        subtitle="Basketball Dashboard"
-        nav
-        class="px-4 py-4"
-      >
-        <template #append>
-          <v-btn
-            :icon="rail ? 'mdi-chevron-right' : 'mdi-chevron-left'"
-            variant="text"
-            @click.stop="rail = !rail"
-          />
-        </template>
-      </v-list-item>
+  <div class="app-container">
+    <!-- Navigation Bar -->
+    <header class="app-navbar">
+      <div class="navbar-wrapper">
+        <!-- Logo -->
+        <NuxtLink to="/" class="navbar-logo">
+          <div class="logo-icon">🏀</div>
+          <div class="logo-text">Euroleague</div>
+        </NuxtLink>
 
-      <v-divider />
-
-      <v-list density="compact" nav class="py-2">
-        <v-list-item
-          v-for="item in navItems"
-          :key="item.to"
-          :to="item.to"
-          :prepend-icon="item.icon"
-          :title="item.title"
-          :active="$route.path === item.to"
-          rounded="lg"
-          class="mx-2 my-1"
-          active-class="nav-item-active"
-        />
-      </v-list>
-
-      <template #append>
-        <div class="pa-2">
-          <v-divider class="mb-2" />
-          <v-btn
-            block
-            :prepend-icon="themeStore.isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
-            variant="tonal"
-            @click="themeStore.toggleTheme()"
+        <!-- Navigation Menu -->
+        <nav class="navbar-menu">
+          <NuxtLink 
+            v-for="item in navItems" 
+            :key="item.to"
+            :to="item.to"
+            :class="['nav-link', { 'nav-link--active': isActiveRoute(item.to) }]"
           >
-            {{ rail ? '' : (themeStore.isDark ? 'Light' : 'Dark') }}
-          </v-btn>
+            {{ item.title }}
+          </NuxtLink>
+        </nav>
+
+        <!-- Right Side Actions -->
+        <div class="navbar-right">
+          <v-select
+            v-model="selectedSeason"
+            :items="seasonOptions"
+            label="Season"
+            density="compact"
+            variant="outlined"
+            hide-details
+            class="season-selector"
+            :loading="isLoadingSeasons"
+          />
         </div>
-      </template>
-    </v-navigation-drawer>
+      </div>
+    </header>
 
-    <!-- App Bar -->
-    <v-app-bar flat class="px-4 border-b">
-      <v-app-bar-nav-icon
-        class="d-lg-none"
-        @click.stop="drawer = !drawer"
-      />
-
-      <v-toolbar-title class="font-weight-bold">
-        <span class="text-primary">Euroleague</span> Dashboard
-      </v-toolbar-title>
-
-      <v-spacer />
-
-      <!-- Season Selector -->
-      <v-select
-        v-model="selectedSeason"
-        :items="seasonOptions"
-        label="Season"
-        density="compact"
-        variant="outlined"
-        hide-details
-        class="max-w-[200px]"
-        :loading="isLoadingSeasons"
-      />
-    </v-app-bar>
-
-    <!-- Main Content -->
-    <v-main>
-      <v-container fluid class="pa-6">
+    <!-- Main Content Area -->
+    <main class="app-main">
+      <div class="content-wrapper">
         <slot />
-      </v-container>
-    </v-main>
+      </div>
+    </main>
 
     <!-- Footer -->
-    <v-footer app class="bg-surface border-t">
-      <v-row no-gutters align="center" justify="center">
-        <span class="text-body-2 text-medium-emphasis">
-          © {{ new Date().getFullYear() }} Euroleague Basketball Dashboard
-        </span>
-      </v-row>
-    </v-footer>
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p class="footer-text">© {{ new Date().getFullYear() }} Euroleague Basketball Dashboard</p>
+      </div>
+    </footer>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { NavItem } from '~/types'
 
-const themeStore = useThemeStore()
 const seasonStore = useSeasonStore()
 const { fetchSeasons, seasonOptions } = useSeasons()
+const route = useRoute()
 
-// Drawer state
-const drawer = ref(true)
-const rail = ref(false)
 const isLoadingSeasons = ref(false)
 
 // Navigation items
 const navItems: NavItem[] = [
-  { title: 'Dashboard', icon: 'mdi-view-dashboard', to: '/' },
-  { title: 'Clubs', icon: 'mdi-shield-home', to: '/clubs' },
-  { title: 'Games', icon: 'mdi-basketball', to: '/games' },
-  { title: 'Standings', icon: 'mdi-format-list-numbered', to: '/standings' },
+  { title: 'DASHBOARD', icon: 'mdi-view-dashboard', to: '/' },
+  { title: 'CLUBS', icon: 'mdi-shield-home', to: '/clubs' },
+  { title: 'GAMES', icon: 'mdi-basketball', to: '/games' },
+  { title: 'STANDINGS', icon: 'mdi-format-list-numbered', to: '/standings' },
 ]
+
+// Check if route is active
+const isActiveRoute = (itemPath: string) => {
+  if (itemPath === '/') {
+    return route.path === '/'
+  }
+  return route.path.startsWith(itemPath)
+}
 
 // Selected season computed
 const selectedSeason = computed({
@@ -126,7 +86,6 @@ const selectedSeason = computed({
 
 // Initialize data
 onMounted(async () => {
-  themeStore.loadTheme()
   isLoadingSeasons.value = true
   try {
     await fetchSeasons()
@@ -140,8 +99,195 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.nav-item-active {
-  background: rgba(240, 83, 35, 0.1) !important;
-  border-left: 3px solid rgb(var(--v-theme-primary)) !important;
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+/* Navigation Bar */
+.app-navbar {
+  background: linear-gradient(to right, #1a2742 0%, #1e3050 100%);
+  border-bottom: 3px solid #F05323;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 1rem 2rem;
+  gap: 2rem;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 1.35rem;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.navbar-logo:hover {
+  opacity: 0.85;
+}
+
+.logo-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.logo-text {
+  letter-spacing: 0.5px;
+}
+
+.navbar-menu {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1;
+  align-items: center;
+}
+
+.nav-link {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.3px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.nav-link:hover {
+  background-color: rgba(240, 83, 35, 0.1);
+  color: #F05323;
+}
+
+.nav-link--active {
+  color: #F05323;
+  background-color: rgba(240, 83, 35, 0.15);
+  font-weight: 700;
+}
+
+.nav-link--active::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #F05323;
+  border-radius: 2px;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.season-selector {
+  min-width: 160px;
+}
+
+.season-selector :deep(.v-field) {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.season-selector :deep(.v-field__input) {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.season-selector :deep(.v-field__outline__notch) {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Main Content */
+.app-main {
+  flex: 1;
+  width: 100%;
+  background-color: #f5f7fa;
+}
+
+.content-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 2rem 2rem;
+}
+
+/* Footer */
+.app-footer {
+  background: #ffffff;
+  border-top: 1px solid #e0e6f0;
+  padding: 2rem;
+  margin-top: auto;
+}
+
+.footer-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-text {
+  color: #8a92a2;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .navbar-wrapper {
+    padding: 1rem 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .content-wrapper {
+    padding: 1.5rem 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-wrapper {
+    padding: 0.75rem 1rem;
+    gap: 1rem;
+  }
+
+  .navbar-logo {
+    font-size: 1.1rem;
+  }
+
+  .navbar-menu {
+    display: none;
+  }
+
+  .season-selector {
+    min-width: 140px;
+    font-size: 0.85rem;
+  }
+
+  .content-wrapper {
+    padding: 1rem;
+  }
 }
 </style>
