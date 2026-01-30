@@ -10,9 +10,16 @@ export const useSeasons = () => {
       seasonStore.setLoading(true)
       seasonStore.setError(null)
       const response = await api.get<SeasonsListResponse>('/seasons', params as Record<string, string | number | boolean | undefined>)
-      seasonStore.setSeasons(response.data)
+      
+      // Filter seasons from E2016 onwards
+      const filteredSeasons = response.data.filter((season: SeasonListItem) => {
+        const year = parseInt(season.code.replace('E', ''))
+        return year >= 2016
+      })
+      
+      seasonStore.setSeasons(filteredSeasons)
       seasonStore.loadSavedSeason()
-      return response
+      return { ...response, data: filteredSeasons }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch seasons'
       seasonStore.setError(errorMessage)

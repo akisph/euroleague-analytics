@@ -9,6 +9,34 @@ export const useStandings = () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
+  // Fetch current standings for a season
+  const fetchCurrentStandings = async (seasonCode: string) => {
+    try {
+      isLoading.value = true
+      error.value = null
+      const response = await api.get<any>(`/standings/current`, { seasonCode })
+      // The standings endpoint returns data directly or might have nested structure
+      if (response.teams) {
+        // Single group standings - wrap it in an array
+        standings.value = [{
+          groupCode: response.groupCode || 'default',
+          groupName: response.groupName || 'Standings',
+          standings: response.teams
+        }]
+      } else if (Array.isArray(response)) {
+        standings.value = response
+      } else {
+        standings.value = []
+      }
+      return standings.value
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : 'Failed to fetch current standings'
+      throw e
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   // Fetch standings for a season and round
   const fetchSeasonStandings = async (seasonCode: string, roundNumber: number) => {
     try {
@@ -78,6 +106,7 @@ export const useStandings = () => {
     allTeamStandings,
 
     // Actions
+    fetchCurrentStandings,
     fetchSeasonStandings,
     fetchGroupStandings,
     getGroupStandings,

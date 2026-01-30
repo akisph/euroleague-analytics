@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { StandingsService } from './standings.service';
 import { StandingsDto } from './dto';
@@ -7,6 +7,13 @@ import { StandingsDto } from './dto';
 @Controller('standings')
 export class StandingsController {
   constructor(private readonly standingsService: StandingsService) {}
+
+  @Get('current')
+  async getCurrentStandings(
+    @Query('seasonCode') seasonCode: string,
+  ) {
+    return this.standingsService.getCurrentStandings(seasonCode);
+  }
 
   @Get('season/:seasonCode/round/:roundNumber')
   async getSeasonStandings(
