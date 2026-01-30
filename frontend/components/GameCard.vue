@@ -29,7 +29,11 @@
               {{ game.homeTeamCode?.substring(0, 3) }}
             </span>
           </v-avatar>
-          <div class="text-body-2 font-weight-medium text-truncate" style="max-width: 100px;">
+          <div
+            class="text-body-2 font-weight-medium text-truncate"
+            :class="game.played && isHomeWinner ? 'text-success' : ''"
+            style="max-width: 100px;"
+          >
             {{ game.homeTeamName }}
           </div>
         </div>
@@ -76,7 +80,11 @@
               {{ game.awayTeamCode?.substring(0, 3) }}
             </span>
           </v-avatar>
-          <div class="text-body-2 font-weight-medium text-truncate" style="max-width: 100px;">
+          <div
+            class="text-body-2 font-weight-medium text-truncate"
+            :class="game.played && isAwayWinner ? 'text-success' : ''"
+            style="max-width: 100px;"
+          >
             {{ game.awayTeamName }}
           </div>
         </div>

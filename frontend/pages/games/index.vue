@@ -5,36 +5,16 @@
       subtitle="All games for the current season"
     >
       <template #actions>
-        <div class="d-flex gap-2 flex-wrap">
-          <v-select
-            v-model="selectedRound"
-            :items="roundOptions"
-            label="Round"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-            class="max-w-[150px]"
-            @update:model-value="applyFilters"
-          />
-          <v-select
-            v-model="selectedTeam"
-            :items="teamOptions"
-            label="Team"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-            class="max-w-[200px]"
-            @update:model-value="applyFilters"
-          />
+        <div class="d-flex gap-2 flex-wrap align-center">
+          <span class="text-caption">View:</span>
           <v-btn-toggle
             v-model="viewMode"
             density="compact"
             mandatory
+            color="primary"
           >
-            <v-btn value="grid" icon="mdi-view-grid" />
-            <v-btn value="list" icon="mdi-view-list" />
+            <v-btn value="grid" icon="mdi-view-grid" title="Grid View" />
+            <v-btn value="list" icon="mdi-view-list" title="List View" />
           </v-btn-toggle>
         </div>
       </template>
@@ -48,171 +28,215 @@
     />
 
     <LoadingState :loading="isLoading" message="Loading games...">
-      <!-- Legend for game status -->
-      <v-card v-if="games.length" variant="tonal" class="mb-4 pa-3">
-        <div class="d-flex align-center gap-4 flex-wrap">
-          <div class="d-flex align-center">
-            <div class="legend-indicator bg-success mr-2"></div>
-            <span class="text-caption">Completed Games</span>
-          </div>
-          <div class="d-flex align-center">
-            <div class="legend-indicator bg-info mr-2"></div>
-            <span class="text-caption">Scheduled Games</span>
-          </div>
-        </div>
-      </v-card>
 
-      <!-- Game Filters Summary -->
-      <div v-if="hasActiveFilters" class="mb-4 d-flex align-center gap-2 flex-wrap">
-        <v-chip
-          v-if="selectedRound"
-          closable
-          @click:close="selectedRound = null; applyFilters()"
-        >
-          Round {{ selectedRound }}
-        </v-chip>
-        <v-chip
-          v-if="selectedTeam"
-          closable
-          @click:close="selectedTeam = ''; applyFilters()"
-        >
-          {{ selectedTeam }}
-        </v-chip>
-        <v-btn
-          variant="text"
-          size="small"
-          @click="clearFilters"
-        >
-          Clear All
-        </v-btn>
-      </div>
-
-      <!-- Grid View -->
-      <template v-if="viewMode === 'grid'">
-        <div v-if="games.length">
-          <!-- Group games by round -->
-          <div
-            v-for="(roundGames, roundNum) in gamesByRound"
-            :key="roundNum"
-            class="mb-8"
+      <!-- Tabs for Rounds -->
+      <template v-if="games.length">
+        <v-card>
+          <v-tabs 
+            v-model="selectedRoundTab" 
+            bg-color="primary" 
+            class="mb-4"
+            show-arrows
+            center-active
+            @update:model-value="selectedRoundTab = $event"
           >
-            <!-- Round Header -->
-            <div class="d-flex align-center mb-4">
-              <v-chip
-                color="primary"
-                variant="tonal"
-                size="large"
-                class="mr-3"
-              >
-                <v-icon icon="mdi-basketball" class="mr-2" />
-                Round {{ roundNum }}
-              </v-chip>
-              <v-chip
-                variant="outlined"
-                size="small"
-                class="mr-3"
-              >
-                {{ roundGames.length }} {{ roundGames.length === 1 ? 'game' : 'games' }}
-              </v-chip>
-              <v-divider class="flex-grow-1" />
-            </div>
-            
-            <!-- Games Grid -->
-            <v-row>
-              <v-col
-                v-for="game in roundGames"
-                :key="game.gameCode"
-                cols="12"
-                sm="6"
-                lg="4"
-              >
-                <GameCard
-                  :game="game"
-                  show-details
-                  show-action
-                  @view-details="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
-                />
-              </v-col>
-            </v-row>
-          </div>
-        </div>
-      </template>
+            <v-tab
+              v-for="roundNum in sortedRounds"
+              :key="roundNum"
+              :value="roundNum"
+              :class="{ 'font-weight-bold': isCurrentRound(roundNum) }"
+            >
+              Round {{ roundNum }}
+            </v-tab>
+          </v-tabs>
 
-      <!-- List View -->
-      <template v-else>
-        <div v-if="games.length">
-          <!-- Group games by round -->
-          <div
-            v-for="(roundGames, roundNum) in gamesByRound"
-            :key="roundNum"
-            class="mb-6"
-          >
-            <!-- Round Header -->
-            <div class="d-flex align-center mb-3">
-              <v-chip
-                color="primary"
-                variant="tonal"
-                class="mr-3"
+          <v-card-text>
+            <v-window v-model="selectedRoundTab">
+              <v-window-item
+                v-for="roundNum in sortedRounds"
+                :key="roundNum"
+                :value="roundNum"
               >
-                <v-icon icon="mdi-basketball" class="mr-2" size="small" />
-                Round {{ roundNum }}
-              </v-chip>
-              <v-chip
-                variant="outlined"
-                size="small"
-              >
-                {{ roundGames.length }} {{ roundGames.length === 1 ? 'game' : 'games' }}
-              </v-chip>
-            </div>
+                <div v-if="gamesByRound[roundNum]" class="pa-4">
+                  <!-- Completed Games -->
+                  <div v-if="gamesByRound[roundNum].completed.length > 0" class="mb-8">
+                    <div class="d-flex align-center mb-4">
+                      <v-icon icon="mdi-check-circle" color="success" class="mr-2" />
+                      <span class="font-weight-bold text-h6">Completed ({{ gamesByRound[roundNum].completed.length }})</span>
+                    </div>
 
-            <!-- Round Games Table -->
-            <v-card class="mb-4">
-              <v-data-table
-                :headers="gamesHeaders"
-                :items="roundGames"
-                :items-per-page="-1"
-                class="elevation-0"
-                hide-default-footer
-              >
-                <template #item.roundNumber="{ item }">
-                  <v-chip size="small" variant="tonal" color="primary">
-                    R{{ item.roundNumber }}
-                  </v-chip>
-                </template>
-                <template #item.teams="{ item }">
-                  <div class="d-flex align-center">
-                    <span :class="{ 'font-weight-bold': item.played && (item.homeScore || 0) > (item.awayScore || 0) }">
-                      {{ item.homeTeamName }}
-                    </span>
-                    <span class="mx-2 text-medium-emphasis">vs</span>
-                    <span :class="{ 'font-weight-bold': item.played && (item.awayScore || 0) > (item.homeScore || 0) }">
-                      {{ item.awayTeamName }}
-                    </span>
+                    <!-- Grid View for Completed -->
+                    <template v-if="viewMode === 'grid'">
+                      <v-row>
+                        <v-col
+                          v-for="game in gamesByRound[roundNum].completed"
+                          :key="game.gameCode"
+                          cols="12"
+                          sm="6"
+                          lg="4"
+                        >
+                          <GameCard
+                            :game="game"
+                            show-details
+                            show-action
+                            @view-details="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
+                          />
+                        </v-col>
+                      </v-row>
+                    </template>
+
+                    <!-- List View for Completed -->
+                    <template v-else>
+                      <div v-if="getGamesByDay(gamesByRound[roundNum].completed).length > 0">
+                        <div
+                          v-for="dayItem in getGamesByDayGrouped(gamesByRound[roundNum].completed)"
+                          :key="dayItem.date"
+                          class="mb-4"
+                        >
+                          <div class="text-subtitle-2 font-weight-bold mb-2 pa-2 bg-light rounded">
+                            {{ dayItem.date }}
+                          </div>
+                          <v-card variant="outlined" class="table-card">
+                            <v-data-table
+                              :headers="gamesHeaders"
+                              :items="dayItem.games"
+                              :items-per-page="-1"
+                              class="elevation-0 fixed-table"
+                              hide-default-footer
+                              density="compact"
+                            >
+                              <template #item.roundNumber="{ item }">
+                                <v-chip size="small" variant="tonal" color="success">
+                                  R{{ item.roundNumber }}
+                                </v-chip>
+                              </template>
+                              <template #item.teams="{ item }">
+                                <div class="d-flex align-center gap-2">
+                                  <span
+                                    class="font-weight-bold pa-1 rounded"
+                                    :class="(item.homeScore || 0) > (item.awayScore || 0) ? 'bg-success text-white' : ''"
+                                  >
+                                    {{ item.homeTeamName }}
+                                  </span>
+                                  <span class="text-medium-emphasis">vs</span>
+                                  <span
+                                    class="font-weight-bold pa-1 rounded"
+                                    :class="(item.awayScore || 0) > (item.homeScore || 0) ? 'bg-success text-white' : ''"
+                                  >
+                                    {{ item.awayTeamName }}
+                                  </span>
+                                </div>
+                              </template>
+                              <template #item.score="{ item }">
+                                <span class="font-weight-bold">{{ item.homeScore }} - {{ item.awayScore }}</span>
+                              </template>
+                              <template #item.gameDate="{ item }">
+                                {{ formatDate(item.gameDate) }}
+                              </template>
+                              <template #item.actions="{ item }">
+                                <v-btn
+                                  icon="mdi-eye"
+                                  size="small"
+                                  variant="text"
+                                  @click="navigateTo(`/games/${selectedSeasonCode}/${item.gameCode}`)"
+                                />
+                              </template>
+                            </v-data-table>
+                          </v-card>
+                        </div>
+                      </div>
+                    </template>
                   </div>
-                </template>
-                <template #item.score="{ item }">
-                  <template v-if="item.played">
-                    <span class="font-weight-bold">{{ item.homeScore }} - {{ item.awayScore }}</span>
-                  </template>
-                  <template v-else>
-                    <v-chip size="x-small" color="info" variant="flat">Scheduled</v-chip>
-                  </template>
-                </template>
-                <template #item.gameDate="{ item }">
-                  {{ formatDate(item.gameDate) }}
-                </template>
-                <template #item.actions="{ item }">
-                  <v-btn
-                    icon="mdi-eye"
-                    size="small"
-                    variant="text"
-                    @click="navigateTo(`/games/${selectedSeasonCode}/${item.gameCode}`)"
-                  />
-                </template>
-              </v-data-table>
-            </v-card>
-          </div>
-        </div>
+
+                  <!-- Scheduled Games -->
+                  <div v-if="gamesByRound[roundNum].scheduled.length > 0">
+                    <div class="d-flex align-center mb-4">
+                      <v-icon icon="mdi-clock-outline" color="info" class="mr-2" />
+                      <span class="font-weight-bold text-h6">Scheduled ({{ gamesByRound[roundNum].scheduled.length }})</span>
+                    </div>
+
+                    <!-- Grid View for Scheduled -->
+                    <template v-if="viewMode === 'grid'">
+                      <v-row>
+                        <v-col
+                          v-for="game in gamesByRound[roundNum].scheduled"
+                          :key="game.gameCode"
+                          cols="12"
+                          sm="6"
+                          lg="4"
+                        >
+                          <GameCard
+                            :game="game"
+                            show-details
+                            show-action
+                            @view-details="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
+                          />
+                        </v-col>
+                      </v-row>
+                    </template>
+
+                    <!-- List View for Scheduled -->
+                    <template v-else>
+                      <div v-if="getGamesByDay(gamesByRound[roundNum].scheduled).length > 0">
+                        <div
+                          v-for="dayItem in getGamesByDayGrouped(gamesByRound[roundNum].scheduled)"
+                          :key="dayItem.date"
+                          class="mb-4"
+                        >
+                          <div class="text-subtitle-2 font-weight-bold mb-2 pa-2 bg-light rounded">
+                            {{ dayItem.date }}
+                          </div>
+                          <v-card variant="outlined" class="table-card">
+                            <v-data-table
+                              :headers="gamesHeaders"
+                              :items="dayItem.games"
+                              :items-per-page="-1"
+                              class="elevation-0 fixed-table"
+                              hide-default-footer
+                              density="compact"
+                            >
+                              <template #item.roundNumber="{ item }">
+                                <v-chip size="small" variant="tonal" color="info">
+                                  R{{ item.roundNumber }}
+                                </v-chip>
+                              </template>
+                              <template #item.teams="{ item }">
+                                <div class="d-flex align-center">
+                                  <span>{{ item.homeTeamName }}</span>
+                                  <span class="mx-2 text-medium-emphasis">vs</span>
+                                  <span>{{ item.awayTeamName }}</span>
+                                </div>
+                              </template>
+                              <template #item.score="{ item }">
+                                <v-chip size="x-small" color="info" variant="flat">Scheduled</v-chip>
+                              </template>
+                              <template #item.gameDate="{ item }">
+                                {{ formatDate(item.gameDate) }}
+                              </template>
+                              <template #item.actions="{ item }">
+                                <v-btn
+                                  icon="mdi-eye"
+                                  size="small"
+                                  variant="text"
+                                  @click="navigateTo(`/games/${selectedSeasonCode}/${item.gameCode}`)"
+                                />
+                              </template>
+                            </v-data-table>
+                          </v-card>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+
+                  <!-- No games message -->
+                  <div v-if="gamesByRound[roundNum].completed.length === 0 && gamesByRound[roundNum].scheduled.length === 0" class="text-center py-8">
+                    <span class="text-medium-emphasis">No games for this round</span>
+                  </div>
+                </div>
+              </v-window-item>
+            </v-window>
+          </v-card-text>
+        </v-card>
       </template>
 
       <EmptyState
@@ -237,7 +261,8 @@ const { fetchSeasonTeams, teams } = useTeams()
 const selectedSeasonCode = computed(() => seasonStore.selectedSeasonCode)
 const selectedRound = ref<number | null>(null)
 const selectedTeam = ref<string>('')
-const viewMode = ref<'grid' | 'list'>('grid')
+const viewMode = ref<'grid' | 'list'>('list')
+const selectedRoundTab = ref<number | null>(null)
 
 // Team options for dropdown
 const teamOptions = computed(() => {
@@ -253,34 +278,150 @@ const hasActiveFilters = computed(() => {
 
 // Group games by round for better visualization
 const gamesByRound = computed(() => {
-  const grouped: Record<number, typeof games.value> = {}
+  const grouped: Record<number, { completed: typeof games.value; scheduled: typeof games.value }> = {}
   
   games.value.forEach((game) => {
     const round = game.roundNumber || 0
     if (!grouped[round]) {
-      grouped[round] = []
+      grouped[round] = { completed: [], scheduled: [] }
     }
-    grouped[round].push(game)
+    if (game.played) {
+      grouped[round].completed.push(game)
+    } else {
+      grouped[round].scheduled.push(game)
+    }
   })
   
-  // Sort rounds in descending order (latest first)
+  return grouped
+})
+
+// Get sorted rounds (ascending order with current first marked)
+const sortedRounds = computed(() => {
+  const roundNumbers = Object.keys(gamesByRound.value).map(Number).sort((a, b) => a - b)
+  return roundNumbers
+})
+
+// Compute current round
+const currentRound = computed(() => {
+  const roundNumbers = Object.keys(gamesByRound.value).map(Number).sort((a, b) => b - a)
+  
+  // Find current round (last round with completed games, or first round with scheduled games)
+  for (const roundNum of roundNumbers) {
+    if (gamesByRound.value[roundNum].completed.length > 0) {
+      return roundNum
+    }
+  }
+  
+  for (const roundNum of roundNumbers) {
+    if (gamesByRound.value[roundNum].scheduled.length > 0) {
+      return roundNum
+    }
+  }
+  
+  return null
+})
+
+const isCurrentRound = (roundNum: number) => {
+  return roundNum === currentRound.value
+}
+
+// Set default tab to current round
+watch(() => currentRound.value, (newCurrent) => {
+  if (newCurrent && !selectedRoundTab.value) {
+    selectedRoundTab.value = newCurrent
+  }
+}, { immediate: true })
+
+// Group games by day for list view
+const gamesByDay = computed(() => {
+  const allGames = games.value
+  const grouped: Record<string, typeof games.value> = {}
+  
+  allGames.forEach((game) => {
+    if (!game.gameDate) return
+    
+    const date = new Date(game.gameDate)
+    const dateKey = date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+    
+    if (!grouped[dateKey]) {
+      grouped[dateKey] = []
+    }
+    grouped[dateKey].push(game)
+  })
+  
+  // Sort by date
   return Object.keys(grouped)
-    .map(Number)
-    .sort((a, b) => b - a)
-    .reduce((acc, roundNum) => {
-      acc[roundNum] = grouped[roundNum]
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+    .reduce((acc, key) => {
+      acc[key] = grouped[key]
       return acc
-    }, {} as Record<number, typeof games.value>)
+    }, {} as Record<string, typeof games.value>)
 })
 
 const gamesHeaders = [
-  { title: 'Round', key: 'roundNumber', width: '80px' },
+  { title: 'Round', key: 'roundNumber', width: '70px' },
   { title: 'Teams', key: 'teams', sortable: false },
-  { title: 'Score', key: 'score', width: '120px' },
-  { title: 'Date', key: 'gameDate', width: '180px' },
-  { title: 'Arena', key: 'arena' },
-  { title: '', key: 'actions', width: '60px', sortable: false },
+  { title: 'Score', key: 'score', width: '100px' },
+  { title: 'Date', key: 'gameDate', width: '160px' },
+  { title: 'Arena', key: 'arena', width: '250px' },
+  { title: '', key: 'actions', width: '50px', sortable: false, align: 'end' },
 ]
+
+const getGamesByDay = (gameList: typeof games.value) => {
+  const grouped: Record<string, typeof games.value> = {}
+  
+  gameList.forEach((game) => {
+    if (!game.gameDate) return
+    
+    const date = new Date(game.gameDate)
+    const dateKey = date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+    
+    if (!grouped[dateKey]) {
+      grouped[dateKey] = []
+    }
+    grouped[dateKey].push(game)
+  })
+  
+  return Object.keys(grouped).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+}
+
+const getGamesByDayGrouped = (gameList: typeof games.value) => {
+  const grouped: Record<string, typeof games.value> = {}
+  
+  gameList.forEach((game) => {
+    if (!game.gameDate) return
+    
+    const date = new Date(game.gameDate)
+    const dateKey = date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+    
+    if (!grouped[dateKey]) {
+      grouped[dateKey] = []
+    }
+    grouped[dateKey].push(game)
+  })
+  
+  // Sort keys chronologically and return as array of entries
+  const sorted = Object.keys(grouped)
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+    .map(key => ({ date: key, games: grouped[key] }))
+  
+  return sorted
+}
 
 const formatDate = (dateString: string | undefined) => {
   if (!dateString) return '-'
@@ -350,5 +491,27 @@ onMounted(() => {
   width: 4px;
   height: 20px;
   border-radius: 2px;
+}
+
+.table-card {
+  margin-bottom: 0;
+}
+
+.fixed-table :deep(table) {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.fixed-table :deep(thead th) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fixed-table :deep(tbody td) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 8px 4px !important;
 }
 </style>
