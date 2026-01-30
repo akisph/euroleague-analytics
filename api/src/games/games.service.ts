@@ -131,4 +131,78 @@ export class GamesService {
       );
     }
   }
+
+  async getGameStats(
+    seasonCode: string,
+    gameCode: number,
+  ): Promise<any> {
+    try {
+      this.logger.log(`Fetching aggregated stats for game ${gameCode}, season ${seasonCode}`);
+
+      const competitionCode = 'E';
+      const v3Url = `${this.baseUrl}/v3/competitions/${competitionCode}/seasons/${seasonCode}/games/${gameCode}/stats`;
+      const v2Url = `${this.baseUrl}/v2/competitions/${competitionCode}/seasons/${seasonCode}/games/${gameCode}/stats`;
+
+      // Try v3 then v2
+      try {
+        const resp = await this.httpService.get<any>(v3Url).toPromise();
+        return resp.data;
+      } catch (errV3) {
+        this.logger.warn('v3 stats not available, falling back to v2', errV3?.message);
+      }
+
+      try {
+        const resp2 = await this.httpService.get<any>(v2Url).toPromise();
+        return resp2.data;
+      } catch (errV2) {
+        this.logger.warn('v2 stats not available', errV2?.message);
+        throw errV2;
+      }
+    } catch (error) {
+      this.logger.error(`Error fetching game stats: ${error?.message || error}`);
+      throw new HttpException('Failed to fetch game stats', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getGamePlayerStats(
+    seasonCode: string,
+    gameCode: number,
+  ): Promise<any> {
+    try {
+      this.logger.log(`Fetching player stats for game ${gameCode}, season ${seasonCode}`);
+
+      const competitionCode = 'E';
+      const v3Url = `${this.baseUrl}/v3/competitions/${competitionCode}/seasons/${seasonCode}/games/${gameCode}/stats`;
+      const v2Url = `${this.baseUrl}/v2/competitions/${competitionCode}/seasons/${seasonCode}/games/${gameCode}/stats`;
+      const v1Url = `${this.baseUrl}/v1/games?seasonCode=${encodeURIComponent(seasonCode)}&gameCode=${gameCode}`;
+
+      // Prefer v3/v2 structured responses
+      try {
+        const resp = await this.httpService.get<any>(v3Url).toPromise();
+        return resp.data?.players || resp.data;
+      } catch (errV3) {
+        this.logger.warn('v3 player stats not available, trying v2', errV3?.message);
+      }
+
+      try {
+        const resp2 = await this.httpService.get<any>(v2Url).toPromise();
+        // v2 may return players nested under clubs
+        return resp2.data?.players || resp2.data;
+      } catch (errV2) {
+        this.logger.warn('v2 player stats not available, falling back to v1 boxscore', errV2?.message);
+      }
+
+      // Fallback to v1 boxscore (XML) — return raw body for caller to parse
+      try {
+        const resp1 = await this.httpService.get(v1Url, { headers: { Accept: 'application/xml' } }).toPromise();
+        return resp1.data;
+      } catch (errV1) {
+        this.logger.error('Failed to fetch player stats from any endpoint', errV1?.message);
+        throw errV1;
+      }
+    } catch (error) {
+      this.logger.error(`Error fetching game player stats: ${error?.message || error}`);
+      throw new HttpException('Failed to fetch game player stats', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
