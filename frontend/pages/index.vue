@@ -191,7 +191,7 @@
               </template>
               <template #item.teamName="{ item }">
                 <NuxtLink
-                  :to="`/teams/${item.teamCode}`"
+                  :to="`/clubs/${item.teamCode}`"
                   class="text-decoration-none font-weight-medium"
                 >
                   {{ item.teamName }}

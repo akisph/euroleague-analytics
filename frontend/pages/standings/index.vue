@@ -12,39 +12,12 @@
   />
 
   <LoadingState :loading="isLoading" message="Loading standings...">
-    <template v-if="standings.length">
+    <template v-if="standings.length && allTeamStandings.length">
       <StandingsTable
-        v-if="standings.length === 1"
-        :standings="standings[0].standings || []"
+        :standings="allTeamStandings"
         title="Current Standings"
-        :subtitle="standings[0].groupName"
+        subtitle="Regular Season"
       />
-
-      <template v-else>
-        <v-tabs v-model="selectedTab" color="primary" class="mb-4">
-          <v-tab
-            v-for="(standing, index) in standings"
-            :key="standing.groupCode || index"
-            :value="index"
-          >
-            {{ standing.groupName || `Group ${index + 1}` }}
-          </v-tab>
-        </v-tabs>
-
-        <v-window v-model="selectedTab">
-          <v-window-item
-            v-for="(standing, index) in standings"
-            :key="standing.groupCode || index"
-            :value="index"
-          >
-            <StandingsTable
-              :standings="standing.standings || []"
-              :title="standing.groupName || `Group ${index + 1}`"
-              subtitle="Current Standings"
-            />
-          </v-window-item>
-        </v-window>
-      </template>
 
       <v-row class="mt-6">
         <v-col cols="12" md="4">
@@ -106,7 +79,6 @@ const seasonStore = useSeasonStore()
 const { fetchCurrentStandings, standings, allTeamStandings, isLoading, error } = useStandings()
 
 const selectedSeasonCode = computed(() => seasonStore.selectedSeasonCode)
-const selectedTab = ref(0)
 
 const topTeam = computed(() => {
   if (!allTeamStandings.value.length) return null

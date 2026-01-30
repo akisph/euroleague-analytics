@@ -235,7 +235,7 @@
                     variant="tonal"
                     color="primary"
                     prepend-icon="mdi-account-group"
-                    :to="`/teams/${clubCode}`"
+                    :to="`/clubs/${clubCode}`"
                   >
                     View Roster
                   </v-btn>

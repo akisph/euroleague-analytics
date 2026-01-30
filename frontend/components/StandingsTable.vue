@@ -38,7 +38,7 @@
             </span>
           </v-avatar>
           <NuxtLink
-            :to="`/teams/${item.teamCode}`"
+            :to="`/clubs/${item.teamCode}`"
             class="text-body-2 font-weight-medium text-decoration-none"
           >
             {{ item.teamName }}

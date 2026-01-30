@@ -46,7 +46,7 @@
                 </v-avatar>
                 <div class="text-h6 font-weight-bold">{{ game.homeTeamName }}</div>
                 <NuxtLink
-                  :to="`/teams/${game.homeTeamCode}`"
+                  :to="`/clubs/${game.homeTeamCode}`"
                   class="text-caption text-primary text-decoration-none"
                 >
                   View Team →
@@ -92,7 +92,7 @@
                 </v-avatar>
                 <div class="text-h6 font-weight-bold">{{ game.awayTeamName }}</div>
                 <NuxtLink
-                  :to="`/teams/${game.awayTeamCode}`"
+                  :to="`/clubs/${game.awayTeamCode}`"
                   class="text-caption text-primary text-decoration-none"
                 >
                   View Team →
@@ -209,7 +209,7 @@
                   variant="tonal"
                   color="primary"
                   prepend-icon="mdi-account-group"
-                  :to="`/teams/${game.homeTeamCode}`"
+                  :to="`/clubs/${game.homeTeamCode}`"
                 >
                   {{ game.homeTeamName }} Roster
                 </v-btn>
@@ -220,7 +220,7 @@
                   variant="tonal"
                   color="primary"
                   prepend-icon="mdi-account-group"
-                  :to="`/teams/${game.awayTeamCode}`"
+                  :to="`/clubs/${game.awayTeamCode}`"
                 >
                   {{ game.awayTeamName }} Roster
                 </v-btn>

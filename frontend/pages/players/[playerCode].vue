@@ -136,7 +136,7 @@ const playerCode = computed(() => route.params.playerCode as string)
 
 const breadcrumbs = computed(() => [
   { title: 'Home', to: '/' },
-  { title: 'Teams', to: '/teams' },
+  { title: 'Clubs', to: '/clubs' },
   { title: player.value?.name || playerCode.value, disabled: true },
 ])
 
