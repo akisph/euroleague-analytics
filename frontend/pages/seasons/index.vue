@@ -1,9 +1,8 @@
 <template>
-  <NuxtLayout>
-    <PageHeader
-      title="Seasons"
-      subtitle="All available Euroleague seasons"
-    />
+  <PageHeader
+    title="Seasons"
+    subtitle="All available Euroleague seasons"
+  />
 
     <ErrorAlert
       v-if="error"
@@ -135,7 +134,6 @@
         </v-card>
       </v-dialog>
     </LoadingState>
-  </NuxtLayout>
 </template>
 
 <script setup lang="ts">

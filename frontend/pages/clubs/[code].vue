@@ -1,10 +1,9 @@
 <template>
-  <NuxtLayout>
-    <PageHeader
-      :title="club?.name || 'Club Details'"
-      :subtitle="club?.alias"
-      :breadcrumbs="breadcrumbs"
-    >
+  <PageHeader
+    :title="club?.name || 'Club Details'"
+    :subtitle="club?.alias"
+    :breadcrumbs="breadcrumbs"
+  >
       <template #actions>
         <v-btn
           variant="outlined"
@@ -278,7 +277,6 @@
         @action="navigateTo('/clubs')"
       />
     </LoadingState>
-  </NuxtLayout>
 </template>
 
 <script setup lang="ts">

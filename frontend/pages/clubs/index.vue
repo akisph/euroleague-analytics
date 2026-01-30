@@ -1,9 +1,8 @@
 <template>
-  <NuxtLayout>
-    <PageHeader
-      title="Clubs"
-      subtitle="All registered Euroleague clubs"
-    >
+  <PageHeader
+    title="Clubs"
+    subtitle="All registered Euroleague clubs"
+  >
       <template #actions>
         <v-text-field
           v-model="searchQuery"
@@ -85,7 +84,6 @@
         />
       </div>
     </LoadingState>
-  </NuxtLayout>
 </template>
 
 <script setup lang="ts">

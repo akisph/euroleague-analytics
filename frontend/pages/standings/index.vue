@@ -1,9 +1,8 @@
 <template>
-  <NuxtLayout>
-    <PageHeader
-      title="Standings"
-      subtitle="Current season standings and rankings"
-    >
+  <PageHeader
+    title="Standings"
+    subtitle="Current season standings and rankings"
+  >
       <template #actions>
         <div class="d-flex gap-2 flex-wrap">
           <v-select
@@ -118,7 +117,6 @@
         icon="mdi-format-list-numbered"
       />
     </LoadingState>
-  </NuxtLayout>
 </template>
 
 <script setup lang="ts">

@@ -1,9 +1,8 @@
 <template>
-  <NuxtLayout>
-    <PageHeader
-      title="Teams"
-      subtitle="All teams participating in the current season"
-    >
+  <PageHeader
+    title="Teams"
+    subtitle="All teams participating in the current season"
+  >
       <template #actions>
         <v-text-field
           v-model="searchQuery"
@@ -78,7 +77,6 @@
         @action="searchQuery = ''"
       />
     </LoadingState>
-  </NuxtLayout>
 </template>
 
 <script setup lang="ts">

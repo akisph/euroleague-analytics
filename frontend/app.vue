@@ -1,6 +1,8 @@
 <template>
   <v-app :theme="themeStore.isDark ? 'dark' : 'light'">
-    <NuxtPage />
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
   </v-app>
 </template>
 

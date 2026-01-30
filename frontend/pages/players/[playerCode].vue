@@ -1,10 +1,9 @@
 <template>
-  <NuxtLayout>
-    <PageHeader
-      :title="player?.name || 'Player Details'"
-      :subtitle="player?.position"
-      :breadcrumbs="breadcrumbs"
-    >
+  <PageHeader
+    :title="player?.name || 'Player Details'"
+    :subtitle="player?.position"
+    :breadcrumbs="breadcrumbs"
+  >
       <template #actions>
         <v-btn
           variant="outlined"
@@ -127,7 +126,6 @@
         @action="$router.back()"
       />
     </LoadingState>
-  </NuxtLayout>
 </template>
 
 <script setup lang="ts">

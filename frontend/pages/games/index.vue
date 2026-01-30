@@ -1,9 +1,8 @@
 <template>
-  <NuxtLayout>
-    <PageHeader
-      title="Games"
-      subtitle="All games for the current season"
-    >
+  <PageHeader
+    title="Games"
+    subtitle="All games for the current season"
+  >
       <template #actions>
         <div class="d-flex gap-2 flex-wrap">
           <v-select
@@ -150,7 +149,6 @@
         @action="clearFilters"
       />
     </LoadingState>
-  </NuxtLayout>
 </template>
 
 <script setup lang="ts">

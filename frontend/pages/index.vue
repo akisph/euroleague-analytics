@@ -1,9 +1,8 @@
 <template>
-  <NuxtLayout>
-    <PageHeader
-      title="Dashboard"
-      subtitle="Overview of the Euroleague Basketball season"
-    />
+  <PageHeader
+    title="Dashboard"
+    subtitle="Overview of the Euroleague Basketball season"
+  />
 
     <ErrorAlert
       v-if="errorMessage"
@@ -206,7 +205,6 @@
         </v-col>
       </v-row>
     </LoadingState>
-  </NuxtLayout>
 </template>
 
 <script setup lang="ts">

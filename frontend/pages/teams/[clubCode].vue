@@ -1,10 +1,9 @@
 <template>
-  <NuxtLayout>
-    <PageHeader
-      :title="roster?.clubName || 'Team Details'"
-      subtitle="Team roster and player information"
-      :breadcrumbs="breadcrumbs"
-    >
+  <PageHeader
+    :title="roster?.clubName || 'Team Details'"
+    subtitle="Team roster and player information"
+    :breadcrumbs="breadcrumbs"
+  >
       <template #actions>
         <v-btn
           variant="outlined"
@@ -179,7 +178,6 @@
         @action="navigateTo('/teams')"
       />
     </LoadingState>
-  </NuxtLayout>
 </template>
 
 <script setup lang="ts">

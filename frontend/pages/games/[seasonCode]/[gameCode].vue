@@ -1,10 +1,9 @@
 <template>
-  <NuxtLayout>
-    <PageHeader
-      :title="gameTitle"
-      :subtitle="game?.arena"
-      :breadcrumbs="breadcrumbs"
-    >
+  <PageHeader
+    :title="gameTitle"
+    :subtitle="game?.arena"
+    :breadcrumbs="breadcrumbs"
+  >
       <template #actions>
         <v-btn
           variant="outlined"
@@ -240,7 +239,6 @@
         @action="navigateTo('/games')"
       />
     </LoadingState>
-  </NuxtLayout>
 </template>
 
 <script setup lang="ts">
