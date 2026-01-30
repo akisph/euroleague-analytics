@@ -1,6 +1,6 @@
 <template>
   <div class="page-light-surface">
-    <PageHeader
+    <SharedPageHeader
       :title="club?.name || 'Club Details'"
       :subtitle="club?.alias"
       :breadcrumbs="breadcrumbs"
@@ -14,16 +14,16 @@
             Back to Clubs
           </v-btn>
         </template>
-      </PageHeader>
+      </SharedPageHeader>
 
-      <ErrorAlert
+      <SharedErrorAlert
         v-if="error"
         :error="error"
         @retry="loadClub"
         @dismiss="error = null"
       />
 
-      <LoadingState :loading="isLoading" message="Loading club details...">
+      <SharedLoadingState :loading="isLoading" message="Loading club details...">
         <v-row v-if="club">
           <!-- Club Header Card -->
           <v-col cols="12">
@@ -269,7 +269,7 @@
           </v-col>
         </v-row>
 
-        <EmptyState
+        <SharedEmptyState
           v-else
           title="Club Not Found"
           message="The requested club could not be found"
@@ -277,11 +277,16 @@
           action-text="Back to Clubs"
           @action="navigateTo('/clubs')"
         />
-      </LoadingState>
+      </SharedLoadingState>
   </div>
 </template>
 
 <script setup lang="ts">
+import PageHeader from '~/components/shared/PageHeader.vue'
+import ErrorAlert from '~/components/shared/ErrorAlert.vue'
+import LoadingState from '~/components/shared/LoadingState.vue'
+import EmptyState from '~/components/shared/EmptyState.vue'
+
 const route = useRoute()
 const { fetchClubByCode, fetchClubInfo, currentClub: club, clubInfo, isLoading, error } = useClubs()
 

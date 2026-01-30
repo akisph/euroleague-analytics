@@ -1,24 +1,24 @@
 <template>
   <div class="page-light-surface">
-    <PageHeader
+    <SharedPageHeader
       title="Dashboard"
       subtitle="Current season overview"
     />
 
-    <LoadingState :loading="false" message="Loading dashboard data...">
+    <SharedLoadingState :loading="false" message="Loading dashboard data...">
       <!-- Current Round Games -->
       <div class="dashboard-section">
-        <CurrentRoundGames />
+        <GamesCurrentRoundGames />
       </div>
 
       <!-- Standings -->
       <div class="dashboard-section">
-        <CurrentStandings
+        <StandingsCurrentStandings
           title="Standings"
           subtitle="Regular Season"
         />
       </div>
-    </LoadingState>
+    </SharedLoadingState>
   </div>
 </template>
 

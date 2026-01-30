@@ -1,21 +1,23 @@
 <template>
   <div class="page-light-surface">
-    <PageHeader
+    <SharedPageHeader
       title="Standings"
       subtitle="Current season standings and rankings"
     />
 
-    <LoadingState :loading="false" message="Loading standings...">
-      <CurrentStandings
+    <SharedLoadingState :loading="false" message="Loading standings...">
+      <StandingsCurrentStandings
         title="Current Standings"
         subtitle="Regular Season"
       />
-    </LoadingState>
+    </SharedLoadingState>
   </div>
 </template>
 
 <script setup lang="ts">
-// Component handles all standings logic
+import PageHeader from '~/components/shared/PageHeader.vue'
+import LoadingState from '~/components/shared/LoadingState.vue'
+import CurrentStandings from '~/components/standings/CurrentStandings.vue'
 </script>
 
 <style scoped>

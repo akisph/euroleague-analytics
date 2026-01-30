@@ -1,6 +1,6 @@
 <template>
   <div class="page-light-surface">
-    <PageHeader
+    <SharedPageHeader
       title="Games"
       subtitle="All games for the current season"
     >
@@ -18,16 +18,16 @@
           </v-btn-toggle>
         </div>
       </template>
-    </PageHeader>
+    </SharedPageHeader>
 
-    <ErrorAlert
+    <SharedErrorAlert
       v-if="error"
       :error="error"
       @retry="loadGames"
       @dismiss="error = null"
     />
 
-    <LoadingState :loading="isLoading" message="Loading games...">
+    <SharedLoadingState :loading="isLoading" message="Loading games...">
 
       <!-- Tabs for Rounds -->
       <template v-if="games.length">
@@ -247,11 +247,17 @@
         :action-text="hasActiveFilters ? 'Clear Filters' : undefined"
         @action="clearFilters"
       />
-    </LoadingState>
+    </SharedLoadingState>
   </div>
 </template>
 
 <script setup lang="ts">
+import PageHeader from '~/components/shared/PageHeader.vue'
+import ErrorAlert from '~/components/shared/ErrorAlert.vue'
+import LoadingState from '~/components/shared/LoadingState.vue'
+import EmptyState from '~/components/shared/EmptyState.vue'
+import GameCard from '~/components/games/GameCard.vue'
+
 const route = useRoute()
 const seasonStore = useSeasonStore()
 const { fetchSeasonGames, games, isLoading, error } = useGames()

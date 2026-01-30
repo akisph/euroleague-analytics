@@ -1,6 +1,6 @@
 <template>
   <div class="page-light-surface">
-    <PageHeader
+    <SharedPageHeader
       :title="gameTitle"
       :subtitle="game?.arena"
       :breadcrumbs="breadcrumbs"
@@ -14,16 +14,16 @@
           Back to Games
         </v-btn>
       </template>
-    </PageHeader>
+    </SharedPageHeader>
 
-    <ErrorAlert
+    <SharedErrorAlert
       v-if="error"
       :error="error"
       @retry="loadGame"
       @dismiss="error = null"
     />
 
-    <LoadingState :loading="isLoading" message="Loading game details...">
+    <SharedLoadingState :loading="isLoading" message="Loading game details...">
       <template v-if="game">
         <!-- Game Score Card -->
         <v-card class="mb-6">
@@ -239,11 +239,16 @@
         action-text="Back to Games"
         @action="navigateTo('/games')"
       />
-    </LoadingState>
+    </SharedLoadingState>
   </div>
 </template>
 
 <script setup lang="ts">
+import PageHeader from '~/components/shared/PageHeader.vue'
+import ErrorAlert from '~/components/shared/ErrorAlert.vue'
+import LoadingState from '~/components/shared/LoadingState.vue'
+import EmptyState from '~/components/shared/EmptyState.vue'
+
 const route = useRoute()
 const { fetchGameDetails, currentGame: game, isLoading, error } = useGames()
 

@@ -1,6 +1,6 @@
 <template>
   <div class="page-light-surface">
-    <PageHeader
+    <SharedPageHeader
       :title="player?.name || 'Player Details'"
       :subtitle="player?.position"
       :breadcrumbs="breadcrumbs"
@@ -14,16 +14,16 @@
             Go Back
           </v-btn>
         </template>
-      </PageHeader>
+      </SharedPageHeader>
 
-      <ErrorAlert
+      <SharedErrorAlert
         v-if="error"
         :error="error"
         @retry="loadPlayer"
         @dismiss="error = null"
       />
 
-      <LoadingState :loading="isLoading" message="Loading player details...">
+      <SharedLoadingState :loading="isLoading" message="Loading player details...">
         <template v-if="player">
           <v-row>
             <!-- Player Profile Card -->
@@ -126,11 +126,16 @@
           action-text="Go Back"
           @action="$router.back()"
         />
-      </LoadingState>
+      </SharedLoadingState>
   </div>
 </template>
 
 <script setup lang="ts">
+import PageHeader from '~/components/shared/PageHeader.vue'
+import ErrorAlert from '~/components/shared/ErrorAlert.vue'
+import LoadingState from '~/components/shared/LoadingState.vue'
+import EmptyState from '~/components/shared/EmptyState.vue'
+
 const route = useRoute()
 const { fetchPlayerByCode, currentPlayer: player, isLoading, error } = useTeams()
 

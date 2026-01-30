@@ -1,13 +1,13 @@
 <template>
   <div>
-    <ErrorAlert
+    <SharedErrorAlert
       v-if="error"
       :error="error"
       @retry="loadGamesData"
       @dismiss="error = null"
     />
 
-    <LoadingState :loading="isLoading" message="Loading games...">
+    <SharedLoadingState :loading="isLoading" message="Loading games...">
       <div class="games-container">
         <div class="section-header">
           <div class="header-left">
@@ -28,7 +28,7 @@
         </div>
         
         <div class="games-grid-container">
-          <EmptyState
+          <SharedEmptyState
             v-if="sortedGames.length === 0"
             title="No Games"
             message="No games found for this season"
@@ -53,7 +53,7 @@
                   class="carousel-item"
                   :data-game-code="game.gameCode"
                 >
-                  <GameCard
+                  <GamesCard
                     :game="game"
                     show-details
                     show-action
@@ -73,7 +73,7 @@
             </div>
         </div>
       </div>
-    </LoadingState>
+    </SharedLoadingState>
   </div>
 </template>
 
@@ -398,15 +398,5 @@ watch(sortedGames, async () => {
   .games-grid-container {
     padding: 1rem;
   }
-
-  .games-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .section-title {
-    font-size: 1.1rem;
-  }
 }
 </style>
-

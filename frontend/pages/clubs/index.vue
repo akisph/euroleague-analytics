@@ -1,6 +1,6 @@
 <template>
   <div class="page-light-surface">
-    <PageHeader
+    <SharedPageHeader
       title="Clubs"
       subtitle="All registered Euroleague clubs"
     >
@@ -18,16 +18,16 @@
           @update:model-value="debouncedSearch"
         />
       </template>
-    </PageHeader>
+    </SharedPageHeader>
 
-    <ErrorAlert
+    <SharedErrorAlert
       v-if="error"
       :error="error"
       @retry="loadClubs"
       @dismiss="error = null"
     />
 
-    <LoadingState :loading="isLoading" message="Loading clubs...">
+    <SharedLoadingState :loading="isLoading" message="Loading clubs...">
       <v-row v-if="clubs?.data?.length">
         <v-col
           v-for="club in clubs.data"
@@ -66,7 +66,7 @@
         </v-col>
       </v-row>
 
-      <EmptyState
+      <SharedEmptyState
         v-else
         title="No Clubs Found"
         :message="searchQuery ? 'No clubs match your search criteria' : 'No clubs available'"
@@ -84,11 +84,16 @@
           rounded
         />
       </div>
-    </LoadingState>
+    </SharedLoadingState>
   </div>
 </template>
 
 <script setup lang="ts">
+import PageHeader from '~/components/shared/PageHeader.vue'
+import ErrorAlert from '~/components/shared/ErrorAlert.vue'
+import LoadingState from '~/components/shared/LoadingState.vue'
+import EmptyState from '~/components/shared/EmptyState.vue'
+
 const { fetchClubs, clubs, isLoading, error } = useClubs()
 
 const searchQuery = ref('')
