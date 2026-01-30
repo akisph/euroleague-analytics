@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="page-light-surface">
     <PageHeader
       title="Games"
       subtitle="All games for the current season"

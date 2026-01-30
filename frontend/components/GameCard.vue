@@ -178,9 +178,10 @@ const formattedDate = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid #e0e6f0;
   background-color: #f9fafb;
+  min-height: 56px; /* consistent header height */
 }
 
 .header-left,
@@ -202,11 +203,10 @@ const formattedDate = computed(() => {
 }
 
 .card-content {
-  padding: 1.5rem 1rem;
+  padding: 1rem;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
 }
 
 .teams-container {
@@ -214,6 +214,9 @@ const formattedDate = computed(() => {
   align-items: center;
   justify-content: space-around;
   gap: 0.5rem;
+  /* ensure teams/score area has consistent height across cards */
+  flex: 1 1 auto;
+  min-height: 110px;
 }
 
 .team-info {
@@ -237,6 +240,13 @@ const formattedDate = computed(() => {
   color: #1a2742;
   text-align: center;
   word-break: break-word;
+  /* Limit team name to two lines to avoid height differences */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.6rem;
 }
 
 .score-container {
@@ -288,6 +298,7 @@ const formattedDate = computed(() => {
   padding: 0.75rem;
   background-color: #f9fafb;
   border-radius: 8px;
+  min-height: 64px; /* consistent details box height */
 }
 
 .detail-item {
@@ -299,7 +310,7 @@ const formattedDate = computed(() => {
 }
 
 .action-btn {
-  margin-top: auto;
+  margin-top: 0.75rem;
 }
 
 @media (max-width: 768px) {

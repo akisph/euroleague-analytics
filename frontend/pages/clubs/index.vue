@@ -1,8 +1,9 @@
 <template>
-  <PageHeader
-    title="Clubs"
-    subtitle="All registered Euroleague clubs"
-  >
+  <div class="page-light-surface">
+    <PageHeader
+      title="Clubs"
+      subtitle="All registered Euroleague clubs"
+    >
       <template #actions>
         <v-text-field
           v-model="searchQuery"
@@ -84,6 +85,7 @@
         />
       </div>
     </LoadingState>
+  </div>
 </template>
 
 <script setup lang="ts">

@@ -1,23 +1,25 @@
 <template>
-  <PageHeader
-    title="Dashboard"
-    subtitle="Current season overview"
-  />
+  <div class="page-light-surface">
+    <PageHeader
+      title="Dashboard"
+      subtitle="Current season overview"
+    />
 
-  <LoadingState :loading="false" message="Loading dashboard data...">
-    <!-- Current Round Games -->
-    <div class="dashboard-section">
-      <CurrentRoundGames />
-    </div>
+    <LoadingState :loading="false" message="Loading dashboard data...">
+      <!-- Current Round Games -->
+      <div class="dashboard-section">
+        <CurrentRoundGames />
+      </div>
 
-    <!-- Standings -->
-    <div class="dashboard-section">
-      <CurrentStandings
-        title="Standings"
-        subtitle="Regular Season"
-      />
-    </div>
-  </LoadingState>
+      <!-- Standings -->
+      <div class="dashboard-section">
+        <CurrentStandings
+          title="Standings"
+          subtitle="Regular Season"
+        />
+      </div>
+    </LoadingState>
+  </div>
 </template>
 
 <script setup lang="ts">

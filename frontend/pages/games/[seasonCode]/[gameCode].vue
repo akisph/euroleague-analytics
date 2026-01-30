@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="page-light-surface">
     <PageHeader
       :title="gameTitle"
       :subtitle="game?.arena"
@@ -293,3 +293,36 @@ watch([seasonCode, gameCode], () => {
   loadGame()
 }, { immediate: true })
 </script>
+
+<style scoped>
+/* Ensure no dark backgrounds appear inside pages wrapped with .page-light-surface */
+.page-light-surface :deep(.v-card),
+.page-light-surface :deep(.v-card-text),
+.page-light-surface :deep(.v-card-title),
+.page-light-surface :deep(.v-card__title),
+.page-light-surface :deep(.v-card-actions),
+.page-light-surface :deep(.v-list),
+.page-light-surface :deep(.v-list-item),
+.page-light-surface :deep(.v-list-item__content),
+.page-light-surface :deep(.v-list-item__title),
+.page-light-surface :deep(.v-list-item__subtitle),
+.page-light-surface :deep(.v-avatar) {
+  background-color: #ffffff !important;
+  color: #1a1a1a !important;
+}
+
+.page-light-surface :deep(.v-card-title),
+.page-light-surface :deep(.v-card__title) {
+  background-color: transparent !important;
+}
+
+.page-light-surface :deep(.v-chip) {
+  background-color: rgba(240,83,35,0.08) !important;
+  color: #F05323 !important;
+}
+
+/* Specific safe overrides for avatars and tiny UI pieces */
+.page-light-surface :deep(.v-avatar) {
+  background-color: #f3f4f6 !important;
+}
+</style>
