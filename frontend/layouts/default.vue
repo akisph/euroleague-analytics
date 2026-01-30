@@ -116,8 +116,6 @@ const navItems: NavItem[] = [
   { title: 'Clubs', icon: 'mdi-shield-home', to: '/clubs' },
   { title: 'Games', icon: 'mdi-basketball', to: '/games' },
   { title: 'Standings', icon: 'mdi-format-list-numbered', to: '/standings' },
-  { title: 'Teams', icon: 'mdi-account-group', to: '/teams' },
-  { title: 'Seasons', icon: 'mdi-calendar', to: '/seasons' },
 ]
 
 // Selected season computed
