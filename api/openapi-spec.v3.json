@@ -1,0 +1,121 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Competition Engine",
+    "version": "3.0"
+  },
+  "servers": [
+    {
+      "url": "https://api-live.euroleague.net"
+    }
+  ],
+  "paths": {
+    "/v3/clubs": {
+      "get": {
+        "tags": ["Clubs"],
+        "summary": "Get all registered clubs",
+        "parameters": [
+          { "name": "Limit", "in": "query", "schema": { "type": "integer", "format": "int32" } },
+          { "name": "Offset", "in": "query", "schema": { "type": "integer", "format": "int32" } },
+          { "name": "hasParentClub", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } }
+        ]
+      }
+    },
+    "/v3/clubs/{clubCode}": {
+      "get": {
+        "tags": ["Clubs"],
+        "summary": "Get a club by its code",
+        "parameters": [
+          { "name": "clubCode", "in": "path", "required": true, "schema": { "type": "string" } }
+        ]
+      }
+    },
+    "/v3/clubs/{clubCode}/info": {
+      "get": {
+        "tags": ["Clubs"],
+        "summary": "Get a club info by its code",
+        "parameters": [
+          { "name": "clubCode", "in": "path", "required": true, "schema": { "type": "string" } }
+        ]
+      }
+    },
+    "/v3/competitions/{competitionCode}/seasons/{seasonCode}/coaches/{coachCode}": {
+      "get": {
+        "tags": ["Coaches"],
+        "parameters": [
+          { "name": "competitionCode", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "seasonCode", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "coachCode", "in": "path", "required": true, "schema": { "type": "string" } }
+        ]
+      }
+    },
+    "/v3/competitions/{competitionCode}/seasons/{seasonCode}/games/{gameCode}/report": {
+      "get": {
+        "tags": ["Games"],
+        "parameters": [
+          { "name": "competitionCode", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "seasonCode", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "gameCode", "in": "path", "required": true, "schema": { "type": "integer", "format": "int32" } }
+        ]
+      }
+    },
+    "/v3/competitions/{competitionCode}/statistics/players/leaders": {
+      "get": { "tags": ["PlayersStats"], "summary": "Get player leaders" }
+    },
+    "/v3/competitions/{competitionCode}/statistics/players/traditional": {
+      "get": { "tags": ["PlayersStats"], "summary": "Get traditional player stats" }
+    },
+    "/v3/competitions/{competitionCode}/statistics/players/advanced": {
+      "get": { "tags": ["PlayersStats"], "summary": "Get advanced player stats" }
+    },
+    "/v3/competitions/{competitionCode}/statistics/players/misc": {
+      "get": { "tags": ["PlayersStats"], "summary": "Get misc player stats" }
+    },
+    "/v3/competitions/{competitionCode}/statistics/players/scoring": {
+      "get": { "tags": ["PlayersStats"], "summary": "Get scoring player stats" }
+    },
+    "/v3/competitions/{competitionCode}/seasons/{seasonCode}/rounds/{roundNumber}/calendarstandings": {
+      "get": { "tags": ["Standings"], "summary": "Get calendar standings" }
+    },
+    "/v3/competitions/{competitionCode}/seasons/{seasonCode}/rounds/{roundNumber}/streaks": {
+      "get": { "tags": ["Standings"], "summary": "Get standings streaks" }
+    },
+    "/v3/competitions/{competitionCode}/seasons/{seasonCode}/rounds/{roundNumber}/aheadbehind": {
+      "get": { "tags": ["Standings"], "summary": "Get ahead/behind standings" }
+    },
+    "/v3/competitions/{competitionCode}/seasons/{seasonCode}/rounds/{roundNumber}/margins": {
+      "get": { "tags": ["Standings"], "summary": "Get margins standings" }
+    },
+    "/v3/competitions/{competitionCode}/seasons/{seasonCode}/rounds/{roundNumber}/basicstandings": {
+      "get": { "tags": ["Standings"], "summary": "Get basic standings" }
+    },
+    "/v3/competitions/{competitionCode}/stats/players/leaders": {
+      "get": { "tags": ["Stats"], "summary": "Get player leaders stats" }
+    },
+    "/v3/competitions/{competitionCode}/seasons/{seasonCode}/clubs/{clubCode}/stats": {
+      "get": { "tags": ["Stats"], "summary": "Get club stats" }
+    },
+    "/v3/competitions/{competitionCode}/seasons/{seasonCode}/games/{gameCode}/stats": {
+      "get": { "tags": ["Stats"], "summary": "Get game stats" }
+    },
+    "/v3/competitions/{competitionCode}/seasons/{seasonCode}/games/{gameCode}/teamsComparison": {
+      "get": { "tags": ["Stats"], "summary": "Get teams comparison" }
+    },
+    "/v3/competitions/{competitionCode}/statistics/teams/leaders": {
+      "get": { "tags": ["TeamsStats"], "summary": "Get team leaders" }
+    },
+    "/v3/competitions/{competitionCode}/statistics/teams/traditional": {
+      "get": { "tags": ["TeamsStats"], "summary": "Get traditional team stats" }
+    },
+    "/v3/competitions/{competitionCode}/statistics/teams/advanced": {
+      "get": { "tags": ["TeamsStats"], "summary": "Get advanced team stats" }
+    },
+    "/v3/competitions/{competitionCode}/statistics/teams/opponentsTraditional": {
+      "get": { "tags": ["TeamsStats"], "summary": "Get opponents traditional stats" }
+    },
+    "/v3/competitions/{competitionCode}/statistics/teams/opponentsAdvanced": {
+      "get": { "tags": ["TeamsStats"], "summary": "Get opponents advanced stats" }
+    }
+  }
+}

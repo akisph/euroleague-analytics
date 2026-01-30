@@ -1,0 +1,33 @@
+{
+  "name": "euroleague-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47",
+    "@pinia/nuxt": "^0.5.1",
+    "nuxt": "^3.13.0",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0",
+    "vuetify": "^3.6.0"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^0.3.0",
+    "@nuxtjs/tailwindcss": "^6.11.4",
+    "@types/node": "^20.12.7",
+    "eslint": "^8.57.0",
+    "sass": "^1.75.0",
+    "typescript": "^5.4.5",
+    "vite-plugin-vuetify": "^2.0.3"
+  }
+}

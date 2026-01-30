@@ -1,0 +1,108 @@
+# ===========================
+# Dependencies
+# ===========================
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# ===========================
+# Environment files
+# ===========================
+.env
+.env.local
+.env.*.local
+.env.production
+*/.env
+*/.env.local
+*/.env.*.local
+
+# ===========================
+# Build outputs
+# ===========================
+dist/
+*/dist/
+**/dist/
+build/
+*/build/
+
+# ===========================
+# Nuxt.js
+# ===========================
+.nuxt/
+.output/
+.data/
+.nitro/
+.cache/
+*.log*
+
+# ===========================
+# NestJS
+# ===========================
+# Already covered by dist/
+
+# ===========================
+# IDE & Editors
+# ===========================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ===========================
+# Testing
+# ===========================
+coverage/
+*/coverage/
+.nyc_output/
+
+# ===========================
+# Package managers
+# ===========================
+pnpm-lock.yaml
+*/pnpm-lock.yaml
+yarn.lock
+*/yarn.lock
+package-lock.json
+*/package-lock.json
+
+# ===========================
+# TypeScript
+# ===========================
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ===========================
+# Logs
+# ===========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===========================
+# Turbo
+# ===========================
+.turbo/
+
+# ===========================
+# Docker
+# ===========================
+# Uncomment if you don't want to track docker volumes
+# postgres_data/
+
+# ===========================
+# Misc
+# ===========================
+*.local
+.temp/
+tmp/
+temp/
+
+# ===========================
+# .github
+# ===========================
+.github/*

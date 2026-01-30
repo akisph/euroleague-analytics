@@ -1,0 +1,9 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" r="90" fill="#F05323"/>
+  <path d="M100 20C56.3 20 20 56.3 20 100s36.3 80 80 80 80-36.3 80-80-36.3-80-80-80zm0 150c-38.6 0-70-31.4-70-70s31.4-70 70-70 70 31.4 70 70-31.4 70-70 70z" fill="#fff"/>
+  <path d="M100 30c-38.6 0-70 31.4-70 70h140c0-38.6-31.4-70-70-70z" fill="#fff" opacity="0.3"/>
+  <line x1="100" y1="30" x2="100" y2="170" stroke="#fff" stroke-width="4"/>
+  <line x1="30" y1="100" x2="170" y2="100" stroke="#fff" stroke-width="4"/>
+  <path d="M50 100c0-27.6 22.4-50 50-50" stroke="#fff" stroke-width="4" fill="none"/>
+  <path d="M150 100c0 27.6-22.4 50-50 50" stroke="#fff" stroke-width="4" fill="none"/>
+</svg>

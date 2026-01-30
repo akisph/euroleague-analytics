@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom global styles */
+:root {
+  --euroleague-orange: #F05323;
+  --euroleague-dark: #1a1a2e;
+}
+
+/* Smooth transitions for theme switching */
+.v-theme--light,
+.v-theme--dark {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Data table enhancements */
+.v-data-table {
+  @apply rounded-lg overflow-hidden;
+}
+
+/* Card hover effects */
+.stats-card {
+  @apply transition-all duration-300;
+}
+
+.stats-card:hover {
+  @apply shadow-lg;
+  transform: translateY(-2px);
+}
+
+/* Basketball-themed gradient */
+.basketball-gradient {
+  background: linear-gradient(135deg, #F05323 0%, #b92a1a 100%);
+}
+
+/* Score highlight */
+.score-win {
+  @apply text-green-600 font-bold;
+}
+
+.score-loss {
+  @apply text-red-600;
+}
+
+/* Loading skeleton animation */
+.skeleton-loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton 1.5s infinite;
+}
+
+@keyframes skeleton {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Team logo placeholder */
+.team-logo-placeholder {
+  @apply bg-gray-200 rounded-full flex items-center justify-center text-gray-500 font-bold;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .v-data-table__wrapper {
+    @apply text-sm;
+  }
+}
+
+/* Navigation highlight */
+.nav-item-active {
+  background: rgba(240, 83, 35, 0.1) !important;
+  border-left: 3px solid var(--euroleague-orange) !important;
+}
