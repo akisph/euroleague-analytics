@@ -9,11 +9,13 @@ services:
       - PORT=3004
 
   web:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - NUXT_PUBLIC_API_BASE_URL=http://localhost:3004
     ports:
       - "3005:3005"
     environment:
       - PORT=3005
-      - NUXT_PUBLIC_API_BASE_URL=http://api:3004
     depends_on:
       - api
