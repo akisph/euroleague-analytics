@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --omit=dev
+# Install dependencies (include dev for build tools like nest)
+RUN npm install
 
 # Copy source code
 COPY . .
