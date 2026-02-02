@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Build the application with API URL
-ARG NUXT_PUBLIC_API_BASE_URL=http://localhost:3004
+ARG NUXT_PUBLIC_API_BASE_URL=http://89.167.19.50:3004
 ENV NUXT_PUBLIC_API_BASE_URL=$NUXT_PUBLIC_API_BASE_URL
 RUN npm run build
 

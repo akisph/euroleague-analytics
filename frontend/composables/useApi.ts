@@ -10,6 +10,10 @@ interface ApiOptions {
 export const useApi = () => {
   const config = useRuntimeConfig()
   const baseUrl = config.public.apiBaseUrl
+  
+  if (process.client) {
+    console.log('🔗 API Base URL:', baseUrl)
+  }
 
   const buildUrl = (endpoint: string, params?: Record<string, string | number | boolean | undefined>): string => {
     const url = new URL(`${baseUrl}${endpoint}`)
