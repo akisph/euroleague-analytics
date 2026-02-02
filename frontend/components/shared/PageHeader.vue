@@ -86,4 +86,18 @@ defineProps<Props>()
     font-size: 1.5rem;
   }
 }
+
+@media (max-width: 480px) {
+  .page-header {
+    margin-bottom: 1rem;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.9rem;
+  }
+}
 </style>

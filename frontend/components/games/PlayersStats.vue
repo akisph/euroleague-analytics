@@ -6,11 +6,11 @@
         <div class="text-caption text-secondary">Per-player boxscore for both teams</div>
       </div>
         <div>
-          <v-btn-toggle v-model="selectedTeam" density="compact" class="d-flex" style="gap:8px">
-            <v-btn :value="''" variant="tonal">All</v-btn>
-            <v-btn :value="homeTeamCode" variant="tonal">{{ homeTeamName }}</v-btn>
-            <v-btn :value="awayTeamCode" variant="tonal">{{ awayTeamName }}</v-btn>
-          </v-btn-toggle>
+          <v-tabs v-model="selectedTeam" class="team-tabs" variant="text" color="primary">
+            <v-tab value="">All</v-tab>
+            <v-tab :value="homeTeamCode">{{ homeTeamName }}</v-tab>
+            <v-tab :value="awayTeamCode">{{ awayTeamName }}</v-tab>
+          </v-tabs>
         </div>
     </v-card-title>
 
@@ -141,7 +141,7 @@ const headers = [
   { title: 'PIR', key: 'pir' },
 ]
 
-const selectedTeam = ref<string | null>(null)
+const selectedTeam = ref<string>('')
 
 const homeTeamName = computed(() => props.game?.homeTeamName ?? props.game?.value?.homeTeamName ?? 'Home')
 const awayTeamName = computed(() => props.game?.awayTeamName ?? props.game?.value?.awayTeamName ?? 'Away')
@@ -157,7 +157,7 @@ const combinedPlayers = computed(() => {
 })
 
 const displayPlayers = computed(() => {
-  if (!selectedTeam.value) return combinedPlayers.value
+  if (selectedTeam.value === '') return combinedPlayers.value
   if (selectedTeam.value === homeTeamCode.value) return homePlayers.value
   if (selectedTeam.value === awayTeamCode.value) return awayPlayers.value
   // fallback: filter combined by teamCode
@@ -165,7 +165,7 @@ const displayPlayers = computed(() => {
 })
 
 const selectedTeamLabel = computed(() => {
-  if (!selectedTeam.value) return 'All players'
+  if (selectedTeam.value === '') return 'All players'
   if (selectedTeam.value === homeTeamCode.value) return homeTeamName.value
   if (selectedTeam.value === awayTeamCode.value) return awayTeamName.value
   return `Team ${selectedTeam.value}`
@@ -173,7 +173,7 @@ const selectedTeamLabel = computed(() => {
 
 const itemsPerPage = computed(() => {
   // If no team selected, show all combined players (usually 24)
-  if (!selectedTeam.value) return Math.max(combinedPlayers.value.length, 24)
+  if (selectedTeam.value === '') return Math.max(combinedPlayers.value.length, 24)
   // otherwise show all players for the selected team
   return Math.max(displayPlayers.value.length, 24)
 })

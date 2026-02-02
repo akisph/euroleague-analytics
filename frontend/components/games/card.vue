@@ -322,5 +322,69 @@ const formattedDate = computed(() => {
   .score-display {
     font-size: 1.5rem;
   }
+
+  .teams-container {
+    min-height: 100px;
+  }
+
+  .team-name {
+    font-size: 0.8rem;
+    min-height: 2.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-header {
+    padding: 0.5rem 0.75rem;
+    min-height: 48px;
+  }
+
+  .card-content {
+    padding: 0.75rem;
+  }
+
+  .teams-container {
+    min-height: 90px;
+    gap: 0.25rem;
+  }
+
+  .team-info {
+    gap: 0.25rem;
+  }
+
+  .v-avatar {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .team-code {
+    font-size: 0.7rem;
+  }
+
+  .team-name {
+    font-size: 0.75rem;
+    min-height: 2.2rem;
+  }
+
+  .score-container {
+    padding: 0 0.5rem;
+  }
+
+  .score-display {
+    font-size: 1.25rem;
+  }
+
+  .score-divider {
+    font-size: 1.25rem;
+  }
+
+  .game-details {
+    min-height: 56px;
+    padding: 0.5rem;
+  }
+
+  .detail-item {
+    font-size: 0.7rem;
+  }
 }
 </style>

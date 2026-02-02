@@ -271,6 +271,7 @@ onMounted(async () => {
   .navbar-wrapper {
     padding: 0.75rem 1rem;
     gap: 1rem;
+    flex-wrap: wrap;
   }
 
   .navbar-logo {
@@ -278,7 +279,19 @@ onMounted(async () => {
   }
 
   .navbar-menu {
-    display: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+
+  .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
   }
 
   .season-selector {
@@ -288,6 +301,66 @@ onMounted(async () => {
 
   .content-wrapper {
     padding: 1rem;
+  }
+
+  .app-footer {
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-wrapper {
+    padding: 0.5rem 0.75rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .navbar-logo {
+    font-size: 1rem;
+    order: 1;
+  }
+
+  .logo-icon {
+    font-size: 1.5rem;
+  }
+
+  .navbar-menu {
+    order: 2;
+    margin-top: 0;
+    justify-content: space-around;
+    gap: 0.125rem;
+  }
+
+  .nav-link {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  .navbar-right {
+    order: 3;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to right, #1a2742 0%, #1e3050 100%);
+    padding: 0.5rem 0.75rem;
+    z-index: 101;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .season-selector {
+    min-width: 100%;
+    font-size: 0.8rem;
+  }
+
+  .content-wrapper {
+    padding: 0.75rem;
+    padding-bottom: 4rem; /* space for fixed selector */
+  }
+
+  .app-footer {
+    padding: 1rem 0.75rem;
   }
 }
 </style>

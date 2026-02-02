@@ -348,4 +348,48 @@ watch(clubCode, () => {
 .page-light-surface :deep(.v-avatar) {
   background-color: #f3f4f6 !important;
 }
+
+@media (max-width: 768px) {
+  .v-card-text {
+    padding: 1rem !important;
+  }
+
+  .v-avatar[size="120"] {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  .text-h4 {
+    font-size: 1.5rem !important;
+  }
+
+  .v-avatar[size="60"] {
+    width: 48px !important;
+    height: 48px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .v-card-text {
+    padding: 0.75rem !important;
+  }
+
+  .v-avatar[size="120"] {
+    width: 64px !important;
+    height: 64px !important;
+  }
+
+  .text-h4 {
+    font-size: 1.25rem !important;
+  }
+
+  .v-avatar[size="60"] {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .gap-2 {
+    gap: 0.5rem !important;
+  }
+}
 </style>

@@ -2,6 +2,7 @@
   <v-card class="h-100 pa-6">
     <v-card-title>Statistics</v-card-title>
     <v-card-text>
+        
       <v-row v-if="isLoading" class="align-center justify-center">
         <v-col cols="12" class="text-center">
           <v-progress-circular indeterminate color="primary" />
@@ -10,8 +11,7 @@
 
       <v-alert type="error" v-if="error">{{ error }}</v-alert>
 
-      <v-row v-if="!isLoading && !error">
-   
+      <v-row v-if="!isLoading && !error" class="g-4">
         <v-col cols="12" md="6">
           <v-card>
             <v-card-title class="d-flex align-center justify-space-between">
@@ -64,7 +64,6 @@
                   <v-list-item-title>Free Throws (Made / Attempted)</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.freeThrowsMade ?? '-' }} / {{ homeTotals.freeThrowsAttempted ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
-                
                 <v-list-item>
                   <v-list-item-title>Points</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.points ?? '-' }}</v-list-item-subtitle>
@@ -73,7 +72,6 @@
                   <v-list-item-title>Steals</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.steals ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
-                
                 <v-list-item>
                   <v-list-item-title>Total Rebounds</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.totalRebounds ?? '-' }}</v-list-item-subtitle>
@@ -143,7 +141,6 @@
                   <v-list-item-title>Free Throws (Made / Attempted)</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.freeThrowsMade ?? '-' }} / {{ awayTotals.freeThrowsAttempted ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
-                
                 <v-list-item>
                   <v-list-item-title>Points</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.points ?? '-' }}</v-list-item-subtitle>
@@ -152,7 +149,6 @@
                   <v-list-item-title>Steals</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.steals ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
-                
                 <v-list-item>
                   <v-list-item-title>Total Rebounds</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.totalRebounds ?? '-' }}</v-list-item-subtitle>
@@ -179,6 +175,8 @@ import { watch, ref, computed } from 'vue'
 import { useApi } from '~/composables/useApi'
 
 const props = defineProps<{ game?: any }>()
+const homeTeamName = computed(() => props.game?.homeTeamName ?? 'Home')
+const awayTeamName = computed(() => props.game?.awayTeamName ?? 'Away')
 
 const api = useApi()
 const isLoading = ref(false)

@@ -398,5 +398,44 @@ watch(sortedGames, async () => {
   .games-grid-container {
     padding: 1rem;
   }
+
+  .carousel-viewport {
+    padding: 0.5rem 1rem;
+  }
+
+  .carousel-row {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-header {
+    padding: 0.75rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+  }
+
+  .games-grid-container {
+    padding: 0.75rem;
+  }
+
+  .carousel-viewport {
+    padding: 0.25rem 0.75rem;
+  }
+
+  .carousel-row {
+    gap: 0.5rem;
+  }
+
+  .carousel-arrow {
+    width: 36px;
+    height: 36px;
+  }
+
+  .carousel-arrow v-icon {
+    font-size: 20px;
+  }
 }
 </style>

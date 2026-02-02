@@ -10,6 +10,7 @@ import { ref } from "vue"
       <template #actions>
         <v-btn
           variant="outlined"
+          color="primary"
           prepend-icon="mdi-arrow-left"
           to="/games"
         >
@@ -39,67 +40,67 @@ import { ref } from "vue"
               </v-chip>
             </div>
             
-            <div class="d-flex align-center justify-center">
+            <div class="d-flex align-center justify-center game-score-row">
               <!-- Home Team -->
-              <div class="text-center" style="min-width: 200px;">
-                <v-avatar size="80" color="grey-lighten-3" class="mb-3">
-                  <span class="text-h5 font-weight-bold">
-                    {{ game.homeTeamCode?.substring(0, 3) }}
-                  </span>
-                </v-avatar>
-                <div class="text-h6 font-weight-bold">{{ game.homeTeamName }}</div>
-                <NuxtLink
-                  :to="`/clubs/${game.homeTeamCode}`"
-                  class="text-caption text-primary text-decoration-none"
-                >
-                  View Team →
-                </NuxtLink>
+              <div class="text-center team-block">
+                <div class="team-meta">
+                  <v-avatar size="80" color="grey-lighten-3" class="mb-3 team-avatar">
+                    <span class="text-h5 font-weight-bold">
+                      {{ game.homeTeamCode?.substring(0, 3) }}
+                    </span>
+                  </v-avatar>
+                  <div class="team-info">
+                    <div class="text-h6 font-weight-bold team-name">{{ game.homeTeamName }}</div>
+                    <NuxtLink
+                      :to="`/clubs/${game.homeTeamCode}`"
+                      class="text-caption text-primary text-decoration-none"
+                    >
+                      View Team →
+                    </NuxtLink>
+                  </div>
+                </div>
+                <div class="team-score" v-if="game.played" :class="isHomeWinner ? 'text-success' : ''">
+                  {{ game.homeScore }}
+                </div>
               </div>
 
-              <!-- Score -->
-              <div class="mx-8 text-center">
+              <!-- Score (now shown per-team) -->
+              <div class="mx-8 text-center score-block">
                 <template v-if="game.played">
-                  <div class="d-flex align-center justify-center">
-                    <span
-                      class="text-h2 font-weight-bold"
-                      :class="isHomeWinner ? 'text-success' : 'text-error'"
-                    >
-                      {{ game.homeScore }}
-                    </span>
-                    <span class="text-h3 mx-4 text-medium-error">-</span>
-                    <span
-                      class="text-h2 font-weight-bold"
-                      :class="isAwayWinner ? 'text-success' : 'text-medium-error'"
-                    >
-                      {{ game.awayScore }}
-                    </span>
-                  </div>
-                  <v-chip color="success" variant="flat" class="mt-2">
+                  <div class="center-divider">-</div>
+                  <v-chip color="success" variant="flat" class="mt-2 status-chip">
                     Final
                   </v-chip>
                 </template>
                 <template v-else>
-                  <div class="text-h3 font-weight-bold text-medium-emphasis">VS</div>
-                  <v-chip color="info" variant="flat" class="mt-2">
+                  <div class="center-divider">VS</div>
+                  <v-chip color="info" variant="flat" class="mt-2 status-chip">
                     Scheduled
                   </v-chip>
                 </template>
               </div>
 
               <!-- Away Team -->
-              <div class="text-center" style="min-width: 200px;">
-                <v-avatar size="80" color="grey-lighten-3" class="mb-3">
-                  <span class="text-h5 font-weight-bold">
-                    {{ game.awayTeamCode?.substring(0, 3) }}
-                  </span>
-                </v-avatar>
-                <div class="text-h6 font-weight-bold">{{ game.awayTeamName }}</div>
-                <NuxtLink
-                  :to="`/clubs/${game.awayTeamCode}`"
-                  class="text-caption text-primary text-decoration-none"
-                >
-                  View Team →
-                </NuxtLink>
+              <div class="text-center team-block">
+                <div class="team-meta">
+                  <v-avatar size="80" color="grey-lighten-3" class="mb-3 team-avatar">
+                    <span class="text-h5 font-weight-bold">
+                      {{ game.awayTeamCode?.substring(0, 3) }}
+                    </span>
+                  </v-avatar>
+                  <div class="team-info">
+                    <div class="text-h6 font-weight-bold team-name">{{ game.awayTeamName }}</div>
+                    <NuxtLink
+                      :to="`/clubs/${game.awayTeamCode}`"
+                      class="text-caption text-primary text-decoration-none"
+                    >
+                      View Team →
+                    </NuxtLink>
+                  </div>
+                </div>
+                <div class="team-score" v-if="game.played" :class="isAwayWinner ? 'text-success' : ''">
+                  {{ game.awayScore }}
+                </div>
               </div>
             </div>
           </v-card-text>
@@ -230,5 +231,112 @@ watch([seasonCode, gameCode], () => {
 /* Specific safe overrides for avatars and tiny UI pieces */
 .page-light-surface :deep(.v-avatar) {
   background-color: #f3f4f6 !important;
+}
+
+/* Layout for team meta and inline scores */
+.team-block {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.team-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.team-info {
+  text-align: left;
+}
+
+.team-score {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1a2742;
+  min-width: 56px;
+  text-align: center;
+}
+
+.center-divider {
+  font-size: 1.25rem;
+  color: #8a92a2;
+  font-weight: 700;
+}
+
+/* Mobile improvements for game detail */
+@media (max-width: 768px) {
+  .game-score-row {
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+  }
+
+  .team-block {
+    min-width: 120px;
+    max-width: 140px;
+  }
+
+  .team-avatar {
+    width: 64px !important;
+    height: 64px !important;
+  }
+
+  .team-name {
+    font-size: 1rem;
+  }
+
+  .score-block {
+    min-width: 120px;
+  }
+
+  .score-value {
+    font-size: 2rem;
+  }
+
+  .score-divider {
+    font-size: 1.25rem;
+  }
+
+  .status-chip {
+    margin-top: 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-score-row {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .team-block {
+    width: 100%;
+    max-width: 360px;
+  }
+
+  .team-avatar {
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  .team-name {
+    font-size: 0.95rem;
+  }
+
+  .score-row {
+    gap: 0.5rem;
+  }
+
+  .score-value {
+    font-size: 1.5rem;
+  }
+
+  .mx-8 { margin-left: 0; margin-right: 0; }
+
+  /* Ensure tabs and cards have enough breathing room */
+  .pa-6 { padding: 1rem !important; }
+  .mt-6 { margin-top: 1rem !important; }
 }
 </style>

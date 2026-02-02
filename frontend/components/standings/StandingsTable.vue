@@ -255,5 +255,53 @@ const getWinPercentageColor = (percentage: number): string => {
   .table-title {
     font-size: 1.1rem;
   }
+
+  .standings-data-table :deep(tbody td) {
+    padding: 0.75rem 0.5rem !important;
+  }
+
+  .position-badge {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+
+  .progress-bar {
+    min-width: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .table-header {
+    padding: 0.75rem;
+  }
+
+  .table-title {
+    font-size: 1rem;
+  }
+
+  .standings-data-table :deep(tbody td) {
+    padding: 0.5rem 0.25rem !important;
+  }
+
+  .position-badge {
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+  }
+
+  .progress-bar {
+    min-width: 60px;
+    height: 4px;
+  }
+
+  .team-cell {
+    gap: 0.25rem;
+  }
+
+  .v-avatar {
+    width: 24px !important;
+    height: 24px !important;
+  }
 }
 </style>
