@@ -177,30 +177,152 @@ export class PlayersService {
     try {
       this.logger.log(`Fetching player: ${playerCode}`);
 
-      const url = `${this.baseUrl}/v2/people/${playerCode}`;
+      // First, try to get player from people endpoint
+      let player: PlayerDto;
+      let foundSeasonData = false;
+      try {
+        const url = `${this.baseUrl}/v2/people/${playerCode}`;
+        const response = await firstValueFrom(this.httpService.get<any>(url));
 
-      const response = await firstValueFrom(this.httpService.get<any>(url));
-
-      if (!response.data) {
+        if (response.data) {
+          player = this.transformPlayer(response.data);
+        } else {
+          throw new Error('No player data');
+        }
+      } catch (error) {
+        this.logger.warn(`Could not fetch from /v2/people/${playerCode}`);
         throw new HttpException('Player not found', HttpStatus.NOT_FOUND);
       }
 
-      const player = this.transformPlayer(response.data);
-
-      // Fetch current season stats
+      // Fetch all seasons where player played in this competition to get club information
+      // The /v2/competitions/{competitionCode}/people/{playerCode} endpoint returns
+      // all SeasonPersonModel records for this player across all seasons
       try {
-        const currentSeasonCode = 'E2024'; // Default to latest season
-        const stats = await this.getPlayerStats(currentSeasonCode, playerCode);
-        player.stats = stats;
-        this.logger.log(`Fetched stats for player ${playerCode} from season ${currentSeasonCode}`);
+        this.logger.log(`Fetching all competition seasons for player: ${playerCode}`);
+        const competitionUrl = new URL(
+          `${this.baseUrl}/v2/competitions/${COMPETITION_CODE}/people/${playerCode}`,
+        );
+        const competitionResponse = await firstValueFrom(this.httpService.get<any>(competitionUrl.toString()));
+        
+        if (competitionResponse.data) {
+          // The endpoint returns a paginated response: { data: [...], total: number }
+          let seasonPersonList = competitionResponse.data;
+          
+          // If response has a 'data' property with an array, extract the array
+          if (seasonPersonList && typeof seasonPersonList === 'object' && 'data' in seasonPersonList) {
+            seasonPersonList = seasonPersonList.data;
+          }
+          
+          // Find the most recent season with club information
+          if (Array.isArray(seasonPersonList) && seasonPersonList.length > 0) {
+            // Sort by season (most recent first) and find the first one with a club
+            const seasonWithClub = seasonPersonList.find(sp => sp.club && sp.club.code);
+            
+            if (seasonWithClub) {
+              this.logger.debug(
+                `Found player in season with club: ${seasonWithClub.club?.name}, dorsal: ${seasonWithClub.dorsal}`,
+              );
+              const mergedPlayer = this.transformPlayerResponse(seasonWithClub);
+              player.clubCode = mergedPlayer.clubCode;
+              player.clubName = mergedPlayer.clubName;
+              player.dorsal = mergedPlayer.dorsal || player.dorsal;
+              player.position = mergedPlayer.position || player.position;
+              player.imageUrl = mergedPlayer.imageUrl || player.imageUrl;
+              
+              this.logger.log(`Updated player with club info: ${player.clubName}, dorsal: ${player.dorsal}`);
+              foundSeasonData = true;
+              
+              // Get the season code for stats fetching
+              const seasonCode = seasonWithClub.season?.code;
+              if (seasonCode) {
+                try {
+                  const stats = await this.getPlayerStats(seasonCode, playerCode);
+                  player.stats = stats;
+                  this.logger.log(`Fetched stats for player ${playerCode} from season ${seasonCode}`);
+                } catch (statsError) {
+                  this.logger.warn(`Could not fetch stats for season ${seasonCode}`);
+                }
+              }
+            }
+          }
+        }
       } catch (error) {
         this.logger.warn(
-          `Could not fetch stats for player ${playerCode}: ${error.message}`,
+          `Could not fetch competition seasons for player ${playerCode}: ${error.message}`,
         );
-        // Continue without stats - it's not a critical error
       }
 
-      this.logger.log(`Found player: ${player.name}`);
+      // If we didn't find club info via competition endpoint, try individual seasons
+      if (!foundSeasonData) {
+        const seasonsToTry = ['E2025', 'E2024', 'E2023', 'E2022']; // Try recent seasons
+        for (const seasonCode of seasonsToTry) {
+          try {
+            this.logger.log(`Trying to fetch player data from season ${seasonCode}`);
+            const seasonUrl = new URL(
+              `${this.baseUrl}/v2/competitions/${COMPETITION_CODE}/seasons/${seasonCode}/people/${playerCode}`,
+            );
+            const seasonResponse = await firstValueFrom(this.httpService.get<any>(seasonUrl.toString()));
+            
+            if (seasonResponse.data) {
+              // The endpoint may return:
+              // 1. Paginated response: { data: [...], total: number }
+              // 2. Direct array: [...]
+              // 3. Direct object: {...}
+              let seasonPlayerData = seasonResponse.data;
+              
+              // If response has a 'data' property with an array, extract first element
+              if (seasonPlayerData && typeof seasonPlayerData === 'object' && 'data' in seasonPlayerData) {
+                if (Array.isArray(seasonPlayerData.data)) {
+                  seasonPlayerData = seasonPlayerData.data[0];
+                } else {
+                  seasonPlayerData = seasonPlayerData.data;
+                }
+              } else if (Array.isArray(seasonPlayerData)) {
+                seasonPlayerData = seasonPlayerData[0];
+              }
+              
+              if (seasonPlayerData && typeof seasonPlayerData === 'object') {
+                this.logger.debug(`Season data received: club=${seasonPlayerData.club?.name}, dorsal=${seasonPlayerData.dorsal}`);
+                // Merge season-specific data (including club info) with basic player data
+                const mergedPlayer = this.transformPlayerResponse(seasonPlayerData);
+                // Keep the basic player info but use season-specific data for club and other fields
+                player.clubCode = mergedPlayer.clubCode;
+                player.clubName = mergedPlayer.clubName;
+                player.dorsal = mergedPlayer.dorsal || player.dorsal;
+                player.position = mergedPlayer.position || player.position;
+                player.imageUrl = mergedPlayer.imageUrl || player.imageUrl;
+                
+                this.logger.log(`Found player data in season ${seasonCode}, club: ${player.clubName}, dorsal: ${player.dorsal}`);
+                foundSeasonData = true;
+                
+                // Fetch stats for this season
+                try {
+                  const stats = await this.getPlayerStats(seasonCode, playerCode);
+                  player.stats = stats;
+                  this.logger.log(`Fetched stats for player ${playerCode} from season ${seasonCode}`);
+                } catch (statsError) {
+                  this.logger.warn(`Could not fetch stats for season ${seasonCode}`);
+                }
+                
+                break; // Found data, no need to try other seasons
+              }
+            }
+          } catch (error) {
+            this.logger.warn(
+              `Could not fetch player data from season ${seasonCode}: ${error.message}`,
+            );
+            // Continue to next season
+          }
+        }
+      }
+
+      if (!foundSeasonData) {
+        this.logger.warn(
+          `Could not find player ${playerCode} in any season. Club info may be missing.`,
+        );
+      }
+
+      this.logger.log(`Found player: ${player.name}, club: ${player.clubName || 'N/A'}`);
 
       return player;
     } catch (error) {
@@ -278,22 +400,40 @@ export class PlayersService {
    * Transform external API response to PlayerDto (legacy fallback)
    */
   private transformPlayer(data: any, clubCode?: string): PlayerDto {
-    // Log data structure to debug
-    if (!data.PersonCode && !data.playerCode && !data.person) {
-      console.warn('Player data missing code:', data);
-    }
+    // Handle different field name variations
+    const playerCode = data.PersonCode || data.playerCode || data.Code || data.code || '';
+    const name = data.PersonName || data.Shortname || data.name || data.Name || 'Unknown';
+    
+    // Get country info
+    const countryCode = data.CountryCode || data.countryCode || data.Country || data.country?.code;
+    const countryName = data.CountryName || data.countryName || data.country?.name;
+    
+    // Get birth country info
+    const birthCountryCode = data.birthCountry?.code;
+    const birthCountryName = data.birthCountry?.name;
 
     return {
-      playerCode: data.PersonCode || data.playerCode || data.Code || '',
-      name: data.PersonName || data.Shortname || data.name || data.Name || 'Unknown',
-      alias: data.Shortname || data.alias,
+      playerCode,
+      name,
+      alias: data.Shortname || data.alias || data.aliasRaw,
+      aliasRaw: data.aliasRaw,
+      passportName: data.passportName,
+      passportSurname: data.passportSurname,
+      jerseyName: data.jerseyName,
+      abbreviatedName: data.abbreviatedName,
       dorsal: data.Dorsal ? parseInt(data.Dorsal) : data.dorsal,
       position: data.Position || data.position,
-      countryCode: data.CountryCode || data.countryCode || data.Country,
-      countryName: data.CountryName || data.countryName,
-      imageUrl: data.PersonPhoto || data.imageUrl || data.Photo,
+      countryCode,
+      countryName,
+      birthCountryCode,
+      birthCountryName,
+      imageUrl: data.PersonPhoto || data.imageUrl || data.Photo || data.images?.photo,
       height: data.Height ? parseInt(data.Height) : data.height,
+      weight: data.weight,
       birthDate: data.BirthDate || data.birthDate,
+      twitterAccount: data.twitterAccount,
+      instagramAccount: data.instagramAccount,
+      facebookAccount: data.facebookAccount,
       clubCode,
     };
   }

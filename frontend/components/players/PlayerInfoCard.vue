@@ -1,66 +1,87 @@
 <template>
   <v-card elevation="0" class="info-card">
-    <v-card-title class="pb-4">
-      <v-icon icon="mdi-account-circle" class="mr-2 primary-icon" />
-      Player Information
-    </v-card-title>
-    <v-divider />
-    <v-card-text class="pa-6">
-      <v-row>
-        <v-col cols="12" sm="6">
-          <div class="info-group">
-            <v-list density="compact">
-              <v-list-item v-if="player.countryName" class="px-0 py-2">
-                <template #prepend>
-                  <v-icon icon="mdi-flag" class="mr-3 info-icon" size="small" />
-                </template>
-                <v-list-item-title class="text-caption font-weight-bold">Nationality</v-list-item-title>
-                <v-list-item-subtitle>{{ player.countryName }}</v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item v-if="player.birthDate" class="px-0 py-2">
-                <template #prepend>
-                  <v-icon icon="mdi-cake-variant" class="mr-3 info-icon" size="small" />
-                </template>
-                <v-list-item-title class="text-caption font-weight-bold">Birth Date</v-list-item-title>
-                <v-list-item-subtitle>{{ formatDate(player.birthDate) }}</v-list-item-subtitle>
-              </v-list-item>
-              <v-list-item v-if="playerAge" class="px-0 py-2">
-                <template #prepend>
-                  <v-icon icon="mdi-calendar" class="mr-3 info-icon" size="small" />
-                </template>
-                <v-list-item-title class="text-caption font-weight-bold">Age</v-list-item-title>
-                <v-list-item-subtitle>{{ playerAge }} years</v-list-item-subtitle>
-              </v-list-item>
-            </v-list>
-          </div>
-        </v-col>
-        <v-col cols="12" sm="6">
-          <v-list density="compact">
-            <v-list-item v-if="player.height" class="px-0 py-2">
-              <template #prepend>
-                <v-icon icon="mdi-human-male-height" class="mr-3 info-icon" size="small" />
-              </template>
-              <v-list-item-title class="text-caption font-weight-bold">Height</v-list-item-title>
-              <v-list-item-subtitle>{{ player.height }} cm ({{ heightInFeet }})</v-list-item-subtitle>
-            </v-list-item>
-            <v-list-item v-if="player.position" class="px-0 py-2">
-              <template #prepend>
-                <v-icon icon="mdi-basketball" class="mr-3 info-icon" size="small" />
-              </template>
-              <v-list-item-title class="text-caption font-weight-bold">Position</v-list-item-title>
-              <v-list-item-subtitle>{{ player.position }}</v-list-item-subtitle>
-            </v-list-item>
-            <v-list-item class="px-0 py-2">
-              <template #prepend>
-                <v-icon icon="mdi-identifier" class="mr-3 info-icon" size="small" />
-              </template>
-              <v-list-item-title class="text-caption font-weight-bold">Player Code</v-list-item-title>
-              <v-list-item-subtitle>{{ player.playerCode }}</v-list-item-subtitle>
-            </v-list-item>
-          </v-list>
-        </v-col>
-      </v-row>
+    <!-- Profile Header Section -->
+    <v-card-text class="text-center pa-8 profile-section">
+      <v-avatar size="120" class="mb-4 avatar-shadow" color="grey-lighten-3">
+        <v-img v-if="player.imageUrl" :src="player.imageUrl" :alt="player.name" />
+        <span v-else class="text-h5 font-weight-bold">{{ playerInitials }}</span>
+      </v-avatar>
+      <h1 class="text-h5 font-weight-bold mb-1">{{ player.name }}</h1>
+      <p v-if="player.clubName" class="text-body-2 text-primary font-weight-600 mb-3">
+        {{ player.clubName }}
+      </p>
+      <div class="d-flex gap-2 justify-center flex-wrap mb-4">
+        <v-chip v-if="player.dorsal" color="primary" variant="flat" size="small" class="font-weight-bold">
+          #{{ player.dorsal }}
+        </v-chip>
+        <v-chip v-if="player.position" variant="tonal" size="small" class="font-weight-bold">
+          {{ player.position }}
+        </v-chip>
+      </div>
     </v-card-text>
+
+    <v-divider />
+
+    <!-- Player Information Section -->
+    <v-row class="info-section pa-6">
+      <v-col cols="12" sm="6" md="3">
+        <div v-if="player.countryName" class="info-item-grid">
+          <v-icon icon="mdi-flag" class="mb-2 info-icon" size="small" />
+          <div class="info-label">Country</div>
+          <div class="info-value">{{ player.countryName }}</div>
+        </div>
+      </v-col>
+
+      <v-col cols="12" sm="6" md="3">
+        <div v-if="player.height" class="info-item-grid">
+          <v-icon icon="mdi-human-male-height" class="mb-2 info-icon" size="small" />
+          <div class="info-label">Height</div>
+          <div class="info-value">{{ player.height }} cm ({{ heightInFeet }})</div>
+        </div>
+      </v-col>
+
+      <v-col cols="12" sm="6" md="3">
+        <div v-if="player.weight" class="info-item-grid">
+          <v-icon icon="mdi-weight-kilogram" class="mb-2 info-icon" size="small" />
+          <div class="info-label">Weight</div>
+          <div class="info-value">{{ player.weight }} kg</div>
+        </div>
+      </v-col>
+
+      <v-col cols="12" sm="6" md="3">
+        <div v-if="playerAge" class="info-item-grid">
+          <v-icon icon="mdi-calendar" class="mb-2 info-icon" size="small" />
+          <div class="info-label">Age</div>
+          <div class="info-value">{{ playerAge }} years</div>
+        </div>
+      </v-col>
+
+      <v-col cols="12" sm="6" md="3">
+        <div v-if="player.birthDate" class="info-item-grid">
+          <v-icon icon="mdi-cake-variant" class="mb-2 info-icon" size="small" />
+          <div class="info-label">Birthday</div>
+          <div class="info-value">{{ formatDate(player.birthDate) }}</div>
+        </div>
+      </v-col>
+
+      <v-col cols="12" sm="6" md="3">
+        <div v-if="player.instagramAccount" class="info-item-grid">
+          <v-icon icon="mdi-instagram" class="mb-2 info-icon" size="small" />
+          <div class="info-label">Instagram</div>
+          <v-btn
+            :href="`https://instagram.com/${player.instagramAccount}`"
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="text"
+            size="x-small"
+            color="primary"
+            class="pl-0"
+          >
+            @{{ player.instagramAccount }}
+          </v-btn>
+        </div>
+      </v-col>
+    </v-row>
   </v-card>
 </template>
 
@@ -110,12 +131,71 @@ const formatDate = (dateString: string | undefined) => {
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.info-group {
-  padding-right: 8px;
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 4px;
+  background-color: rgba(240, 83, 35, 0.04);
+  height: 100%;
+}
+
+.info-row {
+  display: flex;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-item-compact {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
 }
 
 .info-icon {
-  color: #F05323;
+  color: #F05323 !important;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.info-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8a92a2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a2742;
 }
 
 .primary-icon {
@@ -132,22 +212,7 @@ const formatDate = (dateString: string | undefined) => {
   opacity: 0.4;
 }
 
-:deep(.v-list-item) {
-  min-height: auto;
-  padding: 6px 0;
-}
-
-:deep(.v-list-item-title) {
-  font-size: 12px;
-  font-weight: 600;
-  color: #8a92a2;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-:deep(.v-list-item-subtitle) {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1a2742;
+:deep(.v-chip) {
+  height: auto;
 }
 </style>

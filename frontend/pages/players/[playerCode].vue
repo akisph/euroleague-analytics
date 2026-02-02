@@ -1,3 +1,5 @@
+import { ref } from "vue"
+
 <template>
   <div class="player-details-page">
     <SharedPageHeader
@@ -19,43 +21,68 @@
         <div class="page-container">
           <!-- Profile Header Section -->
           <v-row class="mb-8">
-            <v-col cols="12" md="4">
-              <PlayersPlayerProfileHeader :player="player" />
-            </v-col>
+          
 
             <!-- Info Card -->
-            <v-col cols="12" md="8">
+            <v-col cols="12" md="12">
               <PlayersPlayerInfoCard :player="player" />
             </v-col>
           </v-row>
 
-          <!-- Stats Sections -->
-          <template v-if="player.stats">
-            <!-- Charts Row - Shooting Percentages & Per Game Averages -->
-            <v-row class="gap-6 mb-8">
-              <v-col cols="12" md="6">
-                <PlayersPlayerShootingGauges :player="player" />
-              </v-col>
-              <v-col cols="12" md="6">
-                <PlayersPlayerPerGameChart :player="player" />
-              </v-col>
-            </v-row>
+          <!-- Stats Sections with Tabs -->
+          <v-tabs v-model="activeTab" color="primary" class="mt-6 text-secondary">
+            <!-- Stats Tab -->
+            <v-tab key="stats" value="stats">
+              <v-icon icon="mdi-chart-box" class="mr-2" />
+              Stats
+            </v-tab>
 
-            <!-- Detailed Stats Grid -->
-            <v-row class="gap-4">
-              <v-col cols="12">
-                <PlayersPlayerScoringStats :player="player" />
-              </v-col>
+            <!-- Games Tab -->
+            <v-tab key="games" value="games">
+              <v-icon icon="mdi-basketball" class="mr-2" />
+              Games
+            </v-tab>
+          </v-tabs>
 
-              <v-col cols="12">
-                <PlayersPlayerReboundsStats :player="player" />
-              </v-col>
+          <!-- Tab Content -->
+          <v-window v-model="activeTab" class="mt-6">
+            <!-- Stats Tab Content -->
+            <v-window-item key="stats" value="stats">
+              <template v-if="player.stats">
+                <!-- Charts Row - Shooting Percentages & Per Game Averages -->
+                <v-row class="gap-6 mb-8">
+                  <v-col cols="12" md="6">
+                    <PlayersPlayerShootingGauges :player="player" />
+                  </v-col>
+                  <v-col cols="12" md="6">
+                    <PlayersPlayerPerGameChart :player="player" />
+                  </v-col>
+                </v-row>
 
-              <v-col cols="12">
-                <PlayersPlayerDefenseStats :player="player" />
-              </v-col>
-            </v-row>
-          </template>
+                <!-- Detailed Stats Grid -->
+                <v-row class="gap-4">
+                  <v-col cols="12">
+                    <PlayersPlayerScoringStats :player="player" />
+                  </v-col>
+
+                  <v-col cols="12">
+                    <PlayersPlayerReboundsStats :player="player" />
+                  </v-col>
+
+                  <v-col cols="12">
+                    <PlayersPlayerDefenseStats :player="player" />
+                  </v-col>
+                </v-row>
+              </template>
+            </v-window-item>
+
+            <!-- Games Tab Content -->
+            <v-window-item key="games" value="games">
+              <div class="pa-8 text-center">
+                <p class="text-body-2 text-medium-emphasis">Games content coming soon...</p>
+              </div>
+            </v-window-item>
+          </v-window>
         </div>
       </template>
 
@@ -76,6 +103,7 @@ const route = useRoute()
 const { fetchPlayerByCode, currentPlayer: player, isLoading, error } = usePlayers()
 
 const playerCode = computed(() => route.params.playerCode as string)
+const activeTab = ref('stats')
 
 const breadcrumbs = computed(() => [
   { title: 'Home', to: '/' },

@@ -122,6 +122,26 @@ export class PlayerDto {
   @IsOptional()
   alias?: string;
 
+  @IsString()
+  @IsOptional()
+  aliasRaw?: string;
+
+  @IsString()
+  @IsOptional()
+  passportName?: string;
+
+  @IsString()
+  @IsOptional()
+  passportSurname?: string;
+
+  @IsString()
+  @IsOptional()
+  jerseyName?: string;
+
+  @IsString()
+  @IsOptional()
+  abbreviatedName?: string;
+
   @IsNumber()
   @IsOptional()
   dorsal?: number;
@@ -140,15 +160,39 @@ export class PlayerDto {
 
   @IsString()
   @IsOptional()
+  birthCountryCode?: string;
+
+  @IsString()
+  @IsOptional()
+  birthCountryName?: string;
+
+  @IsString()
+  @IsOptional()
   imageUrl?: string;
 
   @IsNumber()
   @IsOptional()
   height?: number;
 
+  @IsNumber()
+  @IsOptional()
+  weight?: number;
+
   @IsDateString()
   @IsOptional()
   birthDate?: string;
+
+  @IsString()
+  @IsOptional()
+  twitterAccount?: string;
+
+  @IsString()
+  @IsOptional()
+  instagramAccount?: string;
+
+  @IsString()
+  @IsOptional()
+  facebookAccount?: string;
 
   @IsString()
   @IsOptional()
