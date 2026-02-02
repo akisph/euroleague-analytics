@@ -166,6 +166,65 @@
 
                 <div v-if="homeTopPlayers.length && awayTopPlayers.length" class="compare-block">
                   <div class="compare-title">Top Player Comparison</div>
+                  <div class="compare-subtitle">Games & Minutes</div>
+                  <div class="compare-grid">
+                    <apexchart
+                      v-if="gpGaugeOptions && gpGaugeSeries"
+                      type="radialBar"
+                      :options="gpGaugeOptions"
+                      :series="gpGaugeSeries"
+                      height="240"
+                    />
+                    <apexchart
+                      v-if="mpgGaugeOptions && mpgGaugeSeries"
+                      type="radialBar"
+                      :options="mpgGaugeOptions"
+                      :series="mpgGaugeSeries"
+                      height="240"
+                    />
+                  </div>
+
+                  <div class="compare-subtitle">Impact Radar</div>
+                  <apexchart
+                    v-if="radarOptions && radarSeries"
+                    type="radar"
+                    :options="radarOptions"
+                    :series="radarSeries"
+                    height="360"
+                  />
+
+                  <div class="compare-subtitle">Efficiency Gauges</div>
+                  <div class="compare-grid">
+                    <apexchart
+                      v-if="twopGaugeOptions && twopGaugeSeries"
+                      type="radialBar"
+                      :options="twopGaugeOptions"
+                      :series="twopGaugeSeries"
+                      height="220"
+                    />
+                    <apexchart
+                      v-if="threepGaugeOptions && threepGaugeSeries"
+                      type="radialBar"
+                      :options="threepGaugeOptions"
+                      :series="threepGaugeSeries"
+                      height="220"
+                    />
+                    <apexchart
+                      v-if="ftGaugeOptions && ftGaugeSeries"
+                      type="radialBar"
+                      :options="ftGaugeOptions"
+                      :series="ftGaugeSeries"
+                      height="220"
+                    />
+                    <apexchart
+                      v-if="fgGaugeOptions && fgGaugeSeries"
+                      type="radialBar"
+                      :options="fgGaugeOptions"
+                      :series="fgGaugeSeries"
+                      height="220"
+                    />
+                  </div>
+
                   <apexchart
                     v-if="chartOptions && chartSeries"
                     type="bar"
@@ -355,14 +414,14 @@ const safeDiv = (num: number, den: number) => (den > 0 ? num / den : 0)
 
 const pct = (num: number, den: number) => (den > 0 ? (num / den) * 100 : 0)
 
-const formatNumber = (value: number | undefined, digits = 1) => {
+const formatNumber = (value: number | undefined, digits = 2) => {
   if (value == null || Number.isNaN(value)) return '-'
   return value.toFixed(digits)
 }
 
 const formatPercent = (value: number | undefined) => {
   if (value == null || Number.isNaN(value)) return '-'
-  return `${value.toFixed(1)}%`
+  return `${value.toFixed(2)}%`
 }
 
 const comparisonRows = computed(() => {
@@ -372,7 +431,7 @@ const comparisonRows = computed(() => {
 
   return [
     { key: 'piravg', label: 'PIR / Game', home: home.pirAverage, away: away.pirAverage, format: (v: number) => formatNumber(v) },
-    { key: 'gp', label: 'Games Played', home: safeDiv(home.gamesPlayed, 1), away: safeDiv(away.gamesPlayed, 1), format: (v: number) => formatNumber(v, 0) },
+    { key: 'gp', label: 'Games Played', home: safeDiv(home.gamesPlayed, 1), away: safeDiv(away.gamesPlayed, 1), format: (v: number) => formatNumber(v) },
     { key: 'mpg', label: 'Minutes / Game', home: home.minutesPerGame, away: away.minutesPerGame, format: (v: number) => formatNumber(v) },
     { key: 'ppg', label: 'Points / Game', home: safeDiv(home.points, home.gamesPlayed), away: safeDiv(away.points, away.gamesPlayed), format: (v: number) => formatNumber(v) },
     { key: 'apg', label: 'Assists / Game', home: safeDiv(home.assistances, home.gamesPlayed), away: safeDiv(away.assistances, away.gamesPlayed), format: (v: number) => formatNumber(v) },
@@ -428,6 +487,237 @@ const chartOptions = computed(() => ({
     },
   },
 }))
+
+const formatShortName = (name: string) => {
+  if (!name) return 'Unknown'
+  const cleaned = name.replace(/\s+/g, ' ').trim()
+  const parts = cleaned.split(/[,\s]+/).filter(Boolean)
+  if (parts.length === 1) return parts[0]
+  if (cleaned.includes(',')) {
+    const last = parts[0]
+    const first = parts[1]?.[0] ?? ''
+    return `${last}, ${first}.`
+  }
+  const last = parts[parts.length - 1]
+  const first = parts[0]?.[0] ?? ''
+  return `${last}, ${first}.`
+}
+
+const gaugeBase = (title: string, labels: string[]) => ({
+  chart: { type: 'radialBar', sparkline: { enabled: true } },
+  plotOptions: {
+    radialBar: {
+      hollow: { size: '55%' },
+      track: { background: '#eef1f5' },
+      dataLabels: {
+        name: { fontSize: '12px' },
+        value: { fontSize: '16px', fontWeight: 700 },
+      },
+    },
+  },
+  yaxis: { min: 0 },
+  labels,
+  colors: ['#F05323', '#1a2742'],
+})
+
+const gpGaugeSeries = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  const maxRound = Math.max(game.value?.roundNumber ?? 0, 1)
+  return [
+    Math.round((Number(home.gamesPlayed) / maxRound) * 100),
+    Math.round((Number(away.gamesPlayed) / maxRound) * 100),
+  ]
+})
+
+const gpGaugeOptions = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  const maxRound = Math.max(game.value?.roundNumber ?? 0, 1)
+  const gamesValues = [
+    `${formatNumber(home.gamesPlayed)}/${formatNumber(maxRound)}`,
+    `${formatNumber(away.gamesPlayed)}/${formatNumber(maxRound)}`,
+  ]
+  return {
+    chart: { type: 'radialBar', sparkline: { enabled: false } },
+    ...gaugeBase('Games Played', [
+      `${formatShortName(home.name)} - Games`,
+      `${formatShortName(away.name)} - Games`,
+    ]),
+    plotOptions: {
+      radialBar: {
+        max: maxRound,
+        dataLabels: {
+          show: true,
+          name: { show: true },
+          value: {
+            show: true,
+            formatter: (val: number, opts: any) => gamesValues[opts?.seriesIndex ?? 0],
+          },
+        },
+      },
+    },
+    legend: { show: true },
+  }
+})
+
+const mpgGaugeSeries = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  const maxMinutes = 40
+  return [
+    Math.round((Number(home.minutesPerGame) / maxMinutes) * 100),
+    Math.round((Number(away.minutesPerGame) / maxMinutes) * 100),
+  ]
+})
+
+const mpgGaugeOptions = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  const maxMinutes = 40
+  const minuteValues = [
+    `${formatNumber(home.minutesPerGame)}/${formatNumber(maxMinutes)}`,
+    `${formatNumber(away.minutesPerGame)}/${formatNumber(maxMinutes)}`,
+  ]
+  return {
+    chart: { type: 'radialBar', sparkline: { enabled: false } },
+    ...gaugeBase('Minutes / Game', [
+      `${formatShortName(home.name)} - MPG`,
+      `${formatShortName(away.name)} - MPG`,
+    ]),
+    plotOptions: {
+      radialBar: {
+        max: maxMinutes,
+        dataLabels: {
+          show: true,
+          name: { show: true },
+          value: {
+            show: true,
+            formatter: (val: number, opts: any) => minuteValues[opts?.seriesIndex ?? 0],
+          },
+        },
+      },
+    },
+    legend: { show: true },
+  }
+})
+
+const radarSeries = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  const r2 = (value: number) => Number(value.toFixed(2))
+  return [
+    { name: home.name, data: [
+      r2(safeDiv(home.points, home.gamesPlayed)),
+      r2(safeDiv(home.assistances, home.gamesPlayed)),
+      r2(home.pirAverage),
+      r2(safeDiv(home.totalRebounds, home.gamesPlayed)),
+      r2(safeDiv(home.steals, home.gamesPlayed)),
+      r2(safeDiv(home.blocksFavour, home.gamesPlayed)),
+      r2(safeDiv(home.turnovers, home.gamesPlayed)),
+    ] },
+    { name: away.name, data: [
+      r2(safeDiv(away.points, away.gamesPlayed)),
+      r2(safeDiv(away.assistances, away.gamesPlayed)),
+      r2(away.pirAverage),
+      r2(safeDiv(away.totalRebounds, away.gamesPlayed)),
+      r2(safeDiv(away.steals, away.gamesPlayed)),
+      r2(safeDiv(away.blocksFavour, away.gamesPlayed)),
+      r2(safeDiv(away.turnovers, away.gamesPlayed)),
+    ] },
+  ]
+})
+
+const radarOptions = computed(() => ({
+  chart: { type: 'radar', toolbar: { show: false } },
+  xaxis: { categories: ['PPG', 'APG', 'PIR', 'RPG', 'SPG', 'BPG', 'TPG'] },
+  stroke: { width: 2 },
+  fill: { opacity: 0.15 },
+  markers: { size: 3 },
+  colors: ['#F05323', '#1a2742'],
+  legend: { position: 'top' },
+}))
+
+const twopGaugeSeries = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  return [Math.round(pct(home.fieldGoalsMade2, home.fieldGoalsAttempted2)), Math.round(pct(away.fieldGoalsMade2, away.fieldGoalsAttempted2))]
+})
+const twopGaugeOptions = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  return {
+    ...gaugeBase('2P%', [
+      `${formatShortName(home.name)} - 2P%`,
+      `${formatShortName(away.name)} - 2P%`,
+    ]),
+    legend: { show: true },
+  }
+})
+
+const threepGaugeSeries = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  return [Math.round(pct(home.fieldGoalsMade3, home.fieldGoalsAttempted3)), Math.round(pct(away.fieldGoalsMade3, away.fieldGoalsAttempted3))]
+})
+const threepGaugeOptions = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  return {
+    ...gaugeBase('3P%', [
+      `${formatShortName(home.name)} - 3P%`,
+      `${formatShortName(away.name)} - 3P%`,
+    ]),
+    legend: { show: true },
+  }
+})
+
+const ftGaugeSeries = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  return [Math.round(pct(home.freeThrowsMade, home.freeThrowsAttempted)), Math.round(pct(away.freeThrowsMade, away.freeThrowsAttempted))]
+})
+const ftGaugeOptions = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  return {
+    ...gaugeBase('FT%', [
+      `${formatShortName(home.name)} - FT%`,
+      `${formatShortName(away.name)} - FT%`,
+    ]),
+    legend: { show: true },
+  }
+})
+
+const fgGaugeSeries = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  return [Math.round(pct(home.fieldGoalsMadeTotal, home.fieldGoalsAttemptedTotal)), Math.round(pct(away.fieldGoalsMadeTotal, away.fieldGoalsAttemptedTotal))]
+})
+const fgGaugeOptions = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return null
+  return {
+    ...gaugeBase('FG%', [
+      `${formatShortName(home.name)} - FG%`,
+      `${formatShortName(away.name)} - FG%`,
+    ]),
+    legend: { show: true },
+  }
+})
 
 // Register ApexCharts
 try {
@@ -586,6 +876,9 @@ watch(game, (g) => {
   border-radius: 12px;
   padding: 1rem;
   background: #f9fafb;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .team-section-title {
@@ -602,6 +895,12 @@ watch(game, (g) => {
   border-radius: 10px;
   background: #ffffff;
   border: 1px solid #e6e9f0;
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.player-info {
+  text-align: center;
 }
 
 .player-name {
@@ -629,6 +928,20 @@ watch(game, (g) => {
   font-weight: 700;
   color: #1a2742;
   margin-bottom: 0.75rem;
+}
+
+.compare-subtitle {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  color: #1a2742;
+}
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .compare-row {
@@ -693,6 +1006,10 @@ watch(game, (g) => {
   .compare-row {
     grid-template-columns: 1fr;
     text-align: center;
+  }
+
+  .compare-grid {
+    grid-template-columns: 1fr;
   }
 }
 
