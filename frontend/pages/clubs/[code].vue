@@ -144,12 +144,26 @@
                     <v-list-item-title>Fax</v-list-item-title>
                     <v-list-item-subtitle>{{ club.fax }}</v-list-item-subtitle>
                   </v-list-item>
+                  <v-list-item v-if="coachName">
+                    <template #prepend>
+                      <v-icon icon="mdi-account-tie" class="mr-3" />
+                    </template>
+                    <v-list-item-title>Coach</v-list-item-title>
+                    <v-list-item-subtitle>{{ coachName }}</v-list-item-subtitle>
+                  </v-list-item>
+                  <v-list-item v-if="managerNames.length">
+                    <template #prepend>
+                      <v-icon icon="mdi-clipboard-account" class="mr-3" />
+                    </template>
+                    <v-list-item-title>Team Managers</v-list-item-title>
+                    <v-list-item-subtitle>{{ managerNames.join(', ') }}</v-list-item-subtitle>
+                  </v-list-item>
                 </v-list>
               </v-card-text>
             </v-card>
           </v-col>
 
-          <!-- Venue Info -->
+          <!-- Staff & Venue Info -->
           <v-col cols="12" md="6">
             <v-card class="h-100">
               <v-card-title>
@@ -224,49 +238,130 @@
             </v-card>
           </v-col>
 
-          <!-- Quick Actions -->
+          <!-- Team Games -->
           <v-col cols="12">
             <v-card>
-              <v-card-title>Quick Actions</v-card-title>
+              <v-card-title>
+                <v-icon icon="mdi-basketball" class="mr-2" />
+                Team Games
+              </v-card-title>
               <v-card-text>
-                <v-row>
-                  <v-col cols="12" sm="4">
-                    <v-btn
-                      block
-                      variant="tonal"
-                      color="primary"
-                      prepend-icon="mdi-account-group"
-                      :to="`/clubs/${clubCode}`"
+                <SharedErrorAlert
+                  v-if="gamesError"
+                  :error="gamesError"
+                  @retry="loadTeamGames"
+                  @dismiss="gamesError = null"
+                />
+                <SharedLoadingState :loading="isGamesLoading" message="Loading games...">
+                  <div v-if="teamGames.length" class="games-carousel">
+                    <button
+                      v-if="showCarouselArrows"
+                      class="carousel-arrow left"
+                      type="button"
+                      aria-label="Scroll games left"
+                      @click="scrollCarousel(-1)"
                     >
-                      View Roster
-                    </v-btn>
-                  </v-col>
-                  <v-col cols="12" sm="4">
-                    <v-btn
-                      block
-                      variant="tonal"
-                      color="primary"
-                      prepend-icon="mdi-basketball"
-                      :to="`/games?team=${clubCode}`"
+                      <v-icon icon="mdi-chevron-left" />
+                    </button>
+                    <div ref="carouselRow" class="carousel-row">
+                      <div
+                        v-for="game in teamGames"
+                        :key="game.gameCode"
+                        class="carousel-item"
+                      >
+                        <GamesCard
+                          :game="game"
+                          :show-details="false"
+                          :show-action="true"
+                          @view-details="navigateTo(`/games/${seasonCode}/${game.gameCode}`)"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      v-if="showCarouselArrows"
+                      class="carousel-arrow right"
+                      type="button"
+                      aria-label="Scroll games right"
+                      @click="scrollCarousel(1)"
                     >
-                      View Games
-                    </v-btn>
-                  </v-col>
-                  <v-col cols="12" sm="4">
-                    <v-btn
-                      block
-                      variant="tonal"
-                      color="primary"
-                      prepend-icon="mdi-chart-line"
-                      to="/standings"
-                    >
-                      View Standings
-                    </v-btn>
-                  </v-col>
-                </v-row>
+                      <v-icon icon="mdi-chevron-right" />
+                    </button>
+                  </div>
+                  <SharedEmptyState
+                    v-else
+                    title="No games available"
+                    message="No games found for this team in the selected season."
+                    icon="mdi-calendar-remove"
+                  />
+                </SharedLoadingState>
               </v-card-text>
             </v-card>
           </v-col>
+
+          <!-- Club Roster -->
+          <v-col cols="12">
+            <v-card>
+              <v-card-title>
+                <v-icon icon="mdi-account-group" class="mr-2" />
+                Roster
+              </v-card-title>
+              <v-card-text>
+                <SharedErrorAlert
+                  v-if="rosterError"
+                  :error="rosterError"
+                  @retry="loadRoster"
+                  @dismiss="rosterError = null"
+                />
+                <SharedLoadingState :loading="isRosterLoading" message="Loading roster...">
+                  <v-data-table
+                    v-if="rosterPlayers.length"
+                    :headers="rosterHeaders"
+                    :items="rosterPlayers"
+                    :items-per-page="-1"
+                    class="elevation-0 roster-table"
+                    density="compact"
+                    hide-default-footer
+                  >
+                    <template #item.player="{ item }">
+                      <div class="d-flex align-center" :class="{ 'roster-inactive': !item.active }">
+                        <v-avatar size="36" color="grey-lighten-3" class="mr-3 roster-avatar">
+                          <v-img v-if="item.imageUrl" :src="item.imageUrl" :alt="item.name" :cover="false" />
+                          <v-icon v-else icon="mdi-account" />
+                        </v-avatar>
+                        <div>
+                          <NuxtLink :to="`/players/${seasonCode}/${item.playerCode}`" class="roster-link">
+                            {{ item.name }}
+                          </NuxtLink>
+                          <div class="text-caption text-medium-emphasis">
+                            {{ item.countryName || '—' }}
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                    <template #item.position="{ item }">
+                      {{ item.position || '—' }}
+                    </template>
+                    <template #item.dorsal="{ item }">
+                      {{ item.dorsal ?? '—' }}
+                    </template>
+                    <template #item.height="{ item }">
+                      {{ item.height ? `${item.height} cm` : '—' }}
+                    </template>
+                    <template #item.weight="{ item }">
+                      {{ item.weight ? `${item.weight} kg` : '—' }}
+                    </template>
+                  </v-data-table>
+                  <SharedEmptyState
+                    v-else
+                    title="No roster available"
+                    message="Roster data is not available for this club/season."
+                    icon="mdi-account-off"
+                  />
+                </SharedLoadingState>
+              </v-card-text>
+            </v-card>
+          </v-col>
+
         </v-row>
 
         <SharedEmptyState
@@ -282,13 +377,91 @@
 </template>
 
 <script setup lang="ts">
-
-
 const route = useRoute()
 const { fetchClubByCode, fetchClubInfo, currentClub: club, clubInfo, isLoading, error } = useClubs()
+const { fetchTeamRoster, currentRoster, isLoading: isRosterLoading, error: rosterError } = useTeams()
+const { fetchGamesByTeam, games, isLoading: isGamesLoading, error: gamesError } = useGames()
+const { selectedSeasonCode, initializeSeasons } = useSeasons()
 
 const clubCode = computed(() => route.params.code as string)
+const seasonCode = computed(() => selectedSeasonCode.value)
 
+const rosterHeaders = [
+  { title: 'Player', key: 'player', sortable: false },
+  { title: 'Position', key: 'position', sortable: true },
+  { title: '#', key: 'dorsal', sortable: true },
+  { title: 'Height', key: 'height', sortable: true },
+  { title: 'Weight', key: 'weight', sortable: true },
+]
+
+const rosterPlayers = computed(() => {
+  const roster = currentRoster.value as unknown
+  if (!Array.isArray(roster)) {
+    return []
+  }
+
+  return roster
+    .filter((entry: any) => entry?.typeName === 'Player' && entry?.person)
+    .map((entry: any) => ({
+      playerCode: entry.person.code,
+      name: entry.person.name,
+      imageUrl: entry.person.images?.headshot || entry.images?.headshot || entry.images?.action || '',
+      countryName: entry.person.country?.name || '',
+      position: entry.positionName || '',
+      dorsal: entry.dorsal || '',
+      height: entry.person.height || null,
+      weight: entry.person.weight || null,
+      active: entry.active === true,
+    }))
+    .sort((a, b) => {
+      const activeSort = Number(b.active) - Number(a.active)
+      if (activeSort !== 0) {
+        return activeSort
+      }
+      const aDorsal = Number.parseInt(String(a.dorsal), 10)
+      const bDorsal = Number.parseInt(String(b.dorsal), 10)
+      if (Number.isNaN(aDorsal) && Number.isNaN(bDorsal)) {
+        return 0
+      }
+      if (Number.isNaN(aDorsal)) {
+        return 1
+      }
+      if (Number.isNaN(bDorsal)) {
+        return -1
+      }
+      return aDorsal - bDorsal
+    })
+})
+
+const staffCards = computed(() => {
+  const roster = currentRoster.value as unknown
+  if (!Array.isArray(roster)) {
+    return []
+  }
+
+  return roster
+    .filter((entry: any) => entry?.person && (entry?.typeName === 'Team_Manager' || entry?.typeName === 'Coach'))
+    .map((entry: any) => ({
+      personCode: entry.person.code,
+      name: entry.person.name,
+      imageUrl: entry.person.images?.headshot || entry.images?.headshot || entry.images?.action || '',
+      countryName: entry.person.country?.name || '',
+      role: entry.typeName === 'Coach' ? 'Coach' : 'Team Manager',
+      active: entry.active === true,
+    }))
+    .sort((a, b) => Number(b.active) - Number(a.active))
+})
+
+const coachName = computed(() => {
+  const coach = staffCards.value.find((staff) => staff.role === 'Coach')
+  return coach?.name || ''
+})
+
+const managerNames = computed(() => {
+  return staffCards.value
+    .filter((staff) => staff.role === 'Team Manager')
+    .map((staff) => staff.name)
+})
 const breadcrumbs = computed(() => [
   { title: 'Home', to: '/' },
   { title: 'Clubs', to: '/clubs' },
@@ -305,10 +478,98 @@ const loadClub = async () => {
   }
 }
 
+const loadRoster = async () => {
+  if (!seasonCode.value || !clubCode.value) {
+    return
+  }
+  await fetchTeamRoster(seasonCode.value, clubCode.value)
+}
+
+const loadTeamGames = async () => {
+  if (!seasonCode.value || !clubCode.value) {
+    return
+  }
+  await fetchGamesByTeam(seasonCode.value, clubCode.value)
+}
+
+const carouselRow = ref<HTMLElement | null>(null)
+const showCarouselArrows = ref(false)
+
+const teamGames = computed(() => {
+  const sorted = [...games.value].sort((a, b) => {
+    const aDate = a.gameDate ? new Date(a.gameDate).getTime() : 0
+    const bDate = b.gameDate ? new Date(b.gameDate).getTime() : 0
+    return aDate - bDate
+  })
+  return sorted
+})
+
+const getUpcomingIndex = () => {
+  const now = Date.now()
+  for (let i = 0; i < teamGames.value.length; i += 1) {
+    const g = teamGames.value[i]
+    const date = g.gameDate ? new Date(g.gameDate).getTime() : 0
+    if (date >= now && !g.played) {
+      return i
+    }
+  }
+  return -1
+}
+
+const scrollCarousel = (direction: -1 | 1) => {
+  if (!carouselRow.value) return
+  const container = carouselRow.value
+  const amount = Math.floor(container.clientWidth * 0.8)
+  container.scrollBy({ left: direction * amount, behavior: 'smooth' })
+}
+
+const updateCarouselControls = () => {
+  if (!carouselRow.value) {
+    showCarouselArrows.value = false
+    return
+  }
+  const container = carouselRow.value
+  showCarouselArrows.value = container.scrollWidth > container.clientWidth + 8
+}
+
 // Load club when route changes
 watch(clubCode, () => {
   loadClub()
 }, { immediate: true })
+
+onMounted(async () => {
+  await initializeSeasons()
+})
+
+watch([seasonCode, clubCode], async () => {
+  await loadRoster()
+  await loadTeamGames()
+}, { immediate: true })
+
+watch(teamGames, async () => {
+  await nextTick()
+  updateCarouselControls()
+  const index = getUpcomingIndex()
+  if (!carouselRow.value || index < 0) return
+  const container = carouselRow.value
+  const items = Array.from(container.querySelectorAll('.carousel-item')) as HTMLElement[]
+  const target = items[index]
+  if (!target) return
+  const offset = target.offsetLeft - (container.clientWidth - target.clientWidth) / 2
+  container.scrollTo({ left: Math.max(offset, 0), behavior: 'smooth' })
+}, { immediate: true })
+
+onMounted(() => {
+  if (carouselRow.value) {
+    carouselRow.value.addEventListener('scroll', updateCarouselControls)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (carouselRow.value) {
+    carouselRow.value.removeEventListener('scroll', updateCarouselControls)
+  }
+})
 </script>
 
 <style scoped>
@@ -347,6 +608,83 @@ watch(clubCode, () => {
 /* Slightly muted avatar background so initials/icons remain visible */
 .page-light-surface :deep(.v-avatar) {
   background-color: #f3f4f6 !important;
+}
+
+.roster-avatar :deep(img) {
+  object-fit: contain !important;
+}
+
+.roster-inactive {
+  opacity: 0.55;
+}
+
+.roster-table :deep(.v-table__wrapper table) {
+  width: 100%;
+}
+
+.roster-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.roster-link:hover {
+  text-decoration: underline;
+}
+
+.games-carousel {
+  overflow-x: auto;
+}
+
+.games-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-row {
+  display: flex;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.carousel-row::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-item {
+  min-width: 280px;
+  max-width: 320px;
+  flex: 0 0 auto;
+}
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.carousel-arrow.left {
+  left: 8px;
+}
+
+.carousel-arrow.right {
+  right: 8px;
+}
+
+.games-carousel {
+  position: relative;
 }
 
 @media (max-width: 768px) {

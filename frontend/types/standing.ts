@@ -10,6 +10,8 @@ export interface TeamStanding {
   pointsAgainst?: number
   pointDifference?: number
   winStreak?: number
+  lastFive?: string
+  teamImage?: string
   winPercentage?: number
 }
 

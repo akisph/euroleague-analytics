@@ -8,9 +8,11 @@ export interface Game {
   gameDate?: string
   homeTeamCode?: string
   homeTeamName?: string
+  homeTeamImage?: string
   homeScore?: number
   awayTeamCode?: string
   awayTeamName?: string
+  awayTeamImage?: string
   awayScore?: number
   played?: boolean
   status?: string

@@ -10,12 +10,96 @@ const parseXml = promisify(parseString);
 export class StandingsService {
   private readonly logger = new Logger(StandingsService.name);
   private readonly baseUrl: string;
+  private readonly competitionCode = 'E';
 
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
     this.baseUrl = this.configService.get<string>('EUROLEAGUE_API_BASE_URL', 'https://api-live.euroleague.net');
+  }
+
+  private async getTeamLastFive(seasonCode: string): Promise<Record<string, { lastFive: string }>> {
+    try {
+      const url = `${this.baseUrl}/v2/competitions/${this.competitionCode}/seasons/${seasonCode}/games`;
+      const response = await this.httpService.get<any>(url).toPromise();
+      const rawGames = response.data?.data || response.data || [];
+      const teamGames = new Map<string, Array<{ date: number; result: 'W' | 'L' | 'D' }>>();
+
+      for (const game of rawGames) {
+        const homeCode = game?.local?.club?.code;
+        const awayCode = game?.road?.club?.code;
+        if (!homeCode || !awayCode) {
+          continue;
+        }
+
+        if (game?.played === false) {
+          continue;
+        }
+
+        const homeScore = Number(game?.local?.score);
+        const awayScore = Number(game?.road?.score);
+        if (Number.isNaN(homeScore) || Number.isNaN(awayScore)) {
+          continue;
+        }
+
+        const dateValue = Date.parse(game?.date || '');
+        const date = Number.isNaN(dateValue) ? 0 : dateValue;
+
+        let homeResult: 'W' | 'L' | 'D' = 'D';
+        if (homeScore > awayScore) homeResult = 'W';
+        else if (homeScore < awayScore) homeResult = 'L';
+        else {
+          continue;
+        }
+
+        const awayResult: 'W' | 'L' | 'D' = homeResult === 'W' ? 'L' : homeResult === 'L' ? 'W' : 'D';
+
+        if (!teamGames.has(homeCode)) teamGames.set(homeCode, []);
+        if (!teamGames.has(awayCode)) teamGames.set(awayCode, []);
+        teamGames.get(homeCode)!.push({ date, result: homeResult });
+        teamGames.get(awayCode)!.push({ date, result: awayResult });
+      }
+
+      const streaks: Record<string, { lastFive: string }> = {};
+      for (const [teamCode, games] of teamGames.entries()) {
+        const sorted = games.sort((a, b) => b.date - a.date);
+        if (!sorted.length) {
+          streaks[teamCode] = { lastFive: '' };
+          continue;
+        }
+
+        const lastFive = sorted.slice(0, 5).map((g) => g.result).join('');
+        streaks[teamCode] = { lastFive };
+      }
+
+      return streaks;
+    } catch (error) {
+      this.logger.warn(`Failed to compute streaks: ${error.message}`);
+      return {};
+    }
+  }
+
+  private async getClubImagesMap(): Promise<Record<string, string>> {
+    try {
+      const url = `${this.baseUrl}/v3/clubs`;
+      const response = await this.httpService.get<any>(url).toPromise();
+      const clubs = response.data?.data || response.data || [];
+      const imagesMap: Record<string, string> = {};
+
+      for (const club of clubs) {
+        const code = club?.code;
+        const crest = club?.images?.crest;
+        if (code && crest) {
+          imagesMap[code] = crest;
+        }
+      }
+
+      return imagesMap;
+    } catch (error) {
+      this.logger.warn(`Failed to fetch club images: ${error.message}`);
+      return {};
+    }
   }
 
   async getCurrentStandings(seasonCode: string): Promise<any> {
@@ -37,6 +121,10 @@ export class StandingsService {
       
       // Transform XML structure to JSON
       const groups = parsed.standings?.group || [];
+      const [streaks, imagesMap] = await Promise.all([
+        this.getTeamLastFive(seasonCode),
+        this.getClubImagesMap(),
+      ]);
       
       return groups.map((group: any) => ({
         groupCode: group.$.round || 'RS',
@@ -51,6 +139,8 @@ export class StandingsService {
           pointsFor: parseInt(team.ptsfavour?.[0] || '0'),
           pointsAgainst: parseInt(team.ptsagainst?.[0] || '0'),
           difference: parseInt(team.difference?.[0] || '0'),
+          lastFive: streaks[team.code?.[0]]?.lastFive ?? '',
+          teamImage: imagesMap[team.code?.[0]] ?? '',
         }))
       }));
     } catch (error) {

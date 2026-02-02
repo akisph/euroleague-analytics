@@ -35,6 +35,14 @@ export class TeamStandingDto {
   @IsOptional()
   winStreak?: number;
 
+  @IsString()
+  @IsOptional()
+  lastFive?: string;
+
+  @IsString()
+  @IsOptional()
+  teamImage?: string;
+
   @IsNumber()
   @IsOptional()
   winPercentage?: number;

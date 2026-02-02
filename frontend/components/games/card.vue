@@ -25,8 +25,9 @@
         <div class="teams-container">
           <!-- Home Team -->
           <div class="team-info">
-            <v-avatar size="48" color="#e0e6f0">
-              <span class="team-code">{{ game.homeTeamCode?.substring(0, 3) }}</span>
+            <v-avatar size="48" color="#e0e6f0" class="team-avatar">
+              <v-img v-if="game.homeTeamImage" :src="game.homeTeamImage" :alt="game.homeTeamName" :cover="false" />
+              <span v-else class="team-code">{{ game.homeTeamCode?.substring(0, 3) }}</span>
             </v-avatar>
             <div class="team-name">{{ game.homeTeamName }}</div>
           </div>
@@ -62,8 +63,9 @@
 
           <!-- Away Team -->
           <div class="team-info">
-            <v-avatar size="48" color="#e0e6f0">
-              <span class="team-code">{{ game.awayTeamCode?.substring(0, 3) }}</span>
+            <v-avatar size="48" color="#e0e6f0" class="team-avatar">
+              <v-img v-if="game.awayTeamImage" :src="game.awayTeamImage" :alt="game.awayTeamName" :cover="false" />
+              <span v-else class="team-code">{{ game.awayTeamCode?.substring(0, 3) }}</span>
             </v-avatar>
             <div class="team-name">{{ game.awayTeamName }}</div>
           </div>
@@ -166,7 +168,7 @@ const formattedDate = computed(() => {
 }
 
 .game-card--scheduled {
-  border-left-color: #17a2b8 !important;
+  border-left-color: #F05323 !important;
 }
 
 .game-card:hover {
@@ -232,6 +234,10 @@ const formattedDate = computed(() => {
   font-size: 0.75rem;
   font-weight: 700;
   color: #1a2742;
+}
+
+.team-avatar :deep(img) {
+  object-fit: contain !important;
 }
 
 .team-name {

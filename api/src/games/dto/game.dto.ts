@@ -31,6 +31,10 @@ export class GameDto {
   @IsOptional()
   homeTeamName?: string;
 
+  @IsString()
+  @IsOptional()
+  homeTeamImage?: string;
+
   @IsNumber()
   @IsOptional()
   homeScore?: number;
@@ -42,6 +46,10 @@ export class GameDto {
   @IsString()
   @IsOptional()
   awayTeamName?: string;
+
+  @IsString()
+  @IsOptional()
+  awayTeamImage?: string;
 
   @IsNumber()
   @IsOptional()

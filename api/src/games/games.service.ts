@@ -7,6 +7,8 @@ import { GameDto, GamesQueryDto } from './dto';
 export class GamesService {
   private readonly logger = new Logger(GamesService.name);
   private readonly baseUrl: string;
+  private clubImagesCache: { data: Record<string, string>; fetchedAt: number } | null = null;
+  private readonly clubImagesTtlMs = 10 * 60 * 1000;
 
   constructor(
     private readonly httpService: HttpService,
@@ -15,7 +17,38 @@ export class GamesService {
     this.baseUrl = this.configService.get<string>('EUROLEAGUE_API_BASE_URL', 'https://api-live.euroleague.net');
   }
 
-  private transformGame(data: any): GameDto {
+  private async getClubImagesMap(): Promise<Record<string, string>> {
+    const now = Date.now();
+    if (this.clubImagesCache && now - this.clubImagesCache.fetchedAt < this.clubImagesTtlMs) {
+      return this.clubImagesCache.data;
+    }
+
+    try {
+      const url = `${this.baseUrl}/v3/clubs`;
+      const response = await this.httpService.get<any>(url).toPromise();
+      const clubs = response.data?.data || response.data || [];
+      const imagesMap: Record<string, string> = {};
+
+      for (const club of clubs) {
+        const code = club?.code;
+        const crest = club?.images?.crest;
+        if (code && crest) {
+          imagesMap[code] = crest;
+        }
+      }
+
+      this.clubImagesCache = { data: imagesMap, fetchedAt: now };
+      return imagesMap;
+    } catch (error) {
+      this.logger.warn(`Failed to fetch club images: ${error.message}`);
+      return {};
+    }
+  }
+
+  private transformGame(data: any, imagesMap: Record<string, string>): GameDto {
+    const homeCode = data.local?.club?.code;
+    const awayCode = data.road?.club?.code;
+
     return {
       gameCode: data.gameCode,
       seasonCode: data.season?.code || data.seasonCode, // fallback if flat
@@ -23,11 +56,13 @@ export class GamesService {
       phaseTypeCode: data.phaseType?.code,
       phaseTypeName: data.phaseType?.name,
       gameDate: data.date,
-      homeTeamCode: data.local?.club?.code,
+      homeTeamCode: homeCode,
       homeTeamName: data.local?.club?.name,
+      homeTeamImage: homeCode ? imagesMap[homeCode] : undefined,
       homeScore: data.local?.score,
-      awayTeamCode: data.road?.club?.code,
+      awayTeamCode: awayCode,
       awayTeamName: data.road?.club?.name,
+      awayTeamImage: awayCode ? imagesMap[awayCode] : undefined,
       awayScore: data.road?.score,
       played: data.played,
       arena: data.venue?.name,
@@ -67,9 +102,10 @@ export class GamesService {
       }
 
       const response = await this.httpService.get<any>(url, { params }).toPromise();
+      const imagesMap = await this.getClubImagesMap();
       // API returns { data: Game[], total: number }, we need just the data array
       const rawGames = response.data?.data || response.data || [];
-      return rawGames.map(game => this.transformGame(game));
+      return rawGames.map(game => this.transformGame(game, imagesMap));
     } catch (error) {
       this.logger.error(`Error fetching games: ${error.message}`, error.stack);
       throw new HttpException(
@@ -90,7 +126,8 @@ export class GamesService {
       const url = `${this.baseUrl}/v2/competitions/${competitionCode}/seasons/${seasonCode}/games/${gameCode}`;
 
       const response = await this.httpService.get<any>(url).toPromise();
-      return this.transformGame(response.data);
+      const imagesMap = await this.getClubImagesMap();
+      return this.transformGame(response.data, imagesMap);
     } catch (error) {
       this.logger.error(`Error fetching game details: ${error.message}`, error.stack);
       throw new HttpException(
