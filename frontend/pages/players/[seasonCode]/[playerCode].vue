@@ -1,10 +1,8 @@
-import { ref } from "vue"
-
 <template>
   <div class="player-details-page">
     <SharedPageHeader
       :title="player?.name || 'Player Details'"
-      :subtitle="player?.position"
+      :subtitle="player?.clubName"
       :breadcrumbs="breadcrumbs"
     >
       <template #actions>
@@ -78,9 +76,7 @@ import { ref } from "vue"
 
             <!-- Games Tab Content -->
             <v-window-item key="games" value="games">
-              <div class="pa-8 text-center">
-                <p class="text-body-2 text-medium-emphasis">Games content coming soon...</p>
-              </div>
+              <PlayersPlayerGames :player="player" :season-code="seasonCode" />
             </v-window-item>
           </v-window>
         </div>

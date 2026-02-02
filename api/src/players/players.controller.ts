@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PlayersService } from './players.service';
-import { PlayerDto, PlayersListResponseDto, PlayersQueryDto, PlayerStatsDto } from './dto';
+import { PlayerDto, PlayersListResponseDto, PlayersQueryDto, PlayerStatsDto, PlayerGameBoxScoresResponseDto } from './dto';
 
 @ApiTags('Players')
 @Controller('players')
@@ -54,5 +54,17 @@ export class PlayersController {
     @Param('seasonCode') seasonCode: string,
   ): Promise<PlayerStatsDto> {
     return this.playersService.getPlayerStats(seasonCode, playerCode);
+  }
+
+  /**
+   * GET /players/:seasonCode/:playerCode/games/boxscores
+   * Get all games for a player with full box scores containing only that player
+   */
+  @Get(':seasonCode/:playerCode/games/boxscores')
+  async getPlayerGameBoxScores(
+    @Param('seasonCode') seasonCode: string,
+    @Param('playerCode') playerCode: string,
+  ): Promise<PlayerGameBoxScoresResponseDto> {
+    return this.playersService.getPlayerGameBoxScores(seasonCode, playerCode);
   }
 }

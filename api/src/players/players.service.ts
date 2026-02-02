@@ -3,7 +3,11 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { COMPETITION_CODE } from '../constants';
-import { PlayerDto, PlayersListResponseDto, PlayerStatsDto } from './dto';
+import { 
+  PlayerDto, 
+  PlayersListResponseDto, 
+  PlayerStatsDto,
+} from './dto';
 
 @Injectable()
 export class PlayersService {
@@ -229,6 +233,13 @@ export class PlayersService {
               player.position = mergedPlayer.position || player.position;
               player.imageUrl = mergedPlayer.imageUrl || player.imageUrl;
               
+              // Extract images from season data
+              if (seasonWithClub.images) {
+                player.headshotImageUrl = seasonWithClub.images.headshot || player.headshotImageUrl;
+                player.actionImageUrl = seasonWithClub.images.action || player.actionImageUrl;
+                this.logger.debug(`Updated player images: headshot=${player.headshotImageUrl}, action=${player.actionImageUrl}`);
+              }
+              
               this.logger.log(`Updated player with season data: club=${player.clubName}, dorsal=${player.dorsal}`);
               foundSeasonData = true;
               
@@ -345,6 +356,8 @@ export class PlayersService {
       countryCode: country.code,
       countryName: country.name,
       imageUrl: person.images?.photo,
+      headshotImageUrl: item.images?.headshot,
+      actionImageUrl: item.images?.action,
       height: person.height,
       birthDate: person.birthDate,
       clubCode: club.code,
@@ -428,5 +441,54 @@ export class PlayersService {
       facebookAccount: data.facebookAccount,
       clubCode,
     };
+  }
+
+  /**
+   * Get all games for a specific player with full box scores containing only that player's stats
+   * @param seasonCode - Season code (e.g., 'E2024')
+   * @param playerCode - Player code (e.g., '003469')
+   * @returns Box scores with player stats as returned from API
+   */
+  async getPlayerGameBoxScores(
+    seasonCode: string,
+    playerCode: string,
+  ): Promise<any> {
+    try {
+      this.logger.log(`Fetching game box scores for player ${playerCode} in season ${seasonCode}`);
+
+      const url = new URL(
+        `${this.baseUrl}/v2/competitions/${COMPETITION_CODE}/seasons/${seasonCode}/people/${playerCode}/stats`,
+      );
+
+      this.logger.log(`Calling: ${url.toString()}`);
+
+      const response = await firstValueFrom(this.httpService.get<any>(url.toString()));
+
+      if (!response.data) {
+        this.logger.warn(`No data received for player ${playerCode}`);
+        return { games: [], total: 0 };
+      }
+
+      this.logger.log(`Successfully fetched stats for player ${playerCode}`);
+
+      return response.data;
+    } catch (error) {
+      this.logger.error(`Error fetching game box scores for ${playerCode}:`, error.message);
+      throw new HttpException(
+        `Failed to fetch game box scores for player ${playerCode}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Calculate percentage
+   */
+  private calculatePercentage(made: number | undefined, attempted: number | undefined): string {
+    const m = made || 0;
+    const a = attempted || 0;
+    if (a === 0) return '-';
+    const percentage = (m / a) * 100;
+    return `${percentage.toFixed(1)}%`;
   }
 }

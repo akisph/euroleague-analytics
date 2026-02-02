@@ -120,6 +120,40 @@ export const usePlayers = () => {
     }
   }
 
+  // Fetch all games for a specific player with box score data
+  const fetchPlayerGameBoxscores = async (playerCode: string, seasonCode?: string) => {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      const season = seasonCode || seasonStore.selectedSeasonCode
+      if (!season) {
+        throw new Error('No season selected')
+      }
+
+      console.log('[usePlayers] Fetching game box scores for player:', playerCode, 'in season:', season)
+      const response = await api.get<any>(`/players/${season}/${playerCode}/games/boxscores`)
+      console.log('[usePlayers] Player game box scores response:', response)
+
+      const games = response.games || []
+      console.log('[usePlayers] Total games loaded:', games.length)
+      
+      // Return games data as-is (already in the correct format from API)
+      return games
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : 'Failed to fetch player game box scores'
+      console.error('[usePlayers] Error fetching player game box scores:', error.value, e)
+      throw e
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Fetch all games for a specific player (legacy - uses new boxscores endpoint)
+  const fetchPlayerGames = async (playerCode: string, seasonCode?: string) => {
+    return fetchPlayerGameBoxscores(playerCode, seasonCode)
+  }
+
   return {
     // State
     allPlayers,
@@ -130,6 +164,8 @@ export const usePlayers = () => {
     // Actions
     fetchAllPlayers,
     fetchPlayerByCode,
+    fetchPlayerGames,
+    fetchPlayerGameBoxscores,
     getFilteredPlayers,
     getTeams,
     resetState,

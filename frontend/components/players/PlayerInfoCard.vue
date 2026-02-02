@@ -2,8 +2,15 @@
   <v-card elevation="0" class="info-card">
     <!-- Profile Header Section -->
     <v-card-text class="text-center pa-8 profile-section">
-      <v-avatar size="120" class="mb-4 avatar-shadow" color="grey-lighten-3">
-        <v-img v-if="player.imageUrl" :src="player.imageUrl" :alt="player.name" />
+      <v-avatar size="180" class="mb-4 avatar-shadow" color="grey-lighten-3">
+        <v-img 
+          v-if="player.actionImageUrl" 
+          :src="player.actionImageUrl" 
+          :alt="player.name"
+          contain
+          position="center top"
+          class="player-avatar-img"
+        />
         <span v-else class="text-h5 font-weight-bold">{{ playerInitials }}</span>
       </v-avatar>
       <h1 class="text-h5 font-weight-bold mb-1">{{ player.name }}</h1>
@@ -129,6 +136,15 @@ const formatDate = (dateString: string | undefined) => {
 <style scoped>
 .info-card {
   border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.avatar-shadow {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.player-avatar-img {
+  width: 100%;
+  height: 100%;
 }
 
 .info-item {

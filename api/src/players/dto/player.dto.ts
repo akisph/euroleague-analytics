@@ -170,6 +170,14 @@ export class PlayerDto {
   @IsOptional()
   imageUrl?: string;
 
+  @IsString()
+  @IsOptional()
+  headshotImageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  actionImageUrl?: string;
+
   @IsNumber()
   @IsOptional()
   height?: number;
