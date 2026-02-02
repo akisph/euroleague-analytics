@@ -94,14 +94,19 @@ export const usePlayers = () => {
     error.value = null
   }
 
-  // Fetch single player by code
-  const fetchPlayerByCode = async (playerCode: string) => {
+  // Fetch single player by code for a specific season
+  const fetchPlayerByCode = async (playerCode: string, seasonCode?: string) => {
     try {
       isLoading.value = true
       error.value = null
 
-      console.log('[usePlayers] Fetching player:', playerCode)
-      const response = await api.get<any>(`/players/${playerCode}`)
+      const season = seasonCode || seasonStore.selectedSeasonCode
+      if (!season) {
+        throw new Error('No season selected')
+      }
+
+      console.log('[usePlayers] Fetching player:', playerCode, 'for season:', season)
+      const response = await api.get<any>(`/players/${season}/${playerCode}`)
       console.log('[usePlayers] Player response:', response)
 
       currentPlayer.value = response.data || response

@@ -7,16 +7,16 @@
     <v-divider />
     <v-card-text class="pa-4">
       <div class="stat-row">
-        <span class="stat-label-inline">Total Points</span>
-        <span class="stat-value-inline">{{ player.stats?.points || 0 }}</span>
+        <span class="stat-label-inline">PPG (Average Points)</span>
+        <span class="stat-value-inline">{{ calculatePerGame(player.stats?.points) }}</span>
       </div>
       <div class="stat-row">
         <span class="stat-label-inline">Games Played</span>
         <span class="stat-value-inline">{{ player.stats?.gamesPlayed || 0 }}</span>
       </div>
       <div class="stat-row">
-        <span class="stat-label-inline">PPG</span>
-        <span class="stat-value-inline">{{ calculatePerGame(player.stats?.points) }}</span>
+        <span class="stat-label-inline">Total Points</span>
+        <span class="stat-value-inline">{{ player.stats?.points || 0 }}</span>
       </div>
       <div class="stat-row">
         <span class="stat-label-inline">2PT</span>

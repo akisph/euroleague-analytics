@@ -33,12 +33,15 @@ export class PlayersController {
   }
 
   /**
-   * GET /players/:playerCode
-   * Get a player by code
+   * GET /players/:seasonCode/:playerCode
+   * Get a player by code for a specific season
    */
-  @Get(':playerCode')
-  async getPlayerByCode(@Param('playerCode') playerCode: string): Promise<PlayerDto> {
-    return this.playersService.getPlayerByCode(playerCode);
+  @Get(':seasonCode/:playerCode')
+  async getPlayerByCode(
+    @Param('seasonCode') seasonCode: string,
+    @Param('playerCode') playerCode: string,
+  ): Promise<PlayerDto> {
+    return this.playersService.getPlayerByCode(playerCode, seasonCode);
   }
 
   /**

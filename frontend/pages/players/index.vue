@@ -234,7 +234,7 @@ const navigateToClub = (clubCode: string) => {
 }
 
 const navigateToPlayer = (playerCode: string) => {
-  router.push(`/players/${playerCode}`)
+  router.push(`/players/${seasonStore.selectedSeasonCode}/${playerCode}`)
 }
 
 // Initialize

@@ -143,16 +143,6 @@ const formatDate = (dateString: string | undefined) => {
   border-bottom: none;
 }
 
-.info-item-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  border-radius: 4px;
-  background-color: rgba(240, 83, 35, 0.04);
-  height: 100%;
-}
-
 .info-row {
   display: flex;
   gap: 24px;

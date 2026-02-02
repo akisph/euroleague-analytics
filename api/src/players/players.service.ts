@@ -169,11 +169,12 @@ export class PlayersService {
   }
 
   /**
-   * Get a single player by code
+   * Get a single player by code for a specific season
    * @param playerCode - Player code
-   * @returns Player details with stats for current season
+   * @param seasonCode - Season code to fetch data from
+   * @returns Player details with stats for the specified season
    */
-  async getPlayerByCode(playerCode: string): Promise<PlayerDto> {
+  async getPlayerByCode(playerCode: string, seasonCode: string): Promise<PlayerDto> {
     try {
       this.logger.log(`Fetching player: ${playerCode}`);
 
@@ -194,11 +195,11 @@ export class PlayersService {
         throw new HttpException('Player not found', HttpStatus.NOT_FOUND);
       }
 
-      // Fetch all seasons where player played in this competition to get club information
+      // Fetch player data for the specified season
       // The /v2/competitions/{competitionCode}/people/{playerCode} endpoint returns
       // all SeasonPersonModel records for this player across all seasons
       try {
-        this.logger.log(`Fetching all competition seasons for player: ${playerCode}`);
+        this.logger.log(`Fetching player data for season ${seasonCode}: ${playerCode}`);
         const competitionUrl = new URL(
           `${this.baseUrl}/v2/competitions/${COMPETITION_CODE}/people/${playerCode}`,
         );
@@ -213,14 +214,13 @@ export class PlayersService {
             seasonPersonList = seasonPersonList.data;
           }
           
-          // Find the most recent season with club information
+          // Find data from the specified season
           if (Array.isArray(seasonPersonList) && seasonPersonList.length > 0) {
-            // Sort by season (most recent first) and find the first one with a club
-            const seasonWithClub = seasonPersonList.find(sp => sp.club && sp.club.code);
+            const seasonWithClub = seasonPersonList.find(sp => sp.season?.code === seasonCode);
             
             if (seasonWithClub) {
               this.logger.debug(
-                `Found player in season with club: ${seasonWithClub.club?.name}, dorsal: ${seasonWithClub.dorsal}`,
+                `Found player in season ${seasonCode} with club: ${seasonWithClub.club?.name}, dorsal: ${seasonWithClub.dorsal}`,
               );
               const mergedPlayer = this.transformPlayerResponse(seasonWithClub);
               player.clubCode = mergedPlayer.clubCode;
@@ -229,90 +229,82 @@ export class PlayersService {
               player.position = mergedPlayer.position || player.position;
               player.imageUrl = mergedPlayer.imageUrl || player.imageUrl;
               
-              this.logger.log(`Updated player with club info: ${player.clubName}, dorsal: ${player.dorsal}`);
+              this.logger.log(`Updated player with season data: club=${player.clubName}, dorsal=${player.dorsal}`);
               foundSeasonData = true;
               
-              // Get the season code for stats fetching
-              const seasonCode = seasonWithClub.season?.code;
-              if (seasonCode) {
-                try {
-                  const stats = await this.getPlayerStats(seasonCode, playerCode);
-                  player.stats = stats;
-                  this.logger.log(`Fetched stats for player ${playerCode} from season ${seasonCode}`);
-                } catch (statsError) {
-                  this.logger.warn(`Could not fetch stats for season ${seasonCode}`);
-                }
+              // Fetch stats for this season
+              try {
+                const stats = await this.getPlayerStats(seasonCode, playerCode);
+                player.stats = stats;
+                this.logger.log(`Fetched stats for player ${playerCode} from season ${seasonCode}`);
+              } catch (statsError) {
+                this.logger.warn(`Could not fetch stats for season ${seasonCode}`);
               }
+            } else {
+              this.logger.warn(`Player not found in season ${seasonCode}`);
             }
           }
         }
       } catch (error) {
         this.logger.warn(
-          `Could not fetch competition seasons for player ${playerCode}: ${error.message}`,
+          `Could not fetch season data for player ${playerCode} in season ${seasonCode}: ${error.message}`,
         );
       }
 
-      // If we didn't find club info via competition endpoint, try individual seasons
+      // If we didn't find the player via competition endpoint, try the season-specific endpoint
       if (!foundSeasonData) {
-        const seasonsToTry = ['E2025', 'E2024', 'E2023', 'E2022']; // Try recent seasons
-        for (const seasonCode of seasonsToTry) {
-          try {
-            this.logger.log(`Trying to fetch player data from season ${seasonCode}`);
-            const seasonUrl = new URL(
-              `${this.baseUrl}/v2/competitions/${COMPETITION_CODE}/seasons/${seasonCode}/people/${playerCode}`,
-            );
-            const seasonResponse = await firstValueFrom(this.httpService.get<any>(seasonUrl.toString()));
+        try {
+          this.logger.log(`Trying season-specific endpoint for player ${playerCode} in season ${seasonCode}`);
+          const seasonUrl = new URL(
+            `${this.baseUrl}/v2/competitions/${COMPETITION_CODE}/seasons/${seasonCode}/people/${playerCode}`,
+          );
+          const seasonResponse = await firstValueFrom(this.httpService.get<any>(seasonUrl.toString()));
+          
+          if (seasonResponse.data) {
+            // The endpoint may return:
+            // 1. Paginated response: { data: [...], total: number }
+            // 2. Direct array: [...]
+            // 3. Direct object: {...}
+            let seasonPlayerData = seasonResponse.data;
             
-            if (seasonResponse.data) {
-              // The endpoint may return:
-              // 1. Paginated response: { data: [...], total: number }
-              // 2. Direct array: [...]
-              // 3. Direct object: {...}
-              let seasonPlayerData = seasonResponse.data;
-              
-              // If response has a 'data' property with an array, extract first element
-              if (seasonPlayerData && typeof seasonPlayerData === 'object' && 'data' in seasonPlayerData) {
-                if (Array.isArray(seasonPlayerData.data)) {
-                  seasonPlayerData = seasonPlayerData.data[0];
-                } else {
-                  seasonPlayerData = seasonPlayerData.data;
-                }
-              } else if (Array.isArray(seasonPlayerData)) {
-                seasonPlayerData = seasonPlayerData[0];
+            // If response has a 'data' property with an array, extract first element
+            if (seasonPlayerData && typeof seasonPlayerData === 'object' && 'data' in seasonPlayerData) {
+              if (Array.isArray(seasonPlayerData.data)) {
+                seasonPlayerData = seasonPlayerData.data[0];
+              } else {
+                seasonPlayerData = seasonPlayerData.data;
               }
+            } else if (Array.isArray(seasonPlayerData)) {
+              seasonPlayerData = seasonPlayerData[0];
+            }
+            
+            if (seasonPlayerData && typeof seasonPlayerData === 'object') {
+              this.logger.debug(`Season-specific data received: club=${seasonPlayerData.club?.name}, dorsal=${seasonPlayerData.dorsal}`);
+              // Merge season-specific data (including club info) with basic player data
+              const mergedPlayer = this.transformPlayerResponse(seasonPlayerData);
+              player.clubCode = mergedPlayer.clubCode;
+              player.clubName = mergedPlayer.clubName;
+              player.dorsal = mergedPlayer.dorsal || player.dorsal;
+              player.position = mergedPlayer.position || player.position;
+              player.imageUrl = mergedPlayer.imageUrl || player.imageUrl;
               
-              if (seasonPlayerData && typeof seasonPlayerData === 'object') {
-                this.logger.debug(`Season data received: club=${seasonPlayerData.club?.name}, dorsal=${seasonPlayerData.dorsal}`);
-                // Merge season-specific data (including club info) with basic player data
-                const mergedPlayer = this.transformPlayerResponse(seasonPlayerData);
-                // Keep the basic player info but use season-specific data for club and other fields
-                player.clubCode = mergedPlayer.clubCode;
-                player.clubName = mergedPlayer.clubName;
-                player.dorsal = mergedPlayer.dorsal || player.dorsal;
-                player.position = mergedPlayer.position || player.position;
-                player.imageUrl = mergedPlayer.imageUrl || player.imageUrl;
-                
-                this.logger.log(`Found player data in season ${seasonCode}, club: ${player.clubName}, dorsal: ${player.dorsal}`);
-                foundSeasonData = true;
-                
-                // Fetch stats for this season
-                try {
-                  const stats = await this.getPlayerStats(seasonCode, playerCode);
-                  player.stats = stats;
-                  this.logger.log(`Fetched stats for player ${playerCode} from season ${seasonCode}`);
-                } catch (statsError) {
-                  this.logger.warn(`Could not fetch stats for season ${seasonCode}`);
-                }
-                
-                break; // Found data, no need to try other seasons
+              this.logger.log(`Found player data in season ${seasonCode}: club=${player.clubName}, dorsal=${player.dorsal}`);
+              foundSeasonData = true;
+              
+              // Fetch stats for this season
+              try {
+                const stats = await this.getPlayerStats(seasonCode, playerCode);
+                player.stats = stats;
+                this.logger.log(`Fetched stats for player ${playerCode} from season ${seasonCode}`);
+              } catch (statsError) {
+                this.logger.warn(`Could not fetch stats for season ${seasonCode}`);
               }
             }
-          } catch (error) {
-            this.logger.warn(
-              `Could not fetch player data from season ${seasonCode}: ${error.message}`,
-            );
-            // Continue to next season
           }
+        } catch (error) {
+          this.logger.warn(
+            `Could not fetch player data from season-specific endpoint for ${playerCode} in ${seasonCode}: ${error.message}`,
+          );
         }
       }
 
