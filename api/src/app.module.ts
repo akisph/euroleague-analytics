@@ -5,6 +5,7 @@ import { SeasonsModule } from './seasons/seasons.module';
 import { RoundsModule } from './rounds/rounds.module';
 import { GamesModule } from './games/games.module';
 import { TeamsModule } from './teams/teams.module';
+import { PlayersModule } from './players/players.module';
 import { StandingsModule } from './standings/standings.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { StandingsModule } from './standings/standings.module';
     RoundsModule,
     GamesModule,
     TeamsModule,
+    PlayersModule,
     StandingsModule,
   ],
   controllers: [],

@@ -116,6 +116,147 @@
               </v-card>
             </v-col>
           </v-row>
+
+          <!-- Season Stats Section -->
+          <v-row v-if="player.stats" class="mt-0">
+            <!-- Scoring Stats -->
+            <v-col cols="12" md="6">
+              <v-card>
+                <v-card-title>
+                  <v-icon icon="mdi-target" class="mr-2" />
+                  Scoring
+                </v-card-title>
+                <v-card-text>
+                  <v-row>
+                    <v-col cols="6">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.points || 0 }}</div>
+                        <div class="stat-label">Points</div>
+                      </div>
+                    </v-col>
+                    <v-col cols="6">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.gamesPlayed || 0 }}</div>
+                        <div class="stat-label">Games Played</div>
+                      </div>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <!-- Shooting Stats -->
+            <v-col cols="12" md="6">
+              <v-card>
+                <v-card-title>
+                  <v-icon icon="mdi-basketball" class="mr-2" />
+                  Shooting
+                </v-card-title>
+                <v-card-text>
+                  <v-row>
+                    <v-col cols="4">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.twoPointShootingPercentage || '-' }}</div>
+                        <div class="stat-label">2P%</div>
+                      </div>
+                    </v-col>
+                    <v-col cols="4">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.threePointShootingPercentage || '-' }}</div>
+                        <div class="stat-label">3P%</div>
+                      </div>
+                    </v-col>
+                    <v-col cols="4">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.freeThrowShootingPercentage || '-' }}</div>
+                        <div class="stat-label">FT%</div>
+                      </div>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <!-- Rebounds & Assists -->
+            <v-col cols="12" md="6">
+              <v-card>
+                <v-card-title>
+                  <v-icon icon="mdi-arrow-expand-vertical" class="mr-2" />
+                  Rebounds & Assists
+                </v-card-title>
+                <v-card-text>
+                  <v-row>
+                    <v-col cols="6">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.totalRebounds || 0 }}</div>
+                        <div class="stat-label">Total Rebounds</div>
+                      </div>
+                    </v-col>
+                    <v-col cols="6">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.assistances || 0 }}</div>
+                        <div class="stat-label">Assists</div>
+                      </div>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="6">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.defensiveRebounds || 0 }}</div>
+                        <div class="stat-label">Defensive Rebounds</div>
+                      </div>
+                    </v-col>
+                    <v-col cols="6">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.offensiveRebounds || 0 }}</div>
+                        <div class="stat-label">Offensive Rebounds</div>
+                      </div>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <!-- Defense & Fouls -->
+            <v-col cols="12" md="6">
+              <v-card>
+                <v-card-title>
+                  <v-icon icon="mdi-shield" class="mr-2" />
+                  Defense & Fouls
+                </v-card-title>
+                <v-card-text>
+                  <v-row>
+                    <v-col cols="6">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.steals || 0 }}</div>
+                        <div class="stat-label">Steals</div>
+                      </div>
+                    </v-col>
+                    <v-col cols="6">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.blocksAgainst || 0 }}</div>
+                        <div class="stat-label">Blocks Against</div>
+                      </div>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="6">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.foulsCommited || 0 }}</div>
+                        <div class="stat-label">Fouls Committed</div>
+                      </div>
+                    </v-col>
+                    <v-col cols="6">
+                      <div class="stat-block">
+                        <div class="stat-value">{{ player.stats.turnovers || 0 }}</div>
+                        <div class="stat-label">Turnovers</div>
+                      </div>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
         </template>
 
         <SharedEmptyState
@@ -134,7 +275,7 @@
 
 
 const route = useRoute()
-const { fetchPlayerByCode, currentPlayer: player, isLoading, error } = useTeams()
+const { fetchPlayerByCode, currentPlayer: player, isLoading, error } = usePlayers()
 
 const playerCode = computed(() => route.params.playerCode as string)
 
@@ -192,3 +333,38 @@ watch(playerCode, () => {
   loadPlayer()
 }, { immediate: true })
 </script>
+<style scoped>
+.stat-block {
+  text-align: center;
+  padding: 12px 8px;
+  background-color: rgba(240, 83, 35, 0.05);
+  border-radius: 8px;
+  border-left: 3px solid #F05323;
+}
+
+.stat-value {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a2742;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8a92a2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+:deep(.v-card-title) {
+  color: #1a2742 !important;
+  font-weight: 600;
+}
+
+:deep(.v-icon) {
+  color: #F05323;
+}
+</style>

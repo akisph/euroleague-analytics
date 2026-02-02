@@ -67,6 +67,7 @@ const navItems: NavItem[] = [
   { title: 'DASHBOARD', icon: 'mdi-view-dashboard', to: '/' },
   { title: 'CLUBS', icon: 'mdi-shield-home', to: '/clubs' },
   { title: 'GAMES', icon: 'mdi-basketball', to: '/games' },
+  { title: 'PLAYERS', icon: 'mdi-account-multiple', to: '/players' },
   { title: 'STANDINGS', icon: 'mdi-format-list-numbered', to: '/standings' },
 ]
 
