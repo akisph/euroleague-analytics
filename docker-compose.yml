@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./api
+    ports:
+      - "3004:3004"
+    env_file:
+      - ./api/.env
+    environment:
+      - PORT=3004
+
+  web:
+    build: ./frontend
+    ports:
+      - "3005:3005"
+    env_file:
+      - ./frontend/.env
+    environment:
+      - PORT=3005
+      - NUXT_PUBLIC_API_BASE_URL=http://localhost:3004
+    depends_on:
+      - api

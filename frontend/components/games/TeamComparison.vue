@@ -6,7 +6,7 @@
           <div class="text-h6 font-weight-medium">Team Comparison</div>
           <div class="text-caption text-secondary">Compare selected team metrics side-by-side</div>
         </div>
-        <div class="text-caption">{{ props.game?.homeTeamName || 'Home' }} vs {{ props.game?.awayTeamName || 'Away' }}</div>
+        <div class="text-caption text-black">{{ props.game?.homeTeamName || 'Home' }} vs {{ props.game?.awayTeamName || 'Away' }}</div>
       </div>
     </v-card-title>
     <v-card-text class="pt-2">
