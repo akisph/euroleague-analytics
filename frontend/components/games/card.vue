@@ -87,7 +87,7 @@
         <v-btn
           v-if="showAction"
           block
-          color="primary"
+          color="secondary"
           variant="flat"
           size="small"
           class="action-btn"
@@ -164,11 +164,11 @@ const formattedDate = computed(() => {
 }
 
 .game-card--played {
-  border-left-color: #28a745 !important;
+  border-left-color: transparent !important;
 }
 
 .game-card--scheduled {
-  border-left-color: #F05323 !important;
+  border-left-color: transparent !important;
 }
 
 .game-card:hover {

@@ -1,5 +1,3 @@
-import { ref } from "vue"
-
 <template>
   <div class="page-light-surface">
     <SharedPageHeader
@@ -29,33 +27,45 @@ import { ref } from "vue"
     <SharedLoadingState :loading="isLoading" message="Loading game details...">
       <template v-if="game">
         <!-- Game Score Card -->
-        <v-card class="mb-6">
+        <v-card class="mb-6 game-hero">
           <v-card-text class="pa-6">
-            <div class="d-flex align-center justify-center mb-4">
-              <v-chip v-if="game.phaseTypeName" variant="tonal" color="primary" class="mr-2">
-                {{ game.phaseTypeName }}
-              </v-chip>
-              <v-chip variant="outlined">
-                Round {{ game.roundNumber }}
+            <div class="hero-top">
+              <div class="hero-badges">
+                <v-chip variant="tonal" color="primary">
+                  {{ formattedGameDate }}
+                </v-chip>
+              </div>
+              <v-chip
+                :color="game.played ? 'success' : 'primary'"
+                variant="flat"
+                class="status-chip"
+              >
+                {{ game.played ? 'Final' : 'Scheduled' }}
               </v-chip>
             </div>
-            
-            <div class="d-flex align-center justify-center game-score-row">
+
+            <div class="game-score-row">
               <!-- Home Team -->
-              <div class="text-center team-block">
+              <div class="team-block">
                 <div class="team-meta">
-                  <v-avatar size="80" color="grey-lighten-3" class="mb-3 team-avatar">
-                    <span class="text-h5 font-weight-bold">
+                  <v-avatar size="88" color="grey-lighten-3" class="team-avatar">
+                    <v-img
+                      v-if="game.homeTeamImage"
+                      :src="game.homeTeamImage"
+                      :alt="game.homeTeamName"
+                      :cover="false"
+                    />
+                    <span v-else class="team-code">
                       {{ game.homeTeamCode?.substring(0, 3) }}
                     </span>
                   </v-avatar>
                   <div class="team-info">
-                    <div class="text-h6 font-weight-bold team-name">{{ game.homeTeamName }}</div>
+                    <div class="team-name">{{ game.homeTeamName }}</div>
                     <NuxtLink
                       :to="`/clubs/${game.homeTeamCode}`"
-                      class="text-caption text-primary text-decoration-none"
+                      class="team-link"
                     >
-                      View Team →
+                      View Team ->
                     </NuxtLink>
                   </div>
                 </div>
@@ -64,37 +74,35 @@ import { ref } from "vue"
                 </div>
               </div>
 
-              <!-- Score (now shown per-team) -->
-              <div class="mx-8 text-center score-block">
-                <template v-if="game.played">
-                  <div class="center-divider">-</div>
-                  <v-chip color="success" variant="flat" class="mt-2 status-chip">
-                    Final
-                  </v-chip>
-                </template>
-                <template v-else>
-                  <div class="center-divider">VS</div>
-                  <v-chip color="info" variant="flat" class="mt-2 status-chip">
-                    Scheduled
-                  </v-chip>
-                </template>
+              <!-- Center -->
+              <div class="score-block">
+                <div class="center-divider">{{ game.played ? '-' : 'VS' }}</div>
+                <div v-if="game.arena" class="arena-text">
+                  {{ game.arena }}
+                </div>
               </div>
 
               <!-- Away Team -->
-              <div class="text-center team-block">
+              <div class="team-block">
                 <div class="team-meta">
-                  <v-avatar size="80" color="grey-lighten-3" class="mb-3 team-avatar">
-                    <span class="text-h5 font-weight-bold">
+                  <v-avatar size="88" color="grey-lighten-3" class="team-avatar">
+                    <v-img
+                      v-if="game.awayTeamImage"
+                      :src="game.awayTeamImage"
+                      :alt="game.awayTeamName"
+                      :cover="false"
+                    />
+                    <span v-else class="team-code">
                       {{ game.awayTeamCode?.substring(0, 3) }}
                     </span>
                   </v-avatar>
                   <div class="team-info">
-                    <div class="text-h6 font-weight-bold team-name">{{ game.awayTeamName }}</div>
+                    <div class="team-name">{{ game.awayTeamName }}</div>
                     <NuxtLink
                       :to="`/clubs/${game.awayTeamCode}`"
-                      class="text-caption text-primary text-decoration-none"
+                      class="team-link"
                     >
-                      View Team →
+                      View Team ->
                     </NuxtLink>
                   </div>
                 </div>
@@ -106,32 +114,25 @@ import { ref } from "vue"
           </v-card-text>
         </v-card>
 
-        <!-- Tabs: Game Info / Stats / Related -->
-        <v-tabs  v-model="activeTab" color="primary" class="mt-6 text-secondary">
-            <v-tab value="game-info">Game Info</v-tab>
+        <!-- Tabs: Stats / Related -->
+        <v-tabs v-model="activeTab" color="primary" class="mt-6 text-secondary">
           <v-tab value="stats">Stats</v-tab>
-            <v-tab value="team-comparison">Team Comparison</v-tab>
-            <v-tab value="players">Players</v-tab>
+          <v-tab value="team-comparison">Team Comparison</v-tab>
+          <v-tab value="players">Players</v-tab>
         </v-tabs>
 
         <v-tabs-items v-model="activeTab">
-          <v-tab-item value="game-info" v-show="activeTab === 'game-info'">
-            <GamesInfo :game="game" />
+          <v-tab-item value="stats" v-show="activeTab === 'stats'">
+            <GamesStats :game="game" />
           </v-tab-item>
 
-            <v-tab-item value="stats" v-show="activeTab === 'stats'">
-              <GamesStats :game="game" />
-            </v-tab-item>
+          <v-tab-item value="team-comparison" v-show="activeTab === 'team-comparison'">
+            <GamesTeamComparison :game="game" />
+          </v-tab-item>
 
-              <v-tab-item value="team-comparison" v-show="activeTab === 'team-comparison'">
-                <GamesTeamComparison :game="game" />
-              </v-tab-item>
-
-                <v-tab-item value="players" v-show="activeTab === 'players'">
-                  <GamesPlayersStats :game="game" />
-                </v-tab-item>
-
-          
+          <v-tab-item value="players" v-show="activeTab === 'players'">
+            <GamesPlayersStats :game="game" />
+          </v-tab-item>
         </v-tabs-items>
       </template>
 
@@ -189,11 +190,13 @@ const formatDateTime = (dateString: string | undefined) => {
   })
 }
 
+const formattedGameDate = computed(() => formatDateTime(game.value?.gameDate))
+
 const loadGame = async () => {
   await fetchGameDetails(seasonCode.value, gameCode.value)
 }
 
-const activeTab = ref('game-info')
+const activeTab = ref('stats')
 
 // Load game when route changes
 watch([seasonCode, gameCode], () => {
@@ -233,12 +236,42 @@ watch([seasonCode, gameCode], () => {
   background-color: #f3f4f6 !important;
 }
 
-/* Layout for team meta and inline scores */
-.team-block {
+.team-avatar :deep(img) {
+  object-fit: contain !important;
+}
+
+.game-hero {
+  border: 1px solid #e0e6f0;
+  box-shadow: 0 8px 24px rgba(26, 39, 66, 0.06) !important;
+}
+
+.hero-top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
-  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.game-score-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+.team-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .team-meta {
@@ -251,8 +284,24 @@ watch([seasonCode, gameCode], () => {
   text-align: left;
 }
 
+.team-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a2742;
+}
+
+.team-link {
+  font-size: 0.8rem;
+  color: #F05323;
+  text-decoration: none;
+}
+
+.team-link:hover {
+  text-decoration: underline;
+}
+
 .team-score {
-  font-size: 1.75rem;
+  font-size: 2.25rem;
   font-weight: 800;
   color: #1a2742;
   min-width: 56px;
@@ -260,82 +309,60 @@ watch([seasonCode, gameCode], () => {
 }
 
 .center-divider {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   color: #8a92a2;
   font-weight: 700;
 }
 
-/* Mobile improvements for game detail */
+.score-block {
+  text-align: center;
+}
+
+.arena-text {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #8a92a2;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .game-score-row {
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: nowrap;
+    grid-template-columns: 1fr;
   }
 
-  .team-block {
-    min-width: 120px;
-    max-width: 140px;
+  .team-meta {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .team-info {
+    text-align: center;
+  }
+
+  .score-block {
+    display: none;
+  }
+
+  .team-score {
+    font-size: 1.75rem;
   }
 
   .team-avatar {
     width: 64px !important;
     height: 64px !important;
   }
-
-  .team-name {
-    font-size: 1rem;
-  }
-
-  .score-block {
-    min-width: 120px;
-  }
-
-  .score-value {
-    font-size: 2rem;
-  }
-
-  .score-divider {
-    font-size: 1.25rem;
-  }
-
-  .status-chip {
-    margin-top: 0.25rem;
-  }
 }
 
 @media (max-width: 480px) {
-  .game-score-row {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
-  .team-block {
-    width: 100%;
-    max-width: 360px;
-  }
-
   .team-avatar {
     width: 56px !important;
     height: 56px !important;
   }
 
   .team-name {
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
 
-  .score-row {
-    gap: 0.5rem;
-  }
-
-  .score-value {
-    font-size: 1.5rem;
-  }
-
-  .mx-8 { margin-left: 0; margin-right: 0; }
-
-  /* Ensure tabs and cards have enough breathing room */
   .pa-6 { padding: 1rem !important; }
   .mt-6 { margin-top: 1rem !important; }
 }
