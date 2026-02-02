@@ -171,7 +171,7 @@ export class PlayersService {
   /**
    * Get a single player by code
    * @param playerCode - Player code
-   * @returns Player details
+   * @returns Player details with stats for current season
    */
   async getPlayerByCode(playerCode: string): Promise<PlayerDto> {
     try {
@@ -186,6 +186,19 @@ export class PlayersService {
       }
 
       const player = this.transformPlayer(response.data);
+
+      // Fetch current season stats
+      try {
+        const currentSeasonCode = 'E2024'; // Default to latest season
+        const stats = await this.getPlayerStats(currentSeasonCode, playerCode);
+        player.stats = stats;
+        this.logger.log(`Fetched stats for player ${playerCode} from season ${currentSeasonCode}`);
+      } catch (error) {
+        this.logger.warn(
+          `Could not fetch stats for player ${playerCode}: ${error.message}`,
+        );
+        // Continue without stats - it's not a critical error
+      }
 
       this.logger.log(`Found player: ${player.name}`);
 
