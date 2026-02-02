@@ -114,26 +114,93 @@
           </v-card-text>
         </v-card>
 
-        <!-- Tabs: Stats / Related -->
-        <v-tabs v-model="activeTab" color="primary" class="mt-6 text-secondary">
-          <v-tab value="stats">Stats</v-tab>
-          <v-tab value="team-comparison">Team Comparison</v-tab>
-          <v-tab value="players">Players</v-tab>
-        </v-tabs>
+        <!-- Scheduled: show pregame comparison only -->
+        <template v-if="!game.played">
+          <v-card class="pregame-card mt-6">
+            <v-card-title class="d-flex align-center">
+              <v-icon icon="mdi-chart-bar" class="mr-2" />
+              Key Players 
+            </v-card-title>
+            <v-card-text>
+              <SharedLoadingState :loading="isPregameLoading" message="Loading player data...">
+                <v-row>
+                  <v-col cols="6" sm="6" md="6">
+                    <div class="team-section">
+                      <div class="team-section-title">{{ game.homeTeamName }}</div>
+                      <div v-if="homeTopPlayers.length">
+                        <div class="player-card">
+                          <div class="player-info">
+                            <div class="player-name">{{ homeTopPlayers[0].name }}</div>
+                            <NuxtLink
+                              :to="`/players/${seasonCode}/${homeTopPlayers[0].code}`"
+                              class="player-link"
+                            >
+                              View Profile ->
+                            </NuxtLink>
+                          </div>
+                        </div>
+                      </div>
+                      <div v-else class="text-caption text-medium-emphasis">No player data.</div>
+                    </div>
+                  </v-col>
+                  <v-col cols="6" sm="6" md="6">
+                    <div class="team-section">
+                      <div class="team-section-title">{{ game.awayTeamName }}</div>
+                      <div v-if="awayTopPlayers.length">
+                        <div class="player-card">
+                          <div class="player-info">
+                            <div class="player-name">{{ awayTopPlayers[0].name }}</div>
+                            <NuxtLink
+                              :to="`/players/${seasonCode}/${awayTopPlayers[0].code}`"
+                              class="player-link"
+                            >
+                              View Profile ->
+                            </NuxtLink>
+                          </div>
+                        </div>
+                      </div>
+                      <div v-else class="text-caption text-medium-emphasis">No player data.</div>
+                    </div>
+                  </v-col>
+                </v-row>
 
-        <v-tabs-items v-model="activeTab">
-          <v-tab-item value="stats" v-show="activeTab === 'stats'">
-            <GamesStats :game="game" />
-          </v-tab-item>
+                <div v-if="homeTopPlayers.length && awayTopPlayers.length" class="compare-block">
+                  <div class="compare-title">Top Player Comparison</div>
+                  <apexchart
+                    v-if="chartOptions && chartSeries"
+                    type="bar"
+                    :options="chartOptions"
+                    :series="chartSeries"
+                    height="560"
+                  />
+                </div>
+              </SharedLoadingState>
+            </v-card-text>
+          </v-card>
+        </template>
 
-          <v-tab-item value="team-comparison" v-show="activeTab === 'team-comparison'">
-            <GamesTeamComparison :game="game" />
-          </v-tab-item>
+        <!-- Played: tabs -->
+        <template v-else>
+          <v-tabs v-model="activeTab" color="primary" class="mt-6 text-secondary">
+            <v-tab value="stats">Stats</v-tab>
+            <v-tab value="team-comparison">Team Comparison</v-tab>
+            <v-tab value="players">Players</v-tab>
+          </v-tabs>
 
-          <v-tab-item value="players" v-show="activeTab === 'players'">
-            <GamesPlayersStats :game="game" />
-          </v-tab-item>
-        </v-tabs-items>
+          <v-tabs-items v-model="activeTab">
+            <v-tab-item value="stats" v-show="activeTab === 'stats'">
+              <GamesStats :game="game" />
+            </v-tab-item>
+
+            <v-tab-item value="team-comparison" v-show="activeTab === 'team-comparison'">
+              <GamesTeamComparison :game="game" />
+            </v-tab-item>
+
+            <v-tab-item value="players" v-show="activeTab === 'players'">
+              <GamesPlayersStats :game="game" />
+            </v-tab-item>
+          </v-tabs-items>
+        </template>
       </template>
 
       <SharedEmptyState
@@ -150,8 +217,12 @@
 
 <script setup lang="ts">
 
+import VueApexCharts from 'vue3-apexcharts'
+import { useNuxtApp } from '#app'
+
 const route = useRoute()
 const { fetchGameDetails, currentGame: game, isLoading, error } = useGames()
+const api = useApi()
 
 const seasonCode = computed(() => route.params.seasonCode as string)
 const gameCode = computed(() => Number(route.params.gameCode))
@@ -192,6 +263,180 @@ const formatDateTime = (dateString: string | undefined) => {
 
 const formattedGameDate = computed(() => formatDateTime(game.value?.gameDate))
 
+const isPregameLoading = ref(false)
+const pregamePlayers = ref<any[]>([])
+
+const normalizePlayer = (p: any) => {
+  const person = p.player?.person ?? p.person ?? null
+  const totals = p.stats ?? p.player?.stats ?? p.total ?? p.totals ?? p
+  return {
+    code: person?.code ?? p.playerCode ?? p.code ?? '',
+    name: person?.name ?? p.fullName ?? p.name ?? 'Unknown',
+    pir: Number(totals?.valuation ?? totals?.pir ?? 0),
+    teamCode: p.player?.club?.code ?? p.teamCode ?? p.clubCode ?? p.team?.code ?? null,
+  }
+}
+
+const extractPlayers = (raw: any) => {
+  if (!raw) return []
+  if (Array.isArray(raw.players)) return raw.players.map(normalizePlayer)
+  if (raw.local?.players || raw.road?.players) {
+    const local = (raw.local?.players || []).map(normalizePlayer)
+    const road = (raw.road?.players || []).map(normalizePlayer)
+    return [...local, ...road]
+  }
+  if (Array.isArray(raw)) return raw.map(normalizePlayer)
+  return []
+}
+
+const loadPregamePlayers = async () => {
+  if (!seasonCode.value || !gameCode.value) return
+  isPregameLoading.value = true
+  try {
+    const resp = await api.get(`/games/season/${seasonCode.value}/${gameCode.value}/top-pir`)
+    pregamePlayers.value = resp
+  } catch {
+    pregamePlayers.value = []
+  } finally {
+    isPregameLoading.value = false
+  }
+}
+
+const mapTopPlayers = (players: any[]) => {
+  const maxPir = Math.max(...players.map((p) => p.pir ?? 0), 1)
+  return players.map((p) => ({
+    code: p.playerCode ?? p.code ?? '',
+    name: p.playerName ?? p.name ?? 'Unknown',
+    pir: Number(p.pir ?? 0),
+    pirAverage: Number(p.pirAverage ?? 0),
+    imageUrl: p.imageUrl ?? p.image?.headshot ?? p.image?.action ?? p.images?.headshot ?? p.images?.action ?? null,
+    gamesPlayed: Number(p.stats?.gamesPlayed ?? p.stats?.gp ?? 0),
+    fieldGoalsMade2: Number(p.stats?.fieldGoalsMade2 ?? 0),
+    fieldGoalsAttempted2: Number(p.stats?.fieldGoalsAttempted2 ?? 0),
+    fieldGoalsMade3: Number(p.stats?.fieldGoalsMade3 ?? 0),
+    fieldGoalsAttempted3: Number(p.stats?.fieldGoalsAttempted3 ?? 0),
+    freeThrowsMade: Number(p.stats?.freeThrowsMade ?? 0),
+    freeThrowsAttempted: Number(p.stats?.freeThrowsAttempted ?? 0),
+    fieldGoalsMadeTotal: Number(p.stats?.fieldGoalsMadeTotal ?? 0),
+    fieldGoalsAttemptedTotal: Number(p.stats?.fieldGoalsAttemptedTotal ?? 0),
+    points: Number(p.stats?.points ?? 0),
+    assistances: Number(p.stats?.assistances ?? 0),
+    totalRebounds: Number(p.stats?.totalRebounds ?? 0),
+    offensiveRebounds: Number(p.stats?.offensiveRebounds ?? 0),
+    defensiveRebounds: Number(p.stats?.defensiveRebounds ?? 0),
+    steals: Number(p.stats?.steals ?? 0),
+    blocksFavour: Number(p.stats?.blocksFavour ?? 0),
+    turnovers: Number(p.stats?.turnovers ?? 0),
+    foulsReceived: Number(p.stats?.foulsReceived ?? 0),
+    plusMinus: Number(p.stats?.plusMinus ?? 0),
+    minutesPerGame: (() => {
+      const gp = Number(p.stats?.gamesPlayed ?? p.stats?.gp ?? 0)
+      const totalSeconds = Number(p.stats?.timePlayed ?? 0)
+      const totalMinutes = Number(p.stats?.minutes ?? p.stats?.time ?? 0)
+      if (gp > 0 && totalSeconds > 0) return totalSeconds / 60 / gp
+      if (gp > 0 && totalMinutes > 0) return totalMinutes / gp
+      return 0
+    })(),
+    pirPercent: Math.round(((p.pir ?? 0) / maxPir) * 100),
+  }))
+}
+
+const homeTopPlayers = computed(() => {
+  const home = pregamePlayers.value?.homeTopPlayers || []
+  return mapTopPlayers(home)
+})
+
+const awayTopPlayers = computed(() => {
+  const away = pregamePlayers.value?.awayTopPlayers || []
+  return mapTopPlayers(away)
+})
+
+const safeDiv = (num: number, den: number) => (den > 0 ? num / den : 0)
+
+const pct = (num: number, den: number) => (den > 0 ? (num / den) * 100 : 0)
+
+const formatNumber = (value: number | undefined, digits = 1) => {
+  if (value == null || Number.isNaN(value)) return '-'
+  return value.toFixed(digits)
+}
+
+const formatPercent = (value: number | undefined) => {
+  if (value == null || Number.isNaN(value)) return '-'
+  return `${value.toFixed(1)}%`
+}
+
+const comparisonRows = computed(() => {
+  const home = homeTopPlayers.value[0]
+  const away = awayTopPlayers.value[0]
+  if (!home || !away) return []
+
+  return [
+    { key: 'piravg', label: 'PIR / Game', home: home.pirAverage, away: away.pirAverage, format: (v: number) => formatNumber(v) },
+    { key: 'gp', label: 'Games Played', home: safeDiv(home.gamesPlayed, 1), away: safeDiv(away.gamesPlayed, 1), format: (v: number) => formatNumber(v, 0) },
+    { key: 'mpg', label: 'Minutes / Game', home: home.minutesPerGame, away: away.minutesPerGame, format: (v: number) => formatNumber(v) },
+    { key: 'ppg', label: 'Points / Game', home: safeDiv(home.points, home.gamesPlayed), away: safeDiv(away.points, away.gamesPlayed), format: (v: number) => formatNumber(v) },
+    { key: 'apg', label: 'Assists / Game', home: safeDiv(home.assistances, home.gamesPlayed), away: safeDiv(away.assistances, away.gamesPlayed), format: (v: number) => formatNumber(v) },
+    { key: 'rpg', label: 'Rebounds / Game', home: safeDiv(home.totalRebounds, home.gamesPlayed), away: safeDiv(away.totalRebounds, away.gamesPlayed), format: (v: number) => formatNumber(v) },
+    { key: 'orpg', label: 'Off Reb / Game', home: safeDiv(home.offensiveRebounds, home.gamesPlayed), away: safeDiv(away.offensiveRebounds, away.gamesPlayed), format: (v: number) => formatNumber(v) },
+    { key: 'drpg', label: 'Def Reb / Game', home: safeDiv(home.defensiveRebounds, home.gamesPlayed), away: safeDiv(away.defensiveRebounds, away.gamesPlayed), format: (v: number) => formatNumber(v) },
+    { key: 'spg', label: 'Steals / Game', home: safeDiv(home.steals, home.gamesPlayed), away: safeDiv(away.steals, away.gamesPlayed), format: (v: number) => formatNumber(v) },
+    { key: 'bpg', label: 'Blocks / Game', home: safeDiv(home.blocksFavour, home.gamesPlayed), away: safeDiv(away.blocksFavour, away.gamesPlayed), format: (v: number) => formatNumber(v) },
+    { key: 'tpg', label: 'Turnovers / Game', home: safeDiv(home.turnovers, home.gamesPlayed), away: safeDiv(away.turnovers, away.gamesPlayed), format: (v: number) => formatNumber(v) },
+    { key: 'astto', label: 'Assist/Turnover', home: safeDiv(home.assistances, home.turnovers), away: safeDiv(away.assistances, away.turnovers), format: (v: number) => formatNumber(v, 2) },
+    { key: 'fdpg', label: 'Fouls Drawn / Game', home: safeDiv(home.foulsReceived, home.gamesPlayed), away: safeDiv(away.foulsReceived, away.gamesPlayed), format: (v: number) => formatNumber(v) },
+    { key: 'pmg', label: '+/- / Game', home: safeDiv(home.plusMinus, home.gamesPlayed), away: safeDiv(away.plusMinus, away.gamesPlayed), format: (v: number) => formatNumber(v) },
+    { key: '2p', label: '2P%', home: pct(home.fieldGoalsMade2, home.fieldGoalsAttempted2), away: pct(away.fieldGoalsMade2, away.fieldGoalsAttempted2), format: (v: number) => formatPercent(v) },
+    { key: '3p', label: '3P%', home: pct(home.fieldGoalsMade3, home.fieldGoalsAttempted3), away: pct(away.fieldGoalsMade3, away.fieldGoalsAttempted3), format: (v: number) => formatPercent(v) },
+    { key: 'ft', label: 'FT%', home: pct(home.freeThrowsMade, home.freeThrowsAttempted), away: pct(away.freeThrowsMade, away.freeThrowsAttempted), format: (v: number) => formatPercent(v) },
+    { key: 'fg', label: 'FG%', home: pct(home.fieldGoalsMadeTotal, home.fieldGoalsAttemptedTotal), away: pct(away.fieldGoalsMadeTotal, away.fieldGoalsAttemptedTotal), format: (v: number) => formatPercent(v) },
+  ]
+})
+
+const chartCategories = computed(() => comparisonRows.value.map((r) => r.label))
+
+const chartSeries = computed(() => {
+  if (!homeTopPlayers.value[0] || !awayTopPlayers.value[0]) return null
+  return [
+    {
+      name: homeTopPlayers.value[0].name,
+      data: comparisonRows.value.map((r) => r.home),
+    },
+    {
+      name: awayTopPlayers.value[0].name,
+      data: comparisonRows.value.map((r) => r.away),
+    },
+  ]
+})
+
+const chartOptions = computed(() => ({
+  chart: { type: 'bar', toolbar: { show: false }, height: 560 },
+  plotOptions: { bar: { horizontal: true, barHeight: '60%' } },
+  dataLabels: { enabled: false },
+  xaxis: { categories: chartCategories.value },
+  yaxis: { labels: { style: { fontSize: '11px' } } },
+  legend: { position: 'top' },
+  colors: ['#F05323', '#1a2742'],
+  tooltip: {
+    shared: true,
+    intersect: false,
+    y: {
+      formatter: (val: number, opts: any) => {
+        const idx = opts?.dataPointIndex ?? 0
+        const row = comparisonRows.value[idx]
+        return row?.format ? row.format(val) : String(val)
+      },
+    },
+  },
+}))
+
+// Register ApexCharts
+try {
+  const nuxtApp = useNuxtApp()
+  nuxtApp.vueApp.component('apexchart', VueApexCharts)
+} catch {
+  // ignore
+}
+
 const loadGame = async () => {
   await fetchGameDetails(seasonCode.value, gameCode.value)
 }
@@ -201,6 +446,12 @@ const activeTab = ref('stats')
 // Load game when route changes
 watch([seasonCode, gameCode], () => {
   loadGame()
+}, { immediate: true })
+
+watch(game, (g) => {
+  if (g && !g.played) {
+    loadPregamePlayers()
+  }
 }, { immediate: true })
 </script>
 
@@ -325,6 +576,84 @@ watch([seasonCode, gameCode], () => {
   font-weight: 600;
 }
 
+.pregame-card {
+  border: 1px solid #e0e6f0;
+  background: #ffffff;
+}
+
+.team-section {
+  border: 1px solid #e0e6f0;
+  border-radius: 12px;
+  padding: 1rem;
+  background: #f9fafb;
+}
+
+.team-section-title {
+  font-weight: 700;
+  color: #1a2742;
+  margin-bottom: 0.75rem;
+}
+
+.player-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e6e9f0;
+}
+
+.player-name {
+  font-weight: 600;
+  color: #1a2742;
+}
+
+.player-link {
+  font-size: 0.8rem;
+  color: #F05323;
+  text-decoration: none;
+}
+
+.player-link:hover {
+  text-decoration: underline;
+}
+
+.compare-block {
+  margin-top: 1.5rem;
+  border-top: 1px solid #e0e6f0;
+  padding-top: 1rem;
+}
+
+.compare-title {
+  font-weight: 700;
+  color: #1a2742;
+  margin-bottom: 0.75rem;
+}
+
+.compare-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 1.5fr minmax(120px, 1fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #eef1f5;
+}
+
+.compare-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a2742;
+}
+
+.primary-text {
+  color: #F05323;
+}
+
+.secondary-text {
+  color: #1a2742;
+}
+
 @media (max-width: 768px) {
   .game-score-row {
     grid-template-columns: 1fr;
@@ -350,6 +679,20 @@ watch([seasonCode, gameCode], () => {
   .team-avatar {
     width: 64px !important;
     height: 64px !important;
+  }
+
+  .player-card {
+    padding: 0.4rem 0.5rem;
+    justify-content: center;
+  }
+
+  .player-info {
+    text-align: center;
+  }
+
+  .compare-row {
+    grid-template-columns: 1fr;
+    text-align: center;
   }
 }
 

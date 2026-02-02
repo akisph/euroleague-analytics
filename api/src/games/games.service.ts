@@ -242,4 +242,167 @@ export class GamesService {
       throw new HttpException('Failed to fetch game player stats', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  async getTopPirPlayers(
+    seasonCode: string,
+    gameCode: number,
+  ): Promise<{
+    homeTeamCode?: string;
+    awayTeamCode?: string;
+    homeTopPlayers: Array<{ playerCode: string; playerName: string; pir: number; teamCode?: string; imageUrl?: string }>;
+    awayTopPlayers: Array<{ playerCode: string; playerName: string; pir: number; teamCode?: string; imageUrl?: string }>;
+  }> {
+    try {
+      this.logger.log(`Fetching top PIR players for game ${gameCode}, season ${seasonCode}`);
+
+      const competitionCode = 'E';
+      const v3Url = `${this.baseUrl}/v3/competitions/${competitionCode}/seasons/${seasonCode}/games/${gameCode}/stats`;
+      const v2Url = `${this.baseUrl}/v2/competitions/${competitionCode}/seasons/${seasonCode}/games/${gameCode}/stats`;
+
+      const gameDetails = await this.getGameDetails(seasonCode, gameCode);
+      const homeTeamCode = gameDetails.homeTeamCode;
+      const awayTeamCode = gameDetails.awayTeamCode;
+
+      const normalizePlayer = (p: any) => {
+        const person = p.player?.person ?? p.person ?? null;
+        const stats = p.stats ?? p.player?.stats ?? p.total ?? p.totals ?? p;
+        const gamesPlayed = Number(stats?.gamesPlayed ?? stats?.gp ?? 0);
+        const pir = Number(stats?.valuation ?? stats?.pir ?? 0);
+        const pirAverage = gamesPlayed > 0 ? pir / gamesPlayed : undefined;
+        return {
+          playerCode: person?.code ?? p.playerCode ?? p.code ?? '',
+          playerName: person?.name ?? p.fullName ?? p.name ?? 'Unknown',
+          pir,
+          pirAverage,
+          teamCode: p.player?.club?.code ?? p.teamCode ?? p.clubCode ?? p.team?.code ?? null,
+          imageUrl: person?.images?.headshot ?? person?.images?.action ?? p.images?.headshot ?? p.images?.action ?? null,
+          stats: stats ?? {},
+        };
+      };
+
+      const extractPlayers = (raw: any, side?: 'local' | 'road') => {
+        if (!raw) return [];
+        if (side && raw[side]) {
+          const arr = raw[side].players ?? raw[side].playersList ?? raw[side].lineup ?? raw[side];
+          if (Array.isArray(arr)) return arr.map(normalizePlayer);
+        }
+        if (Array.isArray(raw.players)) return raw.players.map(normalizePlayer);
+        if (Array.isArray(raw)) return raw.map(normalizePlayer);
+        return [];
+      };
+
+      let data: any;
+      try {
+        const resp = await this.httpService.get<any>(v3Url).toPromise();
+        data = resp.data;
+      } catch (errV3) {
+        this.logger.warn('v3 stats not available for top PIR, trying v2', errV3?.message);
+        const resp2 = await this.httpService.get<any>(v2Url).toPromise();
+        data = resp2.data;
+      }
+
+      let homePlayers = extractPlayers(data, 'local');
+      let awayPlayers = extractPlayers(data, 'road');
+
+      if ((!homePlayers.length || !awayPlayers.length) && Array.isArray(data?.players)) {
+        const all = data.players.map(normalizePlayer);
+        homePlayers = all.filter((p: any) => p.teamCode && p.teamCode === homeTeamCode);
+        awayPlayers = all.filter((p: any) => p.teamCode && p.teamCode === awayTeamCode);
+      }
+
+      if ((!homePlayers.length && homeTeamCode) || (!awayPlayers.length && awayTeamCode)) {
+        const fetchClubPlayersStats = async (clubCode: string) => {
+          const url = `${this.baseUrl}/v2/competitions/${competitionCode}/seasons/${seasonCode}/clubs/${clubCode}/people/stats`;
+          const resp = await this.httpService.get<any>(url).toPromise();
+          const players = resp.data?.playerStats || resp.data?.players || [];
+          return players.map((p: any) => {
+            const person = p.player ?? p.person ?? {};
+            const accumulated = p.accumulated ?? p.total ?? {};
+            const gamesPlayed = Number(accumulated?.gamesPlayed ?? accumulated?.gp ?? 0);
+            const pir = Number(accumulated.valuation ?? accumulated.pir ?? 0);
+            const pirAverage = gamesPlayed > 0 ? pir / gamesPlayed : undefined;
+            return {
+              playerCode: person.code ?? person.playerCode ?? '',
+              playerName: person.name ?? person.fullName ?? 'Unknown',
+              pir,
+              pirAverage,
+              teamCode: clubCode,
+              imageUrl: person.images?.headshot ?? person.images?.action ?? null,
+              stats: accumulated ?? {},
+            };
+          });
+        };
+
+        if (!homePlayers.length && homeTeamCode) {
+          try {
+            homePlayers = await fetchClubPlayersStats(homeTeamCode);
+          } catch (err) {
+            this.logger.warn(`Failed to fetch club stats for ${homeTeamCode}`, err?.message);
+          }
+        }
+
+        if (!awayPlayers.length && awayTeamCode) {
+          try {
+            awayPlayers = await fetchClubPlayersStats(awayTeamCode);
+          } catch (err) {
+            this.logger.warn(`Failed to fetch club stats for ${awayTeamCode}`, err?.message);
+          }
+        }
+      }
+
+      const topOne = (players: any[]) =>
+        [...players].sort((a, b) => b.pir - a.pir).slice(0, 1);
+
+      const fetchPersonImage = async (playerCode: string) => {
+        if (!playerCode) return null;
+        try {
+          const urls = [
+            `${this.baseUrl}/v2/people/${playerCode}`,
+            `${this.baseUrl}/v2/competitions/${competitionCode}/people/${playerCode}`,
+            `${this.baseUrl}/v2/competitions/${competitionCode}/seasons/${seasonCode}/people/${playerCode}`,
+          ];
+          for (const url of urls) {
+            try {
+              const resp = await this.httpService.get<any>(url).toPromise();
+              const data = resp.data;
+              const person = data?.person ?? data?.player ?? data;
+              const images = person?.images ?? data?.images ?? {};
+              const imageUrl = images?.headshot ?? images?.action ?? null;
+              if (imageUrl) return imageUrl;
+            } catch (err) {
+              this.logger.warn(`Failed to fetch player image from ${url}`, err?.message);
+            }
+          }
+          return null;
+        } catch (err) {
+          this.logger.warn(`Failed to fetch player image for ${playerCode}`, err?.message);
+          return null;
+        }
+      };
+
+      const enrichWithImage = async (players: any[]) => {
+        if (!players?.length) return players;
+        const [player] = players;
+        if (player?.imageUrl) return players;
+        const imageUrl = await fetchPersonImage(player.playerCode);
+        return [{ ...player, imageUrl: imageUrl ?? player.imageUrl ?? null }];
+      };
+
+      const homeTopPlayers = await enrichWithImage(topOne(homePlayers));
+      const awayTopPlayers = await enrichWithImage(topOne(awayPlayers));
+
+      return {
+        homeTeamCode,
+        awayTeamCode,
+        homeTopPlayers,
+        awayTopPlayers,
+      };
+    } catch (error) {
+      this.logger.error(`Error fetching top PIR players: ${error.message}`, error.stack);
+      throw new HttpException(
+        `Failed to fetch top PIR players for game ${gameCode}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

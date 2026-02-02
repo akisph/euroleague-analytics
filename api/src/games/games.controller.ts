@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { GamesService } from './games.service';
-import { GameDto, GameStatsDto, PlayerStatsDto } from './dto';
+import { GameDto, GameStatsDto, PlayerStatsDto, TopPirResponseDto } from './dto';
 
 @ApiTags('Games')
 @Controller('games')
@@ -47,6 +47,14 @@ export class GamesController {
     @Param('gameCode') gameCode: number,
   ): Promise<PlayerStatsDto[]> {
     return this.gamesService.getGamePlayerStats(seasonCode, gameCode);
+  }
+
+  @Get('season/:seasonCode/:gameCode/top-pir')
+  async getTopPirPlayers(
+    @Param('seasonCode') seasonCode: string,
+    @Param('gameCode') gameCode: number,
+  ): Promise<TopPirResponseDto> {
+    return this.gamesService.getTopPirPlayers(seasonCode, gameCode);
   }
 
   @Get('season/:seasonCode/team/:teamCode')
