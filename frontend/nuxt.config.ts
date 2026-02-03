@@ -39,11 +39,11 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'Consuela Euroleague  Statistics ',
+      title: 'EL HoopLab ',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { hid: 'description', name: 'description', content: 'Consuela Euroleague  Statistics ' },
+        { hid: 'description', name: 'description', content: 'EL HoopLab Statistics ' },
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },

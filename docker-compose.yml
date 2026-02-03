@@ -46,11 +46,11 @@ services:
       - web
     labels:
       - traefik.enable=true
-      - traefik.http.routers.euroleague.rule=Host(`euroleague.sfilippou.gr`)
+      - traefik.http.routers.euroleague.rule=Host(`elhooplab.sfilippou.gr`)
       - traefik.http.routers.euroleague.entrypoints=websecure
       - traefik.http.routers.euroleague.tls=true
       - traefik.http.routers.euroleague.tls.certresolver=letsencrypt
-      - traefik.http.routers.euroleague-http.rule=Host(`euroleague.sfilippou.gr`)
+      - traefik.http.routers.euroleague-http.rule=Host(`elhooplab.sfilippou.gr`)
       - traefik.http.routers.euroleague-http.entrypoints=web
       - traefik.http.routers.euroleague-http.middlewares=redirect-to-https
       - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https

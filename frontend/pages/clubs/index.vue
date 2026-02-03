@@ -2,7 +2,6 @@
   <div class="page-light-surface">
     <SharedPageHeader
       title="Clubs"
-      subtitle="All registered Euroleague clubs"
     >
       <template #actions>
         <v-text-field

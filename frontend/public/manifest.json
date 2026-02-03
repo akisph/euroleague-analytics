@@ -1,7 +1,7 @@
 {
-  "name": "Consuela Euroleague Dashboard",
-  "short_name": "Euroleague",
-  "description": "Euroleague Basketball Statistics Dashboard",
+  "name": " EL HoopLab",
+  "short_name": "EL HoopLab",
+  "description": "EL HoopLab Statistics Dashboard",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
