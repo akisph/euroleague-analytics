@@ -206,11 +206,25 @@ onMounted(() => {
 // Center the next upcoming game in the carousel
 const findNextGameIndex = () => {
   const now = Date.now()
-  for (let i = 0; i < sortedGames.value.length; i++) {
-    const g = sortedGames.value[i]
-    const t = new Date(g.gameDate).getTime()
-    if (t >= now) return i
-  }
+  const candidates = sortedGames.value.map((g, idx) => ({
+    idx,
+    g,
+    time: g.gameDate ? new Date(g.gameDate).getTime() : Number.NaN,
+  }))
+
+  const upcomingNotPlayed = candidates
+    .filter(({ g, time }) => g.played === false && Number.isFinite(time) && time >= now)
+    .sort((a, b) => a.time - b.time)
+  if (upcomingNotPlayed.length) return upcomingNotPlayed[0].idx
+
+  const firstNotPlayed = candidates.find(({ g }) => g.played === false)
+  if (firstNotPlayed) return firstNotPlayed.idx
+
+  const upcomingByDate = candidates
+    .filter(({ time }) => Number.isFinite(time) && time >= now)
+    .sort((a, b) => a.time - b.time)
+  if (upcomingByDate.length) return upcomingByDate[0].idx
+
   return sortedGames.value.length ? 0 : -1
 }
 
