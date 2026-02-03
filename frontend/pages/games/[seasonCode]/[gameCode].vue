@@ -251,8 +251,8 @@
               <v-tab value="players">Players</v-tab>
             </v-tabs>
 
-            <v-tabs-items v-model="activeTab">
-              <v-tab-item value="live-events" v-show="activeTab === 'live-events'">
+            <v-window v-model="activeTab">
+              <v-window-item value="live-events" v-show="activeTab === 'live-events'">
                 <v-card class="mt-6">
                   <v-card-title class="d-flex align-center">
                     <v-icon icon="mdi-broadcast" class="mr-2" />
@@ -341,12 +341,12 @@
                     </v-expansion-panels>
                   </v-card-text>
                 </v-card>
-              </v-tab-item>
+              </v-window-item>
 
-              <v-tab-item value="players" v-show="activeTab === 'players'">
+              <v-window-item value="players" v-show="activeTab === 'players'">
                 <GamesLivePlayersStats :game="game" />
-              </v-tab-item>
-            </v-tabs-items>
+              </v-window-item>
+            </v-window>
           </template>
           <template v-else>
           <v-tabs v-model="activeTab" color="primary" class="mt-6 text-secondary">
@@ -355,19 +355,19 @@
             <v-tab value="players">Players</v-tab>
           </v-tabs>
 
-          <v-tabs-items v-model="activeTab">
-            <v-tab-item value="stats" v-show="activeTab === 'stats'">
+          <v-window v-model="activeTab">
+            <v-window-item value="stats" v-show="activeTab === 'stats'">
               <GamesStats :game="game" />
-            </v-tab-item>
+            </v-window-item>
 
-            <v-tab-item value="team-comparison" v-show="activeTab === 'team-comparison'">
+            <v-window-item value="team-comparison" v-show="activeTab === 'team-comparison'">
               <GamesTeamComparison :game="game" />
-            </v-tab-item>
+            </v-window-item>
 
-            <v-tab-item value="players" v-show="activeTab === 'players'">
+            <v-window-item value="players" v-show="activeTab === 'players'">
               <GamesPlayersStats :game="game" />
-            </v-tab-item>
-          </v-tabs-items>
+            </v-window-item>
+          </v-window>
           </template>
         </template>
       </template>

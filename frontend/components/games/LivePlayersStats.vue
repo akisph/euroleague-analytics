@@ -35,7 +35,13 @@
                 :items-per-page="itemsPerPage"
                 dense
                 hide-default-footer
-              />
+              >
+                <template #item.name="{ item }">
+                  <span :class="{ 'live-playing-name': item.raw?.isPlaying }">
+                    {{ item.raw?.name ?? item.name }}
+                  </span>
+                </template>
+              </v-data-table>
             </v-card>
           </v-col>
         </v-row>
@@ -95,6 +101,7 @@ const mapPlayer = (p: any) => ({
   fouls: p?.foulsCommited ?? p?.FoulsCommited ?? 0,
   pir: p?.valuation ?? p?.Valuation ?? 0,
   teamCode: normalizeTeamCode(p?.team ?? p?.Team),
+  isPlaying: Number(p?.isPlaying ?? p?.IsPlaying ?? 0) === 1,
 })
 
 const extractPlayersByTeam = (teamCode: string | undefined) => {
@@ -138,6 +145,7 @@ const selectedTeamLabel = computed(() => {
 
 const itemsPerPage = computed(() => Math.max(displayPlayers.value.length, 24))
 
+
 const setupPolling = () => {
   if (pollId.value) {
     clearInterval(pollId.value)
@@ -162,4 +170,13 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .v-data-table tbody tr td:first-child { font-weight: 600 }
+
+:deep(.live-playing-name) {
+  background: rgba(40, 167, 69, 0.18);
+  color: #1b7d36;
+  font-weight: 700;
+  padding: 0.1rem 0.35rem;
+  border-radius: 8px;
+  display: inline-block;
+}
 </style>
