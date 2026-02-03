@@ -121,12 +121,12 @@ const headers = [
   { title: 'Name', key: 'name' },
   { title: 'Min', key: 'minutes' },
   { title: 'Pts', key: 'points' },
+  { title: 'PIR', key: 'pir' },
   { title: 'Ast', key: 'assists' },
   { title: 'Reb', key: 'rebounds' },
   { title: 'Stl', key: 'steals' },
   { title: 'TO', key: 'turnovers' },
   { title: 'Fls', key: 'fouls' },
-  { title: 'PIR', key: 'pir' },
 ]
 
 const selectedTeam = ref<string>(homeTeamCode.value || '')
