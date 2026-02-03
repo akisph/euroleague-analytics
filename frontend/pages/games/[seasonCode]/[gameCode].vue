@@ -31,23 +31,17 @@
           <v-card-text class="pa-6">
             <div class="hero-top">
               <div class="hero-badges">
-                <v-chip variant="tonal" color="primary">
+                <v-chip v-if="!isLive" variant="tonal" color="primary">
                   {{ formattedGameDate }}
-                </v-chip>
-                <v-chip
-                  v-if="isLive"
-                  variant="flat"
-                  color="error"
-                >
-                  LIVE
                 </v-chip>
               </div>
               <v-chip
-                :color="game.played ? 'success' : isLive ? 'error' : 'primary'"
+                v-if="!isLive"
+                :color="game.played ? 'success' : 'primary'"
                 variant="flat"
                 class="status-chip"
               >
-                {{ game.played ? 'Final' : isLive ? 'Live' : 'Scheduled' }}
+                {{ game.played ? 'Final' : 'Scheduled' }}
               </v-chip>
             </div>
 
@@ -86,6 +80,10 @@
                 <div class="center-divider">{{ game.played ? '-' : 'VS' }}</div>
                 <div v-if="game.arena" class="arena-text">
                   {{ game.arena }}
+                </div>
+                <div v-if="isLive" class="live-meta">
+                  <span class="live-dot" aria-hidden="true"></span>
+                  LIVE{{ liveTotalMinuteLabel ? ` · ${liveTotalMinuteLabel}` : '' }}
                 </div>
               </div>
 
@@ -212,7 +210,7 @@
         </v-card>
 
         <!-- Scheduled: show pregame comparison only -->
-        <template v-if="!game.played">
+        <template v-if="!game.played && !isLive">
           <v-card class="pregame-card mt-6">
             <v-card-title class="d-flex align-center">
               <v-icon icon="mdi-chart-bar" class="mr-2" />
@@ -337,6 +335,10 @@
 
         <!-- Played: tabs -->
         <template v-else>
+          <template v-if="isLive">
+            <!-- Live game: show only live events -->
+          </template>
+          <template v-else>
           <v-tabs v-model="activeTab" color="primary" class="mt-6 text-secondary">
             <v-tab value="stats">Stats</v-tab>
             <v-tab value="team-comparison">Team Comparison</v-tab>
@@ -356,6 +358,7 @@
               <GamesPlayersStats :game="game" />
             </v-tab-item>
           </v-tabs-items>
+          </template>
         </template>
       </template>
 
@@ -423,7 +426,7 @@ const liveBoxscore = ref<any | null>(null)
 const livePlayByPlay = ref<any | null>(null)
 const livePollId = ref<number | null>(null)
 const liveEventsLimit = ref(40)
-const openLivePanel = ref(0)
+const openLivePanel = ref<number | null>(null)
 
 const isLive = computed(() => Boolean(liveBoxscore.value?.isLive))
 
@@ -451,6 +454,50 @@ const displayAwayScore = computed(() => {
 })
 
 const showScores = computed(() => game.value?.played || isLive.value)
+
+const lastMarkerTime = (plays: any[] | undefined) => {
+  if (!Array.isArray(plays) || !plays.length) return null
+  for (let i = plays.length - 1; i >= 0; i -= 1) {
+    const marker = plays[i]?.markerTime
+    if (marker) return marker
+  }
+  return null
+}
+
+const liveMinuteLabel = computed(() => {
+  const pbp = livePlayByPlay.value
+  if (!pbp) return null
+  const q = Number(pbp.actualQuarter ?? 0)
+  if (q === 1) return lastMarkerTime(pbp.firstQuarter)
+  if (q === 2) return lastMarkerTime(pbp.secondQuarter)
+  if (q === 3) return lastMarkerTime(pbp.thirdQuarter)
+  if (q === 4) return lastMarkerTime(pbp.fourthQuarter)
+  if (q > 4) return lastMarkerTime(pbp.extraTime)
+  return null
+})
+
+const parseMarkerToElapsed = (marker: string | null, quarter: number) => {
+  if (!marker || !quarter || quarter < 1) return null
+  const match = marker.match(/^(\d{1,2}):(\d{2})$/)
+  if (!match) return null
+  const min = Number(match[1])
+  const sec = Number(match[2])
+  if (!Number.isFinite(min) || !Number.isFinite(sec)) return null
+  const quarterLength = 10
+  const elapsedInQuarter = quarterLength - (min + sec / 60)
+  const total = (quarter - 1) * quarterLength + elapsedInQuarter
+  return total
+}
+
+const liveTotalMinuteLabel = computed(() => {
+  const pbp = livePlayByPlay.value
+  if (!pbp) return null
+  const q = Number(pbp.actualQuarter ?? 0)
+  const marker = liveMinuteLabel.value
+  const total = parseMarkerToElapsed(marker, q)
+  if (total == null) return null
+  return total.toFixed(2)
+})
 
 const normalizeTeamCode = (value: string | undefined) =>
   (value || '').trim().toUpperCase()
@@ -537,9 +584,10 @@ const liveEventSections = computed(() => {
   }))
 })
 
-watch(liveEventSections, () => {
-  openLivePanel.value = 0
-  liveEventsLimit.value = 40
+watch(liveEventSections, (sections) => {
+  if (openLivePanel.value == null && sections.length) {
+    openLivePanel.value = 0
+  }
 }, { immediate: true })
 
 const liveEventsToShowBySection = (section: any) => {
@@ -994,9 +1042,11 @@ watch([seasonCode, gameCode], () => {
   loadGame()
 }, { immediate: true })
 
-watch(game, (g) => {
-  if (g && !g.played) {
+watch([game, isLive], ([g, live]) => {
+  if (g && !g.played && !live) {
     loadPregamePlayers()
+  }
+  if (g && !g.played) {
     loadLiveBoxscore()
     loadLivePlayByPlay()
     if (livePollId.value) {
@@ -1141,6 +1191,24 @@ onBeforeUnmount(() => {
   font-size: 0.75rem;
   color: #8a92a2;
   font-weight: 600;
+}
+
+.live-meta {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #28a745;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #28a745;
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15);
 }
 
 .pregame-card {
