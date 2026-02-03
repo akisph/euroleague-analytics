@@ -121,6 +121,83 @@
           </v-card-text>
         </v-card>
 
+        <!-- Live Events -->
+        <v-card v-if="isLive" class="mb-6">
+          <v-card-title class="d-flex align-center">
+            <v-icon icon="mdi-broadcast" class="mr-2" />
+            Live Events
+          </v-card-title>
+          <v-card-text>
+            <v-expansion-panels
+              v-model="openLivePanel"
+              variant="accordion"
+              class="live-panels"
+            >
+              <v-expansion-panel
+                v-for="(section, idx) in liveEventSections"
+                :key="section.key"
+              >
+                <v-expansion-panel-title>
+                  <div class="panel-title">
+                    <span class="panel-label">{{ section.label }}</span>
+                    <span v-if="section.endScore" class="panel-score">
+                      {{ section.endScore }}
+                    </span>
+                  </div>
+                </v-expansion-panel-title>
+                <v-expansion-panel-text>
+                  <div v-if="section.items.length">
+                    <div
+                      v-for="event in liveEventsToShowBySection(section)"
+                      :key="event.key"
+                      class="event-row"
+                    >
+                      <div
+                        class="event-side event-side--home"
+                        :class="{ 'event-side--active': event.side === 'home' }"
+                      >
+                        <div class="event-meta">
+                          <span class="event-quarter">{{ section.label }}</span>
+                          <span class="event-time">{{ event.time }}</span>
+                        </div>
+                        <div class="event-body">
+                          <div class="event-title">{{ event.playInfo }}</div>
+                          <div class="event-subtitle">{{ event.team }} · {{ event.player }}</div>
+                        </div>
+                      </div>
+                      <div
+                        class="event-side event-side--away"
+                        :class="{ 'event-side--active': event.side === 'away' }"
+                      >
+                        <div class="event-meta">
+                          <span class="event-quarter">{{ section.label }}</span>
+                          <span class="event-time">{{ event.time }}</span>
+                        </div>
+                        <div class="event-body">
+                          <div class="event-title">{{ event.playInfo }}</div>
+                          <div class="event-subtitle">{{ event.team }} · {{ event.player }}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="event-actions">
+                      <v-btn
+                        v-if="idx === openLivePanel && liveEventsLimit < section.items.length"
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                        @click="liveEventsLimit += 40"
+                      >
+                        Show more
+                      </v-btn>
+                    </div>
+                  </div>
+                  <div v-else class="text-caption text-medium-emphasis">No events for this period.</div>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
+          </v-card-text>
+        </v-card>
+
         <!-- Scheduled: show pregame comparison only -->
         <template v-if="!game.played">
           <v-card class="pregame-card mt-6">
@@ -330,7 +407,10 @@ const formatDateTime = (dateString: string | undefined) => {
 const formattedGameDate = computed(() => formatDateTime(game.value?.gameDate))
 
 const liveBoxscore = ref<any | null>(null)
+const livePlayByPlay = ref<any | null>(null)
 const livePollId = ref<number | null>(null)
+const liveEventsLimit = ref(40)
+const openLivePanel = ref(0)
 
 const isLive = computed(() => Boolean(liveBoxscore.value?.isLive))
 
@@ -359,6 +439,102 @@ const displayAwayScore = computed(() => {
 
 const showScores = computed(() => game.value?.played || isLive.value)
 
+const normalizeTeamCode = (value: string | undefined) =>
+  (value || '').trim().toUpperCase()
+
+const normalizeEvent = (item: any, keyPrefix: string, idx: number) => {
+  const codeTeam = normalizeTeamCode(item?.codeTeam || item?.CODETEAM)
+  const homeCode = normalizeTeamCode(game.value?.homeTeamCode)
+  const awayCode = normalizeTeamCode(game.value?.awayTeamCode)
+  const side = codeTeam && codeTeam === homeCode ? 'home' : codeTeam && codeTeam === awayCode ? 'away' : 'neutral'
+
+  return {
+    key: `${keyPrefix}-${item?.numberOfPlay ?? idx}`,
+    time: item?.markerTime || '-',
+    playInfo: item?.playInfo || item?.playType || 'Event',
+    team: item?.team || '-',
+    player: item?.player || '',
+    side,
+  }
+}
+
+const liveEventSections = computed(() => {
+  const pbp = livePlayByPlay.value || {}
+  const endRows = liveBoxscore.value?.endOfQuarter || []
+  const pairEndScore = (homeIdx: number, awayIdx: number, quarter: 1 | 2 | 3 | 4) => {
+    const home = endRows[homeIdx]
+    const away = endRows[awayIdx]
+    if (!home || !away) return null
+    const key = quarter === 1 ? 'quarter1' : quarter === 2 ? 'quarter2' : quarter === 3 ? 'quarter3' : 'quarter4'
+    const homeVal = typeof home?.[key] === 'number' ? home[key] : null
+    const awayVal = typeof away?.[key] === 'number' ? away[key] : null
+    if (homeVal == null || awayVal == null) return null
+    const homeCode = (game.value?.homeTeamCode || '').trim().toUpperCase() || 'HOME'
+    const awayCode = (game.value?.awayTeamCode || '').trim().toUpperCase() || 'AWAY'
+    return `${homeCode} ${homeVal} - ${awayVal} ${awayCode}`
+  }
+
+  const sections = [
+    {
+      key: 'Q1',
+      label: '1η περ.',
+      items: Array.isArray(pbp.firstQuarter) ? pbp.firstQuarter : [],
+      endScore: pairEndScore(0, 1, 1),
+      order: 1,
+    },
+    {
+      key: 'Q2',
+      label: '2η περ.',
+      items: Array.isArray(pbp.secondQuarter) ? pbp.secondQuarter : [],
+      endScore: pairEndScore(0, 1, 2),
+      order: 2,
+    },
+    {
+      key: 'Q3',
+      label: '3η περ.',
+      items: Array.isArray(pbp.thirdQuarter) ? pbp.thirdQuarter : [],
+      endScore: pairEndScore(0, 1, 3),
+      order: 3,
+    },
+    {
+      key: 'Q4',
+      label: '4η περ.',
+      items: Array.isArray(pbp.fourthQuarter) ? pbp.fourthQuarter : [],
+      endScore: pairEndScore(0, 1, 4),
+      order: 4,
+    },
+    {
+      key: 'OT',
+      label: 'Παράταση',
+      items: Array.isArray(pbp.extraTime) ? pbp.extraTime : [],
+      endScore: null,
+      order: 5,
+    },
+  ]
+
+  const actualQuarter = Number(pbp.actualQuarter ?? 0)
+  const maxOrder = actualQuarter > 4 ? 5 : actualQuarter
+
+  return sections
+    .filter(s => s.order > 0 && s.order <= maxOrder)
+    .sort((a, b) => b.order - a.order)
+    .map((s) => ({
+    ...s,
+    items: s.items.map((item: any, idx: number) => normalizeEvent(item, s.key, idx)),
+  }))
+})
+
+watch(liveEventSections, () => {
+  openLivePanel.value = 0
+  liveEventsLimit.value = 40
+}, { immediate: true })
+
+const liveEventsToShowBySection = (section: any) => {
+  const items = section.items || []
+  const reversed = [...items].reverse()
+  return reversed.slice(0, liveEventsLimit.value)
+}
+
 const loadLiveBoxscore = async () => {
   if (!seasonCode.value || !gameCode.value) return
   try {
@@ -368,6 +544,18 @@ const loadLiveBoxscore = async () => {
     liveBoxscore.value = resp
   } catch {
     liveBoxscore.value = null
+  }
+}
+
+const loadLivePlayByPlay = async () => {
+  if (!seasonCode.value || !gameCode.value) return
+  try {
+    const resp = await api.get(
+      `/live-games/season/${seasonCode.value}/${gameCode.value}/playbyplay`,
+    )
+    livePlayByPlay.value = resp
+  } catch {
+    livePlayByPlay.value = null
   }
 }
 
@@ -797,11 +985,13 @@ watch(game, (g) => {
   if (g && !g.played) {
     loadPregamePlayers()
     loadLiveBoxscore()
+    loadLivePlayByPlay()
     if (livePollId.value) {
       clearInterval(livePollId.value)
     }
     livePollId.value = window.setInterval(() => {
       loadLiveBoxscore()
+      loadLivePlayByPlay()
     }, 15000)
   } else if (g && g.played) {
     if (livePollId.value) {
@@ -1016,6 +1206,135 @@ onBeforeUnmount(() => {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.live-panels :deep(.v-expansion-panel-title) {
+  background: #f9fafb;
+  border: 1px solid #e0e6f0;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
+
+.live-panels :deep(.v-expansion-panel--active > .v-expansion-panel-title) {
+  background: #f9fafb;
+}
+
+.live-panels :deep(.v-expansion-panel-text__wrapper) {
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+.live-panels :deep(.v-expansion-panel-text) {
+  background: #ffffff;
+  color: #1a1a1a;
+}
+
+.live-panels :deep(.v-expansion-panel__shadow) {
+  display: none;
+}
+
+.live-panels :deep(.v-expansion-panel) {
+  background: #ffffff;
+}
+
+.live-panels :deep(.v-expansion-panels) {
+  background: #ffffff;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-weight: 700;
+  color: #1a2742;
+}
+
+.panel-score {
+  font-size: 0.85rem;
+  color: #28a745;
+  font-weight: 700;
+}
+
+.event-row {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eef1f5;
+}
+
+.event-side {
+  display: none;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.event-side--active {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.event-side--away.event-side--active {
+  grid-template-columns: 1fr 64px;
+  text-align: right;
+}
+
+.event-side--away .event-meta {
+  order: 2;
+}
+
+.event-side--away .event-body {
+  order: 1;
+}
+
+.event-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.75rem;
+  color: #8a92a2;
+  font-weight: 600;
+}
+
+.event-quarter {
+  color: #1a2742;
+}
+
+.event-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.event-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a2742;
+}
+
+.event-subtitle {
+  font-size: 0.75rem;
+  color: #8a92a2;
+}
+
+@media (max-width: 768px) {
+  .event-row {
+    grid-template-columns: 1fr;
+  }
+
+  .event-side--active {
+    grid-template-columns: 64px 1fr;
+    text-align: left;
+  }
+}
+
+.event-actions {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: center;
 }
 
 .compare-row {
