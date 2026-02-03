@@ -18,25 +18,44 @@
         <div class="stat-section">
           <div class="stat-grid">
             <div class="stat-row" v-for="row in shootingRows" :key="row.label">
-              <div class="stat-side left">
-                <div class="stat-value">{{ row.home.made }}/{{ row.home.att }}</div>
-                <apexchart
-                  type="radialBar"
-                  height="110"
-                  :options="radialOptions(row.label, 'home')"
-                  :series="[row.home.pct]"
-                />
-              </div>
-              <div class="stat-label">{{ row.label }}</div>
-              <div class="stat-side right">
-                <apexchart
-                  type="radialBar"
-                  height="110"
-                  :options="radialOptions(row.label, 'away')"
-                  :series="[row.away.pct]"
-                />
-                <div class="stat-value">{{ row.away.made }}/{{ row.away.att }}</div>
-              </div>
+              <template v-if="isMobile">
+                <div class="stat-side left">
+                  <div class="stat-value">{{ row.home.made }}/{{ row.home.att }}</div>
+                </div>
+                <div class="stat-label">{{ row.label }}</div>
+                <div class="stat-side right">
+                  <div class="stat-value">{{ row.away.made }}/{{ row.away.att }}</div>
+                </div>
+                <div class="stat-side center">
+                  <apexchart
+                    type="radialBar"
+                    height="140"
+                    :options="radialOptionsCombined(row.label)"
+                    :series="[row.home.pct, row.away.pct]"
+                  />
+                </div>
+              </template>
+              <template v-else>
+                <div class="stat-side left">
+                  <div class="stat-value">{{ row.home.made }}/{{ row.home.att }}</div>
+                  <apexchart
+                    type="radialBar"
+                    height="110"
+                    :options="radialOptions(row.label, 'home')"
+                    :series="[row.home.pct]"
+                  />
+                </div>
+                <div class="stat-label">{{ row.label }}</div>
+                <div class="stat-side right">
+                  <apexchart
+                    type="radialBar"
+                    height="110"
+                    :options="radialOptions(row.label, 'away')"
+                    :series="[row.away.pct]"
+                  />
+                  <div class="stat-value">{{ row.away.made }}/{{ row.away.att }}</div>
+                </div>
+              </template>
             </div>
           </div>
         </div>
@@ -57,10 +76,13 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useApi } from '~/composables/useApi'
+import { useDisplay } from 'vuetify'
 
 const props = defineProps<{ game?: any }>()
 
 const api = useApi()
+const display = useDisplay()
+const isMobile = computed(() => display.smAndDown.value)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const stats = ref<any | null>(null)
@@ -217,6 +239,26 @@ const radialOptions = (label: string, side: 'home' | 'away') => ({
   labels: [label],
 })
 
+const radialOptionsCombined = (label: string) => ({
+  chart: { type: 'radialBar', sparkline: { enabled: true } },
+  colors: ['#1a2742', '#F05323'],
+  plotOptions: {
+    radialBar: {
+      hollow: { size: '42%' },
+      track: { background: '#8a92a2', strokeWidth: '100%' },
+      dataLabels: {
+        name: { show: false },
+        value: {
+          fontSize: '12px',
+          fontWeight: 700,
+          formatter: (v: number) => `${Math.round(v)}%`,
+        },
+      },
+    },
+  },
+  labels: [label],
+})
+
 const barSeries = computed(() => [
   { name: homeTeamName.value, data: barRows.value.map(r => r.home) },
   { name: awayTeamName.value, data: barRows.value.map(r => r.away) },
@@ -337,6 +379,20 @@ onBeforeUnmount(() => {
 
   .stat-side {
     justify-content: center;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .stat-side.center {
+    margin-top: 0.5rem;
+  }
+
+  .stat-value {
+    min-width: auto;
+  }
+
+  .stat-section :deep(.apexcharts-canvas) {
+    margin: 0 auto;
   }
 
   .bar-header {
