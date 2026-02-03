@@ -22,8 +22,8 @@ async function bootstrap() {
 
   // Swagger configuration
   const config = new DocumentBuilder()
-    .setTitle('EL HoopLab API')
-    .setDescription('NestJS API wrapper for EL HoopLab Live API')
+    .setTitle('EL HoopsLab API')
+    .setDescription('NestJS API wrapper for EL HoopsLab Live API')
     .setVersion('1.0')
     .addTag('Clubs', 'Club information and management')
     .addTag('Seasons', 'Season management and details')
@@ -38,7 +38,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`🏀 EL HoopLab API is running on: http://localhost:${port}`);
+  console.log(`🏀 EL HoopsLab API is running on: http://localhost:${port}`);
   console.log(`📚 Swagger documentation: http://localhost:${port}/api`);
 }
 
