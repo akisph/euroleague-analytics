@@ -19,12 +19,10 @@
           <div class="stat-grid">
             <div class="stat-row" v-for="row in shootingRows" :key="row.label">
               <template v-if="isMobile">
-                <div class="stat-side left">
-                  <div class="stat-value">{{ row.home.made }}/{{ row.home.att }}</div>
-                </div>
-                <div class="stat-label">{{ row.label }}</div>
-                <div class="stat-side right">
-                  <div class="stat-value">{{ row.away.made }}/{{ row.away.att }}</div>
+                <div class="stat-mobile-line">
+                  <span class="stat-value">{{ row.home.made }}/{{ row.home.att }}</span>
+                  <span class="stat-label">{{ row.label }}</span>
+                  <span class="stat-value">{{ row.away.made }}/{{ row.away.att }}</span>
                 </div>
                 <div class="stat-side center">
                   <apexchart
@@ -385,6 +383,18 @@ onBeforeUnmount(() => {
 
   .stat-side.center {
     margin-top: 0.5rem;
+  }
+
+  .stat-mobile-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .stat-mobile-line .stat-label {
+    font-size: 0.95rem;
   }
 
   .stat-value {
