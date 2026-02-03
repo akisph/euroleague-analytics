@@ -48,7 +48,7 @@
 import { ref, watch, computed } from 'vue'
 import { useApi } from '~/composables/useApi'
 
-const props = defineProps<{ game?: any }>()
+const props = defineProps<{ game?: any; live?: boolean }>()
 
 const api = useApi()
 const isLoading = ref(false)
@@ -67,8 +67,63 @@ const fetchPlayers = async () => {
   error.value = null
   stats.value = null
   try {
-    const resp = await api.get(`/games/season/${seasonCode.value}/${gameCode.value}/players`)
-    stats.value = resp
+    if (props.live) {
+      const resp = await api.get(`/live-games/season/${seasonCode.value}/${gameCode.value}/boxscore`)
+      const teams = resp?.stats || []
+      const homeCode = (homeTeamCode.value || '').trim().toUpperCase()
+      const awayCode = (awayTeamCode.value || '').trim().toUpperCase()
+
+      const mapPlayer = (p: any) => ({
+        name: p?.player ?? p?.Player ?? 'Unknown',
+        number: p?.dorsal ?? p?.Dorsal ?? null,
+        minutes: p?.minutes ?? p?.Minutes ?? null,
+        points: p?.points ?? p?.Points ?? 0,
+        assists: p?.assistances ?? p?.Assistances ?? 0,
+        rebounds: p?.totalRebounds ?? p?.TotalRebounds ?? 0,
+        steals: p?.steals ?? p?.Steals ?? 0,
+        turnovers: p?.turnovers ?? p?.Turnovers ?? 0,
+        fouls: p?.foulsCommited ?? p?.FoulsCommited ?? 0,
+        pir: p?.valuation ?? p?.Valuation ?? 0,
+        teamCode: (p?.team ?? p?.Team ?? '').trim().toUpperCase() || null,
+      })
+
+      const mapTeam = (team: any) =>
+        Array.isArray(team?.playersStats) ? team.playersStats.map(mapPlayer) : []
+
+      let homePlayersList: any[] = []
+      let awayPlayersList: any[] = []
+
+      teams.forEach((team: any) => {
+        const players = mapTeam(team)
+        // team name may not match codes; rely on player team codes
+        if (!players.length) return
+        const homePlayers = players.filter(p => p.teamCode === homeCode)
+        const awayPlayers = players.filter(p => p.teamCode === awayCode)
+        if (homePlayers.length) homePlayersList = homePlayers
+        if (awayPlayers.length) awayPlayersList = awayPlayers
+      })
+
+      // fallback by player team code
+      if (!homePlayersList.length || !awayPlayersList.length) {
+        const allPlayers = teams.flatMap((t: any) =>
+          Array.isArray(t?.playersStats) ? t.playersStats.map(mapPlayer) : [],
+        )
+        if (!homePlayersList.length) {
+          homePlayersList = allPlayers.filter(p => p.teamCode === homeCode)
+        }
+        if (!awayPlayersList.length) {
+          awayPlayersList = allPlayers.filter(p => p.teamCode === awayCode)
+        }
+      }
+
+      stats.value = {
+        local: { players: homePlayersList },
+        road: { players: awayPlayersList },
+      }
+    } else {
+      const resp = await api.get(`/games/season/${seasonCode.value}/${gameCode.value}/players`)
+      stats.value = resp
+    }
   } catch (e: any) {
     error.value = e?.message || 'Failed to fetch player stats'
   } finally {
@@ -76,7 +131,34 @@ const fetchPlayers = async () => {
   }
 }
 
-watch([seasonCode, gameCode], ([s, g]) => { if (s && g) fetchPlayers() }, { immediate: true })
+const pollId = ref<number | null>(null)
+
+const setupPolling = () => {
+  if (pollId.value) {
+    clearInterval(pollId.value)
+    pollId.value = null
+  }
+  if (props.live) {
+    pollId.value = window.setInterval(() => {
+      fetchPlayers()
+    }, 150000)
+  }
+}
+
+watch([seasonCode, gameCode], ([s, g]) => {
+  if (s && g) fetchPlayers()
+}, { immediate: true })
+
+watch(() => props.live, () => {
+  setupPolling()
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (pollId.value) {
+    clearInterval(pollId.value)
+    pollId.value = null
+  }
+})
 
 const formatMinutes = (v: any) => {
   if (v == null) return null
