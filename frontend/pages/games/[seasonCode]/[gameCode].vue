@@ -467,6 +467,12 @@ const chartSeries = computed(() => {
   ]
 })
 
+const apexSeriesColors = [
+  'var(--v-theme-secondary)',
+  'var(--v-theme-primary)',
+  'rgba(26,39,66,0.45)',
+]
+
 const chartOptions = computed(() => ({
   chart: { type: 'bar', toolbar: { show: false }, height: 560 },
   plotOptions: { bar: { horizontal: true, barHeight: '60%' } },
@@ -474,7 +480,7 @@ const chartOptions = computed(() => ({
   xaxis: { categories: chartCategories.value },
   yaxis: { labels: { style: { fontSize: '11px' } } },
   legend: { position: 'top' },
-  colors: ['#F05323', '#1a2742'],
+  colors: apexSeriesColors,
   tooltip: {
     shared: true,
     intersect: false,
@@ -517,7 +523,7 @@ const gaugeBase = (title: string, labels: string[]) => ({
   },
   yaxis: { min: 0 },
   labels,
-  colors: ['#F05323', '#1a2742'],
+  colors: apexSeriesColors,
 })
 
 const gpGaugeSeries = computed(() => {
@@ -639,7 +645,7 @@ const radarOptions = computed(() => ({
   stroke: { width: 2 },
   fill: { opacity: 0.15 },
   markers: { size: 3 },
-  colors: ['#F05323', '#1a2742'],
+  colors: apexSeriesColors,
   legend: { position: 'top' },
 }))
 
