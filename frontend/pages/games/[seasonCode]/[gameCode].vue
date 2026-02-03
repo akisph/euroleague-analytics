@@ -468,9 +468,9 @@ const chartSeries = computed(() => {
 })
 
 const apexSeriesColors = [
-  'var(--v-theme-secondary)',
-  'var(--v-theme-primary)',
-  'rgba(26,39,66,0.45)',
+  '#1a2742',
+  '#F05323',
+  '#8a92a2',
 ]
 
 const chartOptions = computed(() => ({
