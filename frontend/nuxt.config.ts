@@ -39,11 +39,11 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'Euroleague Basketball Dashboard',
+      title: 'Consuela Euroleague  Statistics ',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { hid: 'description', name: 'description', content: 'Euroleague Basketball Statistics Dashboard' },
+        { hid: 'description', name: 'description', content: 'Consuela Euroleague  Statistics ' },
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },

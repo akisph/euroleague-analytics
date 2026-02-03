@@ -6,7 +6,7 @@
         <!-- Logo -->
         <NuxtLink to="/" class="navbar-logo">
           <div class="logo-icon">🏀</div>
-          <div class="logo-text">Euroleague</div>
+          <div class="logo-text">Consuela Euroleague</div>
         </NuxtLink>
 
         <!-- Navigation Menu -->
@@ -47,7 +47,7 @@
     <!-- Footer -->
     <footer class="app-footer">
       <div class="footer-content">
-        <p class="footer-text">© {{ new Date().getFullYear() }} Euroleague Basketball Dashboard</p>
+        <p class="footer-text">© {{ new Date().getFullYear() }} Consuela Euroleague Statistics</p>
       </div>
     </footer>
   </div>
