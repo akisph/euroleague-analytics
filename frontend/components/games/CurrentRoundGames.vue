@@ -97,9 +97,31 @@ const error = ref<string | null>(null)
 
 const selectedSeasonCode = computed(() => seasonStore.selectedSeasonCode)
 
+const parseGameTime = (value?: string) => {
+  if (!value) return Number.NaN
+  const iso = Date.parse(value)
+  if (Number.isFinite(iso)) return iso
+  const dateTime = value.trim().replace('T', ' ')
+  const match = dateTime.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})(?:\s+(\d{1,2}):(\d{2}))?/)
+  if (!match) return Number.NaN
+  const day = Number(match[1])
+  const month = Number(match[2]) - 1
+  const year = Number(match[3])
+  const hour = Number(match[4] ?? 0)
+  const minute = Number(match[5] ?? 0)
+  return new Date(year, month, day, hour, minute).getTime()
+}
+
 // Sort all games by date
 const sortedGames = computed(() => {
-  return [...games.value].sort((a, b) => new Date(a.gameDate).getTime() - new Date(b.gameDate).getTime())
+  return [...games.value].sort((a, b) => {
+    const aTime = parseGameTime(a.gameDate)
+    const bTime = parseGameTime(b.gameDate)
+    if (!Number.isFinite(aTime) && !Number.isFinite(bTime)) return 0
+    if (!Number.isFinite(aTime)) return 1
+    if (!Number.isFinite(bTime)) return -1
+    return aTime - bTime
+  })
 })
 
 // No chunking/carousel: render all games in a responsive grid
@@ -203,19 +225,19 @@ onMounted(() => {
   })
 })
 
-// Center the next upcoming game in the carousel
+// Center the most recent played game; fallback to next upcoming
 const findNextGameIndex = () => {
   const now = Date.now()
   const candidates = sortedGames.value.map((g, idx) => ({
     idx,
     g,
-    time: g.gameDate ? new Date(g.gameDate).getTime() : Number.NaN,
+    time: parseGameTime(g.gameDate),
   }))
 
-  const upcomingNotPlayed = candidates
-    .filter(({ g, time }) => g.played === false && Number.isFinite(time) && time >= now)
-    .sort((a, b) => a.time - b.time)
-  if (upcomingNotPlayed.length) return upcomingNotPlayed[0].idx
+  const playedLatest = candidates
+    .filter(({ g, time }) => g.played === true && Number.isFinite(time))
+    .sort((a, b) => b.time - a.time)
+  if (playedLatest.length) return playedLatest[0].idx
 
   const firstNotPlayed = candidates.find(({ g }) => g.played === false)
   if (firstNotPlayed) return firstNotPlayed.idx
