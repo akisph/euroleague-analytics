@@ -166,6 +166,19 @@
                         </div>
                       </div>
                       <div
+                        class="event-side event-side--center"
+                        :class="{ 'event-side--active': event.side === 'neutral' }"
+                      >
+                        <div class="event-meta">
+                          <span class="event-quarter">{{ section.label }}</span>
+                          <span class="event-time">{{ event.time }}</span>
+                        </div>
+                        <div class="event-body">
+                          <div class="event-title">{{ event.playInfo }}</div>
+                          <div class="event-subtitle">{{ event.team }} · {{ event.player }}</div>
+                        </div>
+                      </div>
+                      <div
                         class="event-side event-side--away"
                         :class="{ 'event-side--active': event.side === 'away' }"
                       >
@@ -1280,6 +1293,20 @@ onBeforeUnmount(() => {
 .event-side--away.event-side--active {
   grid-template-columns: 1fr 64px;
   text-align: right;
+}
+
+.event-side--center.event-side--active {
+  grid-template-columns: 64px 1fr;
+  justify-content: center;
+  text-align: center;
+}
+
+.event-side--center .event-meta {
+  text-align: center;
+}
+
+.event-side--center .event-body {
+  text-align: center;
 }
 
 .event-side--away .event-meta {
