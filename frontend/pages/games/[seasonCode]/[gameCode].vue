@@ -249,6 +249,7 @@
             <v-tabs v-model="activeTab" color="primary" class="mt-6 text-secondary">
               <v-tab value="live-events">Live Events</v-tab>
               <v-tab value="players">Players</v-tab>
+              <v-tab value="teams">Teams</v-tab>
             </v-tabs>
 
             <v-window v-model="activeTab">
@@ -345,6 +346,10 @@
 
               <v-window-item value="players" v-show="activeTab === 'players'">
                 <GamesLivePlayersStats :game="game" />
+              </v-window-item>
+
+              <v-window-item value="teams" v-show="activeTab === 'teams'">
+                <GamesLiveTeamsStats :game="game" />
               </v-window-item>
             </v-window>
           </template>
@@ -453,14 +458,14 @@ const displayHomeScore = computed(() => {
   if (game.value?.played) return game.value.homeScore ?? null
   const rows = liveBoxscore.value?.endOfQuarter || liveBoxscore.value?.byQuarter || []
   const homeRow = rows?.[0]
-  return pickLatestQuarterValue(homeRow) ?? null
+  return pickLatestQuarterValue(homeRow) ?? 0
 })
 
 const displayAwayScore = computed(() => {
   if (game.value?.played) return game.value.awayScore ?? null
   const rows = liveBoxscore.value?.endOfQuarter || liveBoxscore.value?.byQuarter || []
   const awayRow = rows?.[1]
-  return pickLatestQuarterValue(awayRow) ?? null
+  return pickLatestQuarterValue(awayRow) ?? 0
 })
 
 const showScores = computed(() => game.value?.played || isLive.value)

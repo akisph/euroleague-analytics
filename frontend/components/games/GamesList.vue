@@ -450,8 +450,8 @@ const getDisplayScore = (game: Game) => {
   const live = getLiveScore(game)
   if (!live?.isLive) return null
   return {
-    homeScore: live.homeScore,
-    awayScore: live.awayScore,
+    homeScore: live.homeScore ?? 0,
+    awayScore: live.awayScore ?? 0,
   }
 }
 

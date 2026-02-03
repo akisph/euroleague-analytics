@@ -161,12 +161,12 @@ const showScores = computed(() => props.game.played || props.isLive)
 
 const displayHomeScore = computed(() => {
   if (props.game.played) return props.game.homeScore ?? null
-  return props.liveHomeScore ?? null
+  return props.liveHomeScore ?? 0
 })
 
 const displayAwayScore = computed(() => {
   if (props.game.played) return props.game.awayScore ?? null
-  return props.liveAwayScore ?? null
+  return props.liveAwayScore ?? 0
 })
 
 const liveLabel = computed(() => {
