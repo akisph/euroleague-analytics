@@ -44,6 +44,10 @@
                 {{ game.played ? 'Final' : 'Scheduled' }}
               </v-chip>
             </div>
+            <div v-if="isLive" class="hero-live-mobile">
+              <span class="live-dot" aria-hidden="true"></span>
+              LIVE{{ liveTotalMinuteLabel ? ` · ${liveTotalMinuteLabel}` : '' }}
+            </div>
 
             <div class="game-score-row">
               <!-- Home Team -->
@@ -1148,6 +1152,16 @@ onBeforeUnmount(() => {
   gap: 0.5rem;
 }
 
+.hero-live-mobile {
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #28a745;
+  margin-bottom: 0.75rem;
+}
+
 .game-score-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -1491,6 +1505,11 @@ onBeforeUnmount(() => {
 
   .score-block {
     display: none;
+  }
+
+  .hero-live-mobile {
+    display: inline-flex;
+    justify-content: center;
   }
 
   .team-score {
