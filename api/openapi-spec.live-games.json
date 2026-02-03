@@ -1,0 +1,246 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Euroleague Live Games",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "paths": {
+    "/live-games/season/{seasonCode}/{gameCode}/playbyplay": {
+      "get": {
+        "tags": ["LiveGames"],
+        "summary": "Get live play-by-play for a game",
+        "parameters": [
+          { "name": "seasonCode", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "gameCode", "in": "path", "required": true, "schema": { "type": "integer", "format": "int32" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LivePlayByPlayDto" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Not Found" }
+        }
+      }
+    },
+    "/live-games/season/{seasonCode}/{gameCode}/boxscore": {
+      "get": {
+        "tags": ["LiveGames"],
+        "summary": "Get live boxscore for a game",
+        "parameters": [
+          { "name": "seasonCode", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "gameCode", "in": "path", "required": true, "schema": { "type": "integer", "format": "int32" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LiveBoxscoreDto" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Not Found" }
+        }
+      }
+    },
+    "/live-games/season/{seasonCode}/{gameCode}/points": {
+      "get": {
+        "tags": ["LiveGames"],
+        "summary": "Get live shot chart points for a game",
+        "parameters": [
+          { "name": "seasonCode", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "gameCode", "in": "path", "required": true, "schema": { "type": "integer", "format": "int32" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LivePointsDto" }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Not Found" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LivePlayDto": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "integer", "format": "int32" },
+          "numberOfPlay": { "type": "integer", "format": "int32" },
+          "codeTeam": { "type": "string", "nullable": true },
+          "playerId": { "type": "string", "nullable": true },
+          "playType": { "type": "string", "nullable": true },
+          "player": { "type": "string", "nullable": true },
+          "team": { "type": "string", "nullable": true },
+          "dorsal": { "type": "string", "nullable": true },
+          "minute": { "type": "integer", "format": "int32" },
+          "markerTime": { "type": "string", "nullable": true },
+          "pointsA": { "type": "number" },
+          "pointsB": { "type": "number" },
+          "comment": { "type": "string", "nullable": true },
+          "playInfo": { "type": "string", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "LivePlayByPlayDto": {
+        "type": "object",
+        "properties": {
+          "isLive": { "type": "boolean" },
+          "teamA": { "type": "string", "nullable": true },
+          "teamB": { "type": "string", "nullable": true },
+          "codeTeamA": { "type": "string", "nullable": true },
+          "codeTeamB": { "type": "string", "nullable": true },
+          "actualQuarter": { "type": "integer", "format": "int32" },
+          "firstQuarter": { "type": "array", "items": { "$ref": "#/components/schemas/LivePlayDto" }, "nullable": true },
+          "secondQuarter": { "type": "array", "items": { "$ref": "#/components/schemas/LivePlayDto" }, "nullable": true },
+          "thirdQuarter": { "type": "array", "items": { "$ref": "#/components/schemas/LivePlayDto" }, "nullable": true },
+          "fourthQuarter": { "type": "array", "items": { "$ref": "#/components/schemas/LivePlayDto" }, "nullable": true },
+          "extraTime": { "type": "array", "items": { "$ref": "#/components/schemas/LivePlayDto" }, "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "LiveBoxscoreByQuarterDto": {
+        "type": "object",
+        "properties": {
+          "team": { "type": "string" },
+          "quarter1": { "type": "integer", "format": "int32" },
+          "quarter2": { "type": "integer", "format": "int32" },
+          "quarter3": { "type": "integer", "format": "int32" },
+          "quarter4": { "type": "integer", "format": "int32" }
+        },
+        "additionalProperties": false
+      },
+      "LiveBoxscorePlayerStatsDto": {
+        "type": "object",
+        "properties": {
+          "playerId": { "type": "string", "nullable": true },
+          "isStarter": { "type": "integer", "format": "int32" },
+          "isPlaying": { "type": "integer", "format": "int32" },
+          "team": { "type": "string", "nullable": true },
+          "dorsal": { "type": "string", "nullable": true },
+          "player": { "type": "string", "nullable": true },
+          "minutes": { "type": "string", "nullable": true },
+          "points": { "type": "integer", "format": "int32" },
+          "fieldGoalsMade2": { "type": "integer", "format": "int32" },
+          "fieldGoalsAttempted2": { "type": "integer", "format": "int32" },
+          "fieldGoalsMade3": { "type": "integer", "format": "int32" },
+          "fieldGoalsAttempted3": { "type": "integer", "format": "int32" },
+          "freeThrowsMade": { "type": "integer", "format": "int32" },
+          "freeThrowsAttempted": { "type": "integer", "format": "int32" },
+          "offensiveRebounds": { "type": "integer", "format": "int32" },
+          "defensiveRebounds": { "type": "integer", "format": "int32" },
+          "totalRebounds": { "type": "integer", "format": "int32" },
+          "assistances": { "type": "integer", "format": "int32" },
+          "steals": { "type": "integer", "format": "int32" },
+          "turnovers": { "type": "integer", "format": "int32" },
+          "blocksFavour": { "type": "integer", "format": "int32" },
+          "blocksAgainst": { "type": "integer", "format": "int32" },
+          "foulsCommited": { "type": "integer", "format": "int32" },
+          "foulsReceived": { "type": "integer", "format": "int32" },
+          "valuation": { "type": "integer", "format": "int32" },
+          "plusMinus": { "type": "integer", "format": "int32" }
+        },
+        "additionalProperties": false
+      },
+      "LiveBoxscoreTotalsDto": {
+        "type": "object",
+        "properties": {
+          "minutes": { "type": "string", "nullable": true },
+          "points": { "type": "integer", "format": "int32" },
+          "fieldGoalsMade2": { "type": "integer", "format": "int32" },
+          "fieldGoalsAttempted2": { "type": "integer", "format": "int32" },
+          "fieldGoalsMade3": { "type": "integer", "format": "int32" },
+          "fieldGoalsAttempted3": { "type": "integer", "format": "int32" },
+          "freeThrowsMade": { "type": "integer", "format": "int32" },
+          "freeThrowsAttempted": { "type": "integer", "format": "int32" },
+          "offensiveRebounds": { "type": "integer", "format": "int32" },
+          "defensiveRebounds": { "type": "integer", "format": "int32" },
+          "totalRebounds": { "type": "integer", "format": "int32" },
+          "assistances": { "type": "integer", "format": "int32" },
+          "steals": { "type": "integer", "format": "int32" },
+          "turnovers": { "type": "integer", "format": "int32" },
+          "blocksFavour": { "type": "integer", "format": "int32" },
+          "blocksAgainst": { "type": "integer", "format": "int32" },
+          "foulsCommited": { "type": "integer", "format": "int32" },
+          "foulsReceived": { "type": "integer", "format": "int32" },
+          "valuation": { "type": "integer", "format": "int32" }
+        },
+        "additionalProperties": false
+      },
+      "LiveBoxscoreTeamStatsDto": {
+        "type": "object",
+        "properties": {
+          "team": { "type": "string", "nullable": true },
+          "coach": { "type": "string", "nullable": true },
+          "playersStats": { "type": "array", "items": { "$ref": "#/components/schemas/LiveBoxscorePlayerStatsDto" }, "nullable": true },
+          "tmr": { "$ref": "#/components/schemas/LiveBoxscorePlayerStatsDto" },
+          "totr": { "$ref": "#/components/schemas/LiveBoxscoreTotalsDto" }
+        },
+        "additionalProperties": false
+      },
+      "LiveBoxscoreDto": {
+        "type": "object",
+        "properties": {
+          "isLive": { "type": "boolean" },
+          "referees": { "type": "string", "nullable": true },
+          "attendance": { "type": "integer", "format": "int32" },
+          "byQuarter": { "type": "array", "items": { "$ref": "#/components/schemas/LiveBoxscoreByQuarterDto" }, "nullable": true },
+          "endOfQuarter": { "type": "array", "items": { "$ref": "#/components/schemas/LiveBoxscoreByQuarterDto" }, "nullable": true },
+          "stats": { "type": "array", "items": { "$ref": "#/components/schemas/LiveBoxscoreTeamStatsDto" }, "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "LivePointRowDto": {
+        "type": "object",
+        "properties": {
+          "numAnot": { "type": "integer", "format": "int32" },
+          "team": { "type": "string", "nullable": true },
+          "playerId": { "type": "string", "nullable": true },
+          "player": { "type": "string", "nullable": true },
+          "actionId": { "type": "string", "nullable": true },
+          "action": { "type": "string", "nullable": true },
+          "points": { "type": "integer", "format": "int32" },
+          "coordX": { "type": "integer", "format": "int32" },
+          "coordY": { "type": "integer", "format": "int32" },
+          "zone": { "type": "string", "nullable": true },
+          "fastbreak": { "type": "string", "nullable": true },
+          "secondChance": { "type": "string", "nullable": true },
+          "pointsOffTurnover": { "type": "string", "nullable": true },
+          "minute": { "type": "integer", "format": "int32" },
+          "console": { "type": "string", "nullable": true },
+          "pointsA": { "type": "integer", "format": "int32" },
+          "pointsB": { "type": "integer", "format": "int32" },
+          "utc": { "type": "string", "nullable": true }
+        },
+        "additionalProperties": false
+      },
+      "LivePointsDto": {
+        "type": "object",
+        "properties": {
+          "rows": { "type": "array", "items": { "$ref": "#/components/schemas/LivePointRowDto" }, "nullable": true }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

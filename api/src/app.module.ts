@@ -7,6 +7,7 @@ import { GamesModule } from './games/games.module';
 import { TeamsModule } from './teams/teams.module';
 import { PlayersModule } from './players/players.module';
 import { StandingsModule } from './standings/standings.module';
+import { LiveGamesModule } from './live-games/live-games.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { StandingsModule } from './standings/standings.module';
     TeamsModule,
     PlayersModule,
     StandingsModule,
+    LiveGamesModule,
   ],
   controllers: [],
   providers: [],

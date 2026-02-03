@@ -1,7 +1,14 @@
 <template>
   <div class="game-card-wrapper">
     <v-card 
-      :class="['game-card', { 'game-card--played': game.played, 'game-card--scheduled': !game.played }]"
+      :class="[
+        'game-card',
+        {
+          'game-card--played': game.played,
+          'game-card--scheduled': !game.played && !isLive,
+          'game-card--live': isLive,
+        },
+      ]"
     >
       <div class="card-header">
         <div class="header-left">
@@ -34,23 +41,23 @@
 
           <!-- Score Section -->
           <div class="score-container">
-            <template v-if="game.played">
+            <template v-if="showScores">
               <div class="score-display">
                 <span class="score" :class="isHomeWinner ? 'score--win' : ''">
-                  {{ game.homeScore }}
+                  {{ displayHomeScore }}
                 </span>
                 <span class="score-divider">-</span>
                 <span class="score" :class="isAwayWinner ? 'score--win' : ''">
-                  {{ game.awayScore }}
+                  {{ displayAwayScore }}
                 </span>
               </div>
               <v-chip
                 size="x-small"
-                color="success"
+                :color="game.played ? 'success' : 'success'"
                 variant="flat"
-                class="status-badge"
+                :class="['status-badge', { 'status-badge--live': !game.played }]"
               >
-                Final
+                {{ game.played ? 'Final' : liveLabel }}
               </v-chip>
             </template>
             <template v-else>
@@ -87,7 +94,7 @@
         <v-btn
           v-if="showAction"
           block
-          color="secondary"
+          :color="isLive ? 'success' : 'secondary'"
           variant="flat"
           size="small"
           class="action-btn"
@@ -108,11 +115,16 @@ interface Props {
   showDetails?: boolean
   showAction?: boolean
   cardClass?: string
+  isLive?: boolean
+  liveHomeScore?: number | null
+  liveAwayScore?: number | null
+  liveMinute?: string | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showDetails: false,
   showAction: false,
+  isLive: false,
 })
 
 defineEmits<{
@@ -120,17 +132,17 @@ defineEmits<{
 }>()
 
 const isHomeWinner = computed(() => {
-  if (!props.game.played || props.game.homeScore === undefined || props.game.awayScore === undefined) {
+  if (!props.game.played || displayHomeScore.value === null || displayAwayScore.value === null) {
     return false
   }
-  return props.game.homeScore > props.game.awayScore
+  return displayHomeScore.value > displayAwayScore.value
 })
 
 const isAwayWinner = computed(() => {
-  if (!props.game.played || props.game.homeScore === undefined || props.game.awayScore === undefined) {
+  if (!props.game.played || displayHomeScore.value === null || displayAwayScore.value === null) {
     return false
   }
-  return props.game.awayScore > props.game.homeScore
+  return displayAwayScore.value > displayHomeScore.value
 })
 
 const formattedDate = computed(() => {
@@ -143,6 +155,23 @@ const formattedDate = computed(() => {
     hour: '2-digit',
     minute: '2-digit',
   })
+})
+
+const showScores = computed(() => props.game.played || props.isLive)
+
+const displayHomeScore = computed(() => {
+  if (props.game.played) return props.game.homeScore ?? null
+  return props.liveHomeScore ?? null
+})
+
+const displayAwayScore = computed(() => {
+  if (props.game.played) return props.game.awayScore ?? null
+  return props.liveAwayScore ?? null
+})
+
+const liveLabel = computed(() => {
+  if (props.game.played) return 'Final'
+  return props.liveMinute ? `Live ${props.liveMinute}` : 'Live'
 })
 </script>
 
@@ -169,6 +198,11 @@ const formattedDate = computed(() => {
 
 .game-card--scheduled {
   border-left-color: transparent !important;
+}
+
+.game-card--live {
+  border-color: rgba(40, 167, 69, 0.6) !important;
+  box-shadow: 0 8px 24px rgba(40, 167, 69, 0.15) !important;
 }
 
 .game-card:hover {
@@ -294,6 +328,11 @@ const formattedDate = computed(() => {
 
 .status-badge {
   background-color: rgba(40, 167, 69, 0.2) !important;
+  color: #28a745 !important;
+}
+
+.status-badge--live {
+  background-color: rgba(40, 167, 69, 0.22) !important;
   color: #28a745 !important;
 }
 

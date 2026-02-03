@@ -34,13 +34,20 @@
                 <v-chip variant="tonal" color="primary">
                   {{ formattedGameDate }}
                 </v-chip>
+                <v-chip
+                  v-if="isLive"
+                  variant="flat"
+                  color="error"
+                >
+                  LIVE
+                </v-chip>
               </div>
               <v-chip
-                :color="game.played ? 'success' : 'primary'"
+                :color="game.played ? 'success' : isLive ? 'error' : 'primary'"
                 variant="flat"
                 class="status-chip"
               >
-                {{ game.played ? 'Final' : 'Scheduled' }}
+                {{ game.played ? 'Final' : isLive ? 'Live' : 'Scheduled' }}
               </v-chip>
             </div>
 
@@ -69,8 +76,8 @@
                     </NuxtLink>
                   </div>
                 </div>
-                <div class="team-score" v-if="game.played" :class="isHomeWinner ? 'text-success' : ''">
-                  {{ game.homeScore }}
+                <div class="team-score" v-if="showScores" :class="isHomeWinner ? 'text-success' : ''">
+                  {{ displayHomeScore }}
                 </div>
               </div>
 
@@ -106,8 +113,8 @@
                     </NuxtLink>
                   </div>
                 </div>
-                <div class="team-score" v-if="game.played" :class="isAwayWinner ? 'text-success' : ''">
-                  {{ game.awayScore }}
+                <div class="team-score" v-if="showScores" :class="isAwayWinner ? 'text-success' : ''">
+                  {{ displayAwayScore }}
                 </div>
               </div>
             </div>
@@ -298,13 +305,13 @@ const breadcrumbs = computed(() => [
 ])
 
 const isHomeWinner = computed(() => {
-  if (!game.value?.played) return false
-  return (game.value.homeScore || 0) > (game.value.awayScore || 0)
+  if (!showScores.value) return false
+  return (displayHomeScore.value || 0) > (displayAwayScore.value || 0)
 })
 
 const isAwayWinner = computed(() => {
-  if (!game.value?.played) return false
-  return (game.value.awayScore || 0) > (game.value.homeScore || 0)
+  if (!showScores.value) return false
+  return (displayAwayScore.value || 0) > (displayHomeScore.value || 0)
 })
 
 const formatDateTime = (dateString: string | undefined) => {
@@ -321,6 +328,48 @@ const formatDateTime = (dateString: string | undefined) => {
 }
 
 const formattedGameDate = computed(() => formatDateTime(game.value?.gameDate))
+
+const liveBoxscore = ref<any | null>(null)
+const livePollId = ref<number | null>(null)
+
+const isLive = computed(() => Boolean(liveBoxscore.value?.isLive))
+
+const pickLatestQuarterValue = (row: any) => {
+  if (!row) return null
+  const candidates = [row.quarter4, row.quarter3, row.quarter2, row.quarter1]
+  for (const value of candidates) {
+    if (typeof value === 'number' && value > 0) return value
+  }
+  return null
+}
+
+const displayHomeScore = computed(() => {
+  if (game.value?.played) return game.value.homeScore ?? null
+  const rows = liveBoxscore.value?.endOfQuarter || liveBoxscore.value?.byQuarter || []
+  const homeRow = rows?.[0]
+  return pickLatestQuarterValue(homeRow) ?? null
+})
+
+const displayAwayScore = computed(() => {
+  if (game.value?.played) return game.value.awayScore ?? null
+  const rows = liveBoxscore.value?.endOfQuarter || liveBoxscore.value?.byQuarter || []
+  const awayRow = rows?.[1]
+  return pickLatestQuarterValue(awayRow) ?? null
+})
+
+const showScores = computed(() => game.value?.played || isLive.value)
+
+const loadLiveBoxscore = async () => {
+  if (!seasonCode.value || !gameCode.value) return
+  try {
+    const resp = await api.get(
+      `/live-games/season/${seasonCode.value}/${gameCode.value}/boxscore`,
+    )
+    liveBoxscore.value = resp
+  } catch {
+    liveBoxscore.value = null
+  }
+}
 
 const isPregameLoading = ref(false)
 const pregamePlayers = ref<any[]>([])
@@ -747,8 +796,27 @@ watch([seasonCode, gameCode], () => {
 watch(game, (g) => {
   if (g && !g.played) {
     loadPregamePlayers()
+    loadLiveBoxscore()
+    if (livePollId.value) {
+      clearInterval(livePollId.value)
+    }
+    livePollId.value = window.setInterval(() => {
+      loadLiveBoxscore()
+    }, 15000)
+  } else if (g && g.played) {
+    if (livePollId.value) {
+      clearInterval(livePollId.value)
+      livePollId.value = null
+    }
   }
 }, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (livePollId.value) {
+    clearInterval(livePollId.value)
+    livePollId.value = null
+  }
+})
 </script>
 
 <style scoped>

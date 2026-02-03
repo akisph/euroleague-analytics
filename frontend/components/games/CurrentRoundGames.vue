@@ -55,6 +55,10 @@
                 >
                   <GamesCard
                     :game="game"
+                    :is-live="isGameLive(game.gameCode)"
+                    :live-home-score="getLiveScore(game.gameCode)?.homeScore ?? null"
+                    :live-away-score="getLiveScore(game.gameCode)?.awayScore ?? null"
+                    :live-minute="getLiveScore(game.gameCode)?.minuteLabel ?? null"
                     show-details
                     show-action
                     @view-details="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
@@ -81,6 +85,8 @@
 const seasonStore = useSeasonStore()
 const { fetchSeasonGames, games } = useGames()
 const { fetchSeasonRounds, rounds } = useRounds()
+const api = useApi()
+const { toAthensTimestamp } = useTimeZone()
 
 interface Props {
   title?: string
@@ -96,6 +102,8 @@ const isLoading = ref(true)
 const error = ref<string | null>(null)
 
 const selectedSeasonCode = computed(() => seasonStore.selectedSeasonCode)
+const liveMap = ref<Record<number, { isLive: boolean; homeScore: number | null; awayScore: number | null; minuteLabel?: string | null }>>({})
+const livePollId = ref<number | null>(null)
 
 const parseGameTime = (value?: string) => {
   if (!value) return Number.NaN
@@ -123,6 +131,73 @@ const sortedGames = computed(() => {
     return aTime - bTime
   })
 })
+
+const pickLatestQuarterValue = (row: any) => {
+  if (!row) return null
+  const candidates = [row.quarter4, row.quarter3, row.quarter2, row.quarter1]
+  for (const value of candidates) {
+    if (typeof value === 'number' && value > 0) return value
+  }
+  return null
+}
+
+const pickLastMarkerTime = (plays: any[] | undefined) => {
+  if (!Array.isArray(plays) || !plays.length) return null
+  for (let i = plays.length - 1; i >= 0; i -= 1) {
+    const marker = plays[i]?.markerTime
+    if (marker) return marker
+  }
+  return null
+}
+
+const resolveMinuteLabel = (pbp: any) => {
+  const q = pbp?.actualQuarter
+  if (!q || q < 1) return null
+  if (q === 1) return pickLastMarkerTime(pbp?.firstQuarter)
+  if (q === 2) return pickLastMarkerTime(pbp?.secondQuarter)
+  if (q === 3) return pickLastMarkerTime(pbp?.thirdQuarter)
+  if (q === 4) return pickLastMarkerTime(pbp?.fourthQuarter)
+  return pickLastMarkerTime(pbp?.extraTime)
+}
+
+const getLiveScore = (gameCode: number) => liveMap.value[gameCode]
+const isGameLive = (gameCode: number) => Boolean(liveMap.value[gameCode]?.isLive)
+
+const fetchLiveForGame = async (seasonCode: string, gameCode: number) => {
+  const [boxscore, pbp] = await Promise.all([
+    api.get(`/live-games/season/${seasonCode}/${gameCode}/boxscore`),
+    api.get(`/live-games/season/${seasonCode}/${gameCode}/playbyplay`),
+  ])
+  const data = boxscore || {}
+  const rows = data.endOfQuarter || data.byQuarter || []
+  const homeRow = rows?.[0]
+  const awayRow = rows?.[1]
+  return {
+    isLive: Boolean(data.isLive),
+    homeScore: pickLatestQuarterValue(homeRow),
+    awayScore: pickLatestQuarterValue(awayRow),
+    minuteLabel: resolveMinuteLabel(pbp) ?? null,
+  }
+}
+
+const loadLiveForGames = async () => {
+  const seasonCode = selectedSeasonCode.value
+  if (!seasonCode) return
+  const scheduled = sortedGames.value.filter(g => !g.played)
+  if (!scheduled.length) return
+  const updates: Record<number, { isLive: boolean; homeScore: number | null; awayScore: number | null; minuteLabel?: string | null }> = {}
+  await Promise.all(
+    scheduled.map(async (game) => {
+      try {
+        const liveData = await fetchLiveForGame(seasonCode, game.gameCode)
+        updates[game.gameCode] = liveData
+      } catch {
+        updates[game.gameCode] = { isLive: false, homeScore: null, awayScore: null, minuteLabel: null }
+      }
+    }),
+  )
+  liveMap.value = { ...liveMap.value, ...updates }
+}
 
 // No chunking/carousel: render all games in a responsive grid
 
@@ -213,6 +288,24 @@ watch(sortedGames, async () => {
   updateOverflow()
 }, { immediate: true })
 
+watch([sortedGames, selectedSeasonCode], () => {
+  if (livePollId.value) {
+    clearInterval(livePollId.value)
+    livePollId.value = null
+  }
+  loadLiveForGames()
+  livePollId.value = window.setInterval(() => {
+    loadLiveForGames()
+  }, 20000)
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (livePollId.value) {
+    clearInterval(livePollId.value)
+    livePollId.value = null
+  }
+})
+
 onMounted(() => {
   updateOverflow()
   const onResize = () => updateOverflow()
@@ -225,27 +318,31 @@ onMounted(() => {
   })
 })
 
-// Center the most recent played game; fallback to next upcoming
+// Center live game first; fallback to closest-by-time (Europe/Athens)
 const findNextGameIndex = () => {
-  const now = Date.now()
   const candidates = sortedGames.value.map((g, idx) => ({
     idx,
     g,
     time: parseGameTime(g.gameDate),
   }))
 
-  const playedLatest = candidates
-    .filter(({ g, time }) => g.played === true && Number.isFinite(time))
-    .sort((a, b) => b.time - a.time)
-  if (playedLatest.length) return playedLatest[0].idx
+  const live = candidates.find(({ g }) => isGameLive(g.gameCode))
+  if (live) return live.idx
 
-  const firstNotPlayed = candidates.find(({ g }) => g.played === false)
-  if (firstNotPlayed) return firstNotPlayed.idx
-
-  const upcomingByDate = candidates
-    .filter(({ time }) => Number.isFinite(time) && time >= now)
-    .sort((a, b) => a.time - b.time)
-  if (upcomingByDate.length) return upcomingByDate[0].idx
+  const nowAthens = toAthensTimestamp(Date.now())
+  let closestIdx = -1
+  let closestDiff = Number.POSITIVE_INFINITY
+  candidates.forEach(({ idx, time }) => {
+    if (!Number.isFinite(time)) return
+    const gameAthens = toAthensTimestamp(time)
+    if (!Number.isFinite(gameAthens)) return
+    const diff = Math.abs(gameAthens - nowAthens)
+    if (diff < closestDiff) {
+      closestDiff = diff
+      closestIdx = idx
+    }
+  })
+  if (closestIdx >= 0) return closestIdx
 
   return sortedGames.value.length ? 0 : -1
 }
