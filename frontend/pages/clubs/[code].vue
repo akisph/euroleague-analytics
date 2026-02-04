@@ -71,11 +71,46 @@ const seasonCode = computed(() => selectedSeasonCode.value)
 
 const rosterHeaders = [
   { title: 'Player', key: 'player', sortable: false },
-  { title: 'Position', key: 'position', sortable: true },
+  { title: 'PST', key: 'position', sortable: true },
   { title: '#', key: 'dorsal', sortable: true },
-  { title: 'Height', key: 'height', sortable: true },
-  { title: 'Weight', key: 'weight', sortable: true },
+  { title: 'GP', key: 'gamesPlayed', sortable: true },
+  { title: 'MIN', key: 'avgMin', sortable: true },
+  { title: 'PIR', key: 'avgPir', sortable: true },
+  { title: 'PTS', key: 'avgPts', sortable: true },
+  { title: 'REB', key: 'avgReb', sortable: true },
+  { title: 'AST', key: 'avgAst', sortable: true },
+  { title: '2PT%', key: 'pct2', sortable: true },
+  { title: '3PT%', key: 'pct3', sortable: true },
+  { title: 'FT%', key: 'pctFt', sortable: true },
 ]
+
+const calcAvg = (stats: any, key: string) => {
+  if (!stats) return null
+  const gamesPlayed = Number(stats.gamesPlayed ?? 0)
+  if (!Number.isFinite(gamesPlayed) || gamesPlayed <= 0) return null
+  const value = Number(stats[key] ?? 0)
+  if (!Number.isFinite(value)) return null
+  return value / gamesPlayed
+}
+
+const calcAvgMinutes = (stats: any) => {
+  if (!stats) return null
+  const gamesPlayed = Number(stats.gamesPlayed ?? 0)
+  if (!Number.isFinite(gamesPlayed) || gamesPlayed <= 0) return null
+  const timePlayed = Number(stats.timePlayed ?? stats.timePlayedSeconds ?? 0)
+  if (!Number.isFinite(timePlayed)) return null
+  const minutes = timePlayed / 60
+  return minutes / gamesPlayed
+}
+
+const formatPosition = (position?: string) => {
+  const value = String(position || '').toLowerCase()
+  if (!value) return 'â€”'
+  if (value.includes('guard')) return 'G'
+  if (value.includes('forward')) return 'F'
+  if (value.includes('center')) return 'C'
+  return position || 'â€”'
+}
 
 const rosterPlayers = computed(() => {
   const roster = currentRoster.value as unknown
@@ -90,11 +125,20 @@ const rosterPlayers = computed(() => {
       name: entry.person.name,
       imageUrl: entry.person.images?.headshot || entry.images?.headshot || entry.images?.action || '',
       countryName: entry.person.country?.name || '',
-      position: entry.positionName || '',
+      position: formatPosition(entry.positionName),
       dorsal: entry.dorsal || '',
       height: entry.person.height || null,
       weight: entry.person.weight || null,
       playerStats: entry.playerStats || entry.stats || entry.statistics || entry.person?.statistics || null,
+      gamesPlayed: entry.playerStats?.gamesPlayed ?? null,
+      avgPir: calcAvg(entry.playerStats, 'valuation'),
+      avgPts: calcAvg(entry.playerStats, 'points'),
+      avgReb: calcAvg(entry.playerStats, 'totalRebounds'),
+      avgAst: calcAvg(entry.playerStats, 'assistances'),
+      avgMin: calcAvgMinutes(entry.playerStats),
+      pct2: entry.playerStats?.twoPointShootingPercentage ?? null,
+      pct3: entry.playerStats?.threePointShootingPercentage ?? null,
+      pctFt: entry.playerStats?.freeThrowShootingPercentage ?? null,
       active: entry.active === true,
     }))
     .sort((a, b) => {
@@ -102,18 +146,12 @@ const rosterPlayers = computed(() => {
       if (activeSort !== 0) {
         return activeSort
       }
-      const aDorsal = Number.parseInt(String(a.dorsal), 10)
-      const bDorsal = Number.parseInt(String(b.dorsal), 10)
-      if (Number.isNaN(aDorsal) && Number.isNaN(bDorsal)) {
-        return 0
+      const aPir = Number(a.avgPir ?? -Infinity)
+      const bPir = Number(b.avgPir ?? -Infinity)
+      if (Number.isFinite(aPir) || Number.isFinite(bPir)) {
+        return bPir - aPir
       }
-      if (Number.isNaN(aDorsal)) {
-        return 1
-      }
-      if (Number.isNaN(bDorsal)) {
-        return -1
-      }
-      return aDorsal - bDorsal
+      return 0
     })
 })
 

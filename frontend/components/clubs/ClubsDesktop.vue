@@ -10,28 +10,39 @@
         lg="3"
       >
         <v-card class="club-card h-100" :to="`/clubs/${club.code}`">
-          <v-card-text class="text-center pa-6">
-            <v-avatar size="80" class="mb-4">
-              <v-img
-                v-if="club.images?.crest"
-                :src="club.images.crest"
-                :alt="club.name"
-                :cover="false"
-                class="club-avatar-img"
-              />
-              <span v-else class="text-h5 font-weight-bold">
-                {{ club.code.substring(0, 3) }}
-              </span>
-            </v-avatar>
-            <div class="text-h6 font-weight-bold mb-1">{{ club.name }}</div>
-            <div class="text-body-2 text-medium-emphasis mb-2">{{ club.alias }}</div>
-            <v-chip v-if="club.country" size="small" variant="tonal">
-              <v-icon size="14" icon="mdi-flag" class="mr-1" />
-              {{ club.country.name }}
-            </v-chip>
-            <v-chip v-if="club.isVirtual" size="small" color="warning" variant="flat" class="ml-2">
-              Virtual
-            </v-chip>
+          <v-card-text class="pa-5">
+            <div class="club-card-header">
+              <v-avatar size="64" class="club-avatar">
+                <v-img
+                  v-if="club.images?.crest"
+                  :src="club.images.crest"
+                  :alt="club.name"
+                  :cover="false"
+                  class="club-avatar-img"
+                />
+                <span v-else class="club-avatar-fallback">
+                  {{ club.code.substring(0, 3) }}
+                </span>
+              </v-avatar>
+              <div class="club-main">
+                <div class="club-name">{{ club.name }}</div>
+                <div class="club-alias">{{ club.alias }}</div>
+              </div>
+            </div>
+
+            <div class="club-chips">
+              <v-chip v-if="club.country" size="small" variant="tonal" class="club-chip">
+                <v-icon size="14" icon="mdi-flag" class="mr-1" />
+                {{ club.country.name }}
+              </v-chip>
+              <v-chip v-if="club.city" size="small" variant="outlined" class="club-chip">
+                <v-icon size="14" icon="mdi-city-variant-outline" class="mr-1" />
+                {{ club.city }}
+              </v-chip>
+              <v-chip v-if="club.isVirtual" size="small" variant="tonal" class="club-chip">
+                Virtual
+              </v-chip>
+            </div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -85,6 +96,7 @@ const pageProxy = computed({
   cursor: pointer;
   background-color: #ffffff;
   border: 1px solid #e0e6f0;
+  border-radius: 16px;
 }
 
 .club-card:hover {
@@ -96,22 +108,64 @@ const pageProxy = computed({
   background-color: #ffffff;
 }
 
-.club-card :deep(.text-h6) {
-  color: #1a2742 !important;
+.club-card :deep(a) {
+  color: inherit;
+  text-decoration: none;
 }
 
-.club-card :deep(.v-chip) {
-  background-color: rgba(240, 83, 35, 0.1) !important;
-  color: #F05323 !important;
+.club-card :deep(a:hover) {
+  text-decoration: none;
+}
+
+.club-card-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.club-avatar {
+  background: transparent;
+  color: #1a2742;
+  font-weight: 700;
 }
 
 .club-avatar-img {
   object-fit: contain;
 }
 
-@media (max-width: 768px) {
-  .club-card {
-    border-radius: 8px;
-  }
+.club-avatar-fallback {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.club-main {
+  min-width: 0;
+}
+
+.club-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a2742;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.club-alias {
+  font-size: 0.82rem;
+  color: #516078;
+}
+
+.club-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.club-chip {
+  background: rgba(26, 39, 66, 0.08) !important;
+  color: #1a2742 !important;
+  border-color: rgba(26, 39, 66, 0.25) !important;
 }
 </style>

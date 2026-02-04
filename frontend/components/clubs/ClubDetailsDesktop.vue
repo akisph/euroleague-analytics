@@ -40,7 +40,7 @@
                   target="_blank"
                   icon="mdi-web"
                   size="small"
-                  variant="tonal"
+                  variant="text"
                   class="icon-btn"
                 />
                 <v-btn
@@ -49,7 +49,7 @@
                   target="_blank"
                   icon="mdi-twitter"
                   size="small"
-                  variant="tonal"
+                  variant="text"
                   class="icon-btn"
                 />
                 <v-btn
@@ -58,7 +58,7 @@
                   target="_blank"
                   icon="mdi-instagram"
                   size="small"
-                  variant="tonal"
+                  variant="text"
                   class="icon-btn"
                 />
                 <v-btn
@@ -67,20 +67,19 @@
                   target="_blank"
                   icon="mdi-facebook"
                   size="small"
-                  variant="tonal"
+                  variant="text"
                   class="icon-btn"
                 />
                 <v-btn
                   v-if="club.ticketsUrl"
                   :href="club.ticketsUrl"
                   target="_blank"
-                  prepend-icon="mdi-ticket-outline"
                   size="small"
-                  variant="tonal"
+                  variant="text"
                   color="primary"
-                  class="tickets-btn"
+                  class="tickets-btn icon-btn"
                 >
-                  Tickets
+                  <v-icon icon="mdi-ticket-confirmation-outline" />
                 </v-btn>
               </div>
             </div>
@@ -89,129 +88,168 @@
       </v-card>
     </v-col>
 
-    <!-- Club Info -->
-    <v-col cols="12" md="6">
-      <v-card class="h-100">
-        <v-card-title>
-          <v-icon icon="mdi-information" class="mr-2" />
-          Club Information
-        </v-card-title>
-        <v-card-text>
-          <v-list density="compact">
-            <v-list-item v-if="club.president">
-              <template #prepend>
-                <v-icon icon="mdi-account-tie" class="mr-3" />
-              </template>
-              <v-list-item-title>President</v-list-item-title>
-              <v-list-item-subtitle>{{ club.president }}</v-list-item-subtitle>
-            </v-list-item>
-            <v-list-item v-if="club.address">
-              <template #prepend>
-                <v-icon icon="mdi-map-marker" class="mr-3" />
-              </template>
-              <v-list-item-title>Address</v-list-item-title>
-              <v-list-item-subtitle>{{ club.address }}</v-list-item-subtitle>
-            </v-list-item>
-            <v-list-item v-if="club.phone">
-              <template #prepend>
-                <v-icon icon="mdi-phone" class="mr-3" />
-              </template>
-              <v-list-item-title>Phone</v-list-item-title>
-              <v-list-item-subtitle>{{ club.phone }}</v-list-item-subtitle>
-            </v-list-item>
-            <v-list-item v-if="club.fax">
-              <template #prepend>
-                <v-icon icon="mdi-fax" class="mr-3" />
-              </template>
-              <v-list-item-title>Fax</v-list-item-title>
-              <v-list-item-subtitle>{{ club.fax }}</v-list-item-subtitle>
-            </v-list-item>
-            <v-list-item v-if="coachName">
-              <template #prepend>
-                <v-icon icon="mdi-account-tie" class="mr-3" />
-              </template>
-              <v-list-item-title>Coach</v-list-item-title>
-              <v-list-item-subtitle>{{ coachName }}</v-list-item-subtitle>
-            </v-list-item>
-            <v-list-item v-if="managerNames.length">
-              <template #prepend>
-                <v-icon icon="mdi-clipboard-account" class="mr-3" />
-              </template>
-              <v-list-item-title>Team Managers</v-list-item-title>
-              <v-list-item-subtitle>{{ managerNames.join(', ') }}</v-list-item-subtitle>
-            </v-list-item>
-          </v-list>
+    <v-col cols="12">
+      <v-card>
+        <v-card-text class="d-flex align-center justify-space-between">
+          <div class="text-subtitle-1 font-weight-bold">Club Details</div>
+          <v-btn variant="text" size="small" class="more-btn" @click="showMore = !showMore">
+            {{ showMore ? 'Hide more' : 'Show more' }}
+            <v-icon :icon="showMore ? 'mdi-chevron-up' : 'mdi-chevron-down'" class="ml-1" />
+          </v-btn>
         </v-card-text>
-      </v-card>
-    </v-col>
+        <v-expand-transition>
+          <div v-show="showMore">
+            <v-card-text>
+              <v-row>
+                <v-col cols="12" md="6">
+                  <v-card class="h-100">
+                    <v-card-title>
+                      <v-icon icon="mdi-information" class="mr-2" />
+                      Club Information
+                    </v-card-title>
+                    <v-card-text>
+                      <v-list density="compact">
+                        <v-list-item v-if="club.president">
+                          <template #prepend>
+                            <v-icon icon="mdi-account-tie" class="mr-3" />
+                          </template>
+                          <v-list-item-title>President</v-list-item-title>
+                          <v-list-item-subtitle>{{ club.president }}</v-list-item-subtitle>
+                        </v-list-item>
+                        <v-list-item v-if="club.address">
+                          <template #prepend>
+                            <v-icon icon="mdi-map-marker" class="mr-3" />
+                          </template>
+                          <v-list-item-title>Address</v-list-item-title>
+                          <v-list-item-subtitle>{{ club.address }}</v-list-item-subtitle>
+                        </v-list-item>
+                        <v-list-item v-if="club.phone">
+                          <template #prepend>
+                            <v-icon icon="mdi-phone" class="mr-3" />
+                          </template>
+                          <v-list-item-title>Phone</v-list-item-title>
+                          <v-list-item-subtitle>{{ club.phone }}</v-list-item-subtitle>
+                        </v-list-item>
+                        <v-list-item v-if="club.fax">
+                          <template #prepend>
+                            <v-icon icon="mdi-fax" class="mr-3" />
+                          </template>
+                          <v-list-item-title>Fax</v-list-item-title>
+                          <v-list-item-subtitle>{{ club.fax }}</v-list-item-subtitle>
+                        </v-list-item>
+                        <v-list-item v-if="coachName">
+                          <template #prepend>
+                            <v-icon icon="mdi-account-tie" class="mr-3" />
+                          </template>
+                          <v-list-item-title>Coach</v-list-item-title>
+                          <v-list-item-subtitle>{{ coachName }}</v-list-item-subtitle>
+                        </v-list-item>
+                        <v-list-item v-if="managerNames.length">
+                          <template #prepend>
+                            <v-icon icon="mdi-clipboard-account" class="mr-3" />
+                          </template>
+                          <v-list-item-title>Team Managers</v-list-item-title>
+                          <v-list-item-subtitle>{{ managerNames.join(', ') }}</v-list-item-subtitle>
+                        </v-list-item>
+                      </v-list>
+                    </v-card-text>
+                  </v-card>
+                </v-col>
 
-    <!-- Staff & Venue Info -->
-    <v-col cols="12" md="6">
-      <v-card class="h-100">
-        <v-card-title>
-          <v-icon icon="mdi-stadium" class="mr-2" />
-          Home Arena
-        </v-card-title>
-        <v-card-text v-if="club.venue">
-          <div class="d-flex align-center mb-4">
-            <v-avatar size="60" class="mr-4">
-              <v-img
-                v-if="club.venue.images && Object.keys(club.venue.images).length"
-                :src="Object.values(club.venue.images)[0]"
-                :alt="club.venue.name"
-                :cover="false"
-                class="club-crest-img"
-              />
-              <v-icon v-else icon="mdi-stadium" size="30" />
-            </v-avatar>
-            <div>
-              <div class="text-h6 font-weight-bold">{{ club.venue.name }}</div>
-              <div class="text-body-2 text-medium-emphasis">{{ club.venue.code }}</div>
-            </div>
+                <v-col cols="12" md="6">
+                  <v-card class="h-100">
+                    <v-card-title>
+                      <v-icon icon="mdi-stadium" class="mr-2" />
+                      Home Arena
+                    </v-card-title>
+                    <v-card-text v-if="club.venue">
+                      <div class="d-flex align-center mb-4">
+                        <v-avatar size="60" class="mr-4">
+                          <v-img
+                            v-if="club.venue.images && Object.keys(club.venue.images).length"
+                            :src="Object.values(club.venue.images)[0]"
+                            :alt="club.venue.name"
+                            :cover="false"
+                            class="club-crest-img"
+                          />
+                          <v-icon v-else icon="mdi-stadium" size="30" />
+                        </v-avatar>
+                        <div>
+                          <div class="text-h6 font-weight-bold">{{ club.venue.name }}</div>
+                          <div class="text-body-2 text-medium-emphasis">{{ club.venue.code }}</div>
+                        </div>
+                      </div>
+                      <v-list density="compact">
+                        <v-list-item v-if="club.venue.capacity">
+                          <template #prepend>
+                            <v-icon icon="mdi-account-group" class="mr-3" />
+                          </template>
+                          <v-list-item-title>Capacity</v-list-item-title>
+                          <v-list-item-subtitle>{{ club.venue.capacity.toLocaleString() }} seats</v-list-item-subtitle>
+                        </v-list-item>
+                        <v-list-item v-if="club.venue.address">
+                          <template #prepend>
+                            <v-icon icon="mdi-map-marker" class="mr-3" />
+                          </template>
+                          <v-list-item-title>Address</v-list-item-title>
+                          <v-list-item-subtitle>{{ club.venue.address }}</v-list-item-subtitle>
+                        </v-list-item>
+                        <v-list-item v-if="club.venue.notes">
+                          <template #prepend>
+                            <v-icon icon="mdi-note-text" class="mr-3" />
+                          </template>
+                          <v-list-item-title>Notes</v-list-item-title>
+                          <v-list-item-subtitle>{{ club.venue.notes }}</v-list-item-subtitle>
+                        </v-list-item>
+                      </v-list>
+                      <v-chip v-if="club.venue.active" color="success" variant="flat" size="small" class="mt-2">
+                        <v-icon size="14" icon="mdi-check-circle" class="mr-1" />
+                        Active Venue
+                      </v-chip>
+                    </v-card-text>
+                    <v-card-text v-else>
+                      <div class="text-body-2 text-medium-emphasis">No venue information available</div>
+                    </v-card-text>
+                  </v-card>
+                </v-col>
+
+                <v-col v-if="clubInfo?.info" cols="12">
+                  <v-card>
+                    <v-card-title>
+                      <v-icon icon="mdi-history" class="mr-2" />
+                      Club History
+                    </v-card-title>
+                    <v-card-text>
+                      <div v-html="clubInfo.info" class="club-history-content" />
+                    </v-card-text>
+                  </v-card>
+                </v-col>
+              </v-row>
+            </v-card-text>
           </div>
-          <v-list density="compact">
-            <v-list-item v-if="club.venue.capacity">
-              <template #prepend>
-                <v-icon icon="mdi-account-group" class="mr-3" />
-              </template>
-              <v-list-item-title>Capacity</v-list-item-title>
-              <v-list-item-subtitle>{{ club.venue.capacity.toLocaleString() }} seats</v-list-item-subtitle>
-            </v-list-item>
-            <v-list-item v-if="club.venue.address">
-              <template #prepend>
-                <v-icon icon="mdi-map-marker" class="mr-3" />
-              </template>
-              <v-list-item-title>Address</v-list-item-title>
-              <v-list-item-subtitle>{{ club.venue.address }}</v-list-item-subtitle>
-            </v-list-item>
-            <v-list-item v-if="club.venue.notes">
-              <template #prepend>
-                <v-icon icon="mdi-note-text" class="mr-3" />
-              </template>
-              <v-list-item-title>Notes</v-list-item-title>
-              <v-list-item-subtitle>{{ club.venue.notes }}</v-list-item-subtitle>
-            </v-list-item>
-          </v-list>
-          <v-chip v-if="club.venue.active" color="success" variant="flat" size="small" class="mt-2">
-            <v-icon size="14" icon="mdi-check-circle" class="mr-1" />
-            Active Venue
-          </v-chip>
-        </v-card-text>
-        <v-card-text v-else>
-          <div class="text-body-2 text-medium-emphasis">No venue information available</div>
-        </v-card-text>
+        </v-expand-transition>
       </v-card>
     </v-col>
 
-    <!-- Club History/Info -->
-    <v-col v-if="clubInfo?.info" cols="12">
+    <v-col cols="12">
       <v-card>
         <v-card-title>
-          <v-icon icon="mdi-history" class="mr-2" />
-          Club History
+          <v-icon icon="mdi-chart-box-outline" class="mr-2" />
+          Team Stats (Average Per Game)
         </v-card-title>
         <v-card-text>
-          <div v-html="clubInfo.info" class="club-history-content" />
+          <div v-if="teamStatsRow" class="team-stats-list">
+            <div v-for="item in averageStats" :key="`avg-${item.key}`" class="stat-row">
+              <span class="stat-label">{{ item.label }}</span>
+              <span class="stat-value">{{ formatStatValue(item.value) }}</span>
+            </div>
+          </div>
+          <SharedEmptyState
+            v-else
+            title="No stats available"
+            message="Team statistics are not available for this season."
+            icon="mdi-chart-box-outline"
+          />
         </v-card-text>
       </v-card>
     </v-col>
@@ -304,7 +342,7 @@
                   </v-avatar>
                   <div>
                     <NuxtLink :to="`/players/${seasonCode}/${item.playerCode}`" class="roster-link">
-                      {{ item.name }}
+                      {{ item.name }} <span class="roster-number">(#{{ item.dorsal ?? '-' }})</span>
                     </NuxtLink>
                     <div class="text-caption text-medium-emphasis">
                       {{ item.countryName || '—' }}
@@ -318,11 +356,32 @@
               <template #item.dorsal="{ item }">
                 {{ item.dorsal ?? '—' }}
               </template>
-              <template #item.height="{ item }">
-                {{ item.height ? `${item.height} cm` : '—' }}
+              <template #item.gamesPlayed="{ item }">
+                {{ item.gamesPlayed ?? '—' }}
               </template>
-              <template #item.weight="{ item }">
-                {{ item.weight ? `${item.weight} kg` : '—' }}
+              <template #item.avgMin="{ item }">
+                {{ formatValue(item.avgMin) }}
+              </template>
+              <template #item.avgPir="{ item }">
+                {{ formatValue(item.avgPir) }}
+              </template>
+              <template #item.avgPts="{ item }">
+                {{ formatValue(item.avgPts) }}
+              </template>
+              <template #item.avgReb="{ item }">
+                {{ formatValue(item.avgReb) }}
+              </template>
+              <template #item.avgAst="{ item }">
+                {{ formatValue(item.avgAst) }}
+              </template>
+              <template #item.pct2="{ item }">
+                {{ item.pct2 || '—' }}
+              </template>
+              <template #item.pct3="{ item }">
+                {{ item.pct3 || '—' }}
+              </template>
+              <template #item.pctFt="{ item }">
+                {{ item.pctFt || '—' }}
               </template>
             </v-data-table>
             <SharedEmptyState
@@ -339,7 +398,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import GamesCard from '~/components/games/card.vue'
 
 interface Props {
@@ -364,6 +423,62 @@ defineEmits(['retry-games', 'dismiss-games-error', 'retry-roster', 'dismiss-rost
 const router = useRouter()
 const carouselRow = ref<HTMLElement | null>(null)
 const showCarouselArrows = ref(false)
+const showMore = ref(false)
+
+const teamStatsRow = computed(() => {
+  const data = props.teamStats
+  if (Array.isArray(data) && data.length) {
+    return [...data].sort((a, b) => (b?.gamesPlayed ?? 0) - (a?.gamesPlayed ?? 0))[0]
+  }
+  return data || null
+})
+
+const formatValue = (value: number | null | undefined) => {
+  if (!Number.isFinite(value)) return '-'
+  return Number(value).toFixed(2)
+}
+
+const formatStatValue = (value: string | number | null | undefined) => {
+  if (typeof value === 'string') return value
+  return formatValue(value)
+}
+
+const formatRatio = (made?: number, attempted?: number) => {
+  const madeNum = Number(made)
+  const attNum = Number(attempted)
+  if (!Number.isFinite(madeNum) && !Number.isFinite(attNum)) return '-/-'
+  const left = Number.isFinite(madeNum) ? madeNum.toFixed(2) : '-'
+  const right = Number.isFinite(attNum) ? attNum.toFixed(2) : '-'
+  const pct = Number.isFinite(madeNum) && Number.isFinite(attNum) && attNum > 0
+    ? `${Math.round((madeNum / attNum) * 100)}%`
+    : '--%'
+  return `${pct} (${left}/${right})`
+}
+
+const averageStats = computed(() => {
+  const row = teamStatsRow.value
+  if (!row) return []
+  const source = row.averagePerGame ?? row
+  return [
+    { key: 'gp', label: 'Games Played', value: source.gamesPlayed },
+    { key: 'pir', label: 'Performance Index', value: source.valuation },
+    { key: 'pts', label: 'Points', value: source.points },
+    { key: 'reb', label: 'Total Rebounds', value: source.totalRebounds },
+    { key: 'oreb', label: 'Offensive Rebounds', value: source.offensiveRebounds },
+    { key: 'dreb', label: 'Defensive Rebounds', value: source.defensiveRebounds },
+    { key: 'ast', label: 'Assists', value: source.assistances },
+    { key: 'stl', label: 'Steals', value: source.steals },
+    { key: 'blk', label: 'Blocks For', value: source.blocksFavour },
+    { key: 'blkA', label: 'Blocks Against', value: source.blocksAgainst },
+    { key: 'to', label: 'Turnovers', value: source.turnovers },
+    { key: 'pf', label: 'Fouls Committed', value: source.foulsCommited },
+    { key: 'rf', label: 'Fouls Received', value: source.foulsReceived },
+    { key: 'fg2', label: '2PT Made/Attempted', value: formatRatio(source.fieldGoalsMade2, source.fieldGoalsAttempted2) },
+    { key: 'fg3', label: '3PT Made/Attempted', value: formatRatio(source.fieldGoalsMade3, source.fieldGoalsAttempted3) },
+    { key: 'ft', label: 'FT Made/Attempted', value: formatRatio(source.freeThrowsMade, source.freeThrowsAttempted) },
+    { key: 'pm', label: 'Plus/Minus', value: source.plusMinus },
+  ]
+})
 
 const navigateTo = (path: string) => {
   router.push(path)
@@ -449,13 +564,52 @@ onBeforeUnmount(() => {
 
 .icon-btn {
   color: #1a2742;
-  background: rgba(26, 39, 66, 0.08) !important;
+  background: transparent !important;
+  padding-inline: 4px;
 }
 
 .tickets-btn {
-  letter-spacing: 0.05em;
   color: #F05323 !important;
-  background: rgba(240, 83, 35, 0.12) !important;
+  background: transparent !important;
+}
+
+.more-btn {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  color: #1a2742;
+}
+
+.team-stats-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 12px;
+  border: 1px solid #e8edf6;
+  background: #ffffff;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #8a92a2;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a2742;
+  opacity: 0.85;
 }
 
 .roster-avatar :deep(img) {
@@ -477,6 +631,12 @@ onBeforeUnmount(() => {
 
 .roster-link:hover {
   text-decoration: underline;
+}
+
+.roster-number {
+  font-size: 0.75rem;
+  color: #8a92a2;
+  font-weight: 600;
 }
 
 .games-carousel {
@@ -531,3 +691,7 @@ onBeforeUnmount(() => {
   right: 8px;
 }
 </style>
+
+
+
+

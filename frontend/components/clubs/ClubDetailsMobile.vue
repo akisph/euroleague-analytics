@@ -228,18 +228,12 @@
                       <div class="team-row">
                         <v-avatar size="22" color="#e0e6f0">
                           <v-img v-if="game.homeTeamImage" :src="game.homeTeamImage" :alt="game.homeTeamName" :cover="false" />
-                          <span v-else class="team-code">
-                            {{ game.homeTeamCode?.substring(0, 3) }}
-                          </span>
                         </v-avatar>
                         <span class="team-name">{{ game.homeTeamName }}</span>
                       </div>
                       <div class="team-row">
                         <v-avatar size="22" color="#e0e6f0">
                           <v-img v-if="game.awayTeamImage" :src="game.awayTeamImage" :alt="game.awayTeamName" :cover="false" />
-                          <span v-else class="team-code">
-                            {{ game.awayTeamCode?.substring(0, 3) }}
-                          </span>
                         </v-avatar>
                         <span class="team-name">{{ game.awayTeamName }}</span>
                       </div>
@@ -299,8 +293,11 @@
 
       <div class="player-main">
         <div class="player-top">
-          <div class="player-name">{{ player.name }}</div>
-          <div class="player-team">{{ club.code }}</div>
+                      <div class="player-name">
+                        {{ player.name }}
+                        <span class="player-number">(#{{ player.dorsal ?? '-' }})</span>
+                      </div>
+                      <div class="player-team">{{ player.position || '-' }}</div>
         </div>
         <div class="player-stats">
           <div class="stat">
@@ -962,6 +959,13 @@ const getRosterStat = (player: any, key: 'pir' | 'pts' | 'reb' | 'ast') => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.player-number {
+  font-size: 0.72rem;
+  color: #8a92a2;
+  font-weight: 600;
+  margin-left: 4px;
 }
 
 .player-team {
