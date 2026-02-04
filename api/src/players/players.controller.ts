@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PlayersService } from './players.service';
-import { PlayerDto, PlayersListResponseDto, PlayersQueryDto, PlayerStatsDto, PlayerGameBoxScoresResponseDto } from './dto';
+import { PlayerDto, PlayersListResponseDto, PlayersQueryDto, PlayerStatsDto, PlayerGameBoxScoresResponseDto, PlayersLeadersResponseDto, PlayersLeadersQueryDto } from './dto';
 
 @ApiTags('Players')
 @Controller('players')
@@ -18,6 +18,98 @@ export class PlayersController {
     @Query() query: PlayersQueryDto,
   ): Promise<PlayersListResponseDto> {
     return this.playersService.getPlayersByseason(seasonCode);
+  }
+
+  /**
+   * GET /players/season/:seasonCode/leaders
+   * Get player leaders for current round (v3)
+   */
+  @Get('season/:seasonCode/leaders')
+  @ApiQuery({ name: 'seasonCode', required: false, type: String })
+  @ApiQuery({
+    name: 'category',
+    required: false,
+    enum: [
+      'Valuation',
+      'Score',
+      'TotalRebounds',
+      'OffensiveRebounds',
+      'DefensiveRebounds',
+      'Assistances',
+      'Steals',
+      'BlocksFavour',
+      'BlocksAgainst',
+      'Turnovers',
+      'FoulsReceived',
+      'FoulsCommited',
+      'FreeThrowsMade',
+      'FreeThrowsAttempted',
+      'FreeThrowsPercent',
+      'FieldGoalsMade2',
+      'FieldGoalsAttempted2',
+      'FieldGoals2Percent',
+      'FieldGoalsMade3',
+      'FieldGoalsAttempted3',
+      'FieldGoals3Percent',
+      'FieldGoalsMadeTotal',
+      'FieldGoalsAttemptedTotal',
+      'FieldGoalsPercent',
+      'AccuracyMade',
+      'AccuracyAttempted',
+      'AccuracyPercent',
+      'AssistancesTurnoversRatio',
+      'GamesPlayed',
+      'GamesStarted',
+      'TimePlayed',
+      'Contras',
+      'Dunks',
+      'OffensiveReboundPercentage',
+      'DefensiveReboundPercentage',
+      'ReboundPercentage',
+      'EffectiveFieldGoalPercentage',
+      'TrueShootingPercentage',
+      'AssistRatio',
+      'TurnoverRatio',
+      'FieldGoals2AttemptedRatio',
+      'FieldGoals3AttemptedRatio',
+      'FreeThrowRate',
+      'Possesions',
+      'GamesWon',
+      'GamesLost',
+      'DoubleDoubles',
+      'TripleDoubles',
+      'FieldGoalsAttempted2Share',
+      'FieldGoalsAttempted3Share',
+      'FreeThrowsAttemptedShare',
+      'FieldGoalsMade2Share',
+      'FieldGoalsMade3Share',
+      'FreeThrowsMadeShare',
+      'PointsMade2Rate',
+      'PointsMade3Rate',
+      'PointsMadeFreeThrowsRate',
+      'PointsAttempted2Rate',
+      'PointsAttempted3Rate',
+      'Age',
+    ],
+  })
+  @ApiQuery({
+    name: 'aggregate',
+    required: false,
+    enum: [
+      'PerGame',
+      'Accumulated',
+      'PerMinute',
+      'Per100Possesions',
+      'PerGameReverse',
+      'AccumulatedReverse',
+    ],
+  })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async getPlayerLeaders(
+    @Param('seasonCode') seasonCode: string,
+    @Query() query: PlayersLeadersQueryDto,
+  ): Promise<PlayersLeadersResponseDto> {
+    return this.playersService.getPlayerLeaders(seasonCode, query);
   }
 
   /**

@@ -49,7 +49,7 @@
           <span class="head-team">Team</span>
           <span class="head-gp">GP</span>
           <span class="head-wl">W-L</span>
-          <span class="head-form">Form</span>
+          <span class="head-form text-center">Form</span>
         </div>
 
         <div v-if="tableStandings.length" class="standings-list">
@@ -193,7 +193,7 @@ const computedDiff = (team: TeamStanding) => {
 const getLastFive = (team: TeamStanding) => {
   const raw = (team.lastFive || '').trim()
   if (!raw) return ['-']
-  return raw.split('')
+  return raw.split('').reverse()
 }
 const getRankClass = (position: number) => {
   if (position <= 4) return 'rank-top4'

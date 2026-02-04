@@ -5,27 +5,26 @@
       subtitle="Current season overview"
     />
 
-    <SharedLoadingState :loading="false" message="Loading dashboard data...">
-      <div class="dashboard-section">
-        <GamesCurrentRoundGames />
-      </div>
+    <DashboardCurrentRoundSection />
+    <div class="dashboard-spacer"></div>
+    <DashboardLeadersSection />
 
-      <div class="dashboard-section">
-        <StandingsPage
-          title="Standings"
-          subtitle="Regular Season"
-        />
-      </div>
+    <SharedLoadingState :loading="false" message="Loading dashboard data...">
+      <SharedEmptyState
+        title="More widgets coming"
+        message="We are rebuilding the dashboard experience."
+        icon="mdi-view-dashboard-outline"
+      />
     </SharedLoadingState>
   </div>
 </template>
 
 <style scoped>
-.dashboard-section {
-  margin-bottom: 2rem;
+.dashboard-root :deep(.empty-state) {
+  margin-top: 1rem;
 }
 
-.dashboard-section:last-child {
-  margin-bottom: 0;
+.dashboard-spacer {
+  height: 1.5rem;
 }
 </style>

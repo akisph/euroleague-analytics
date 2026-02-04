@@ -7,6 +7,9 @@ import {
   PlayerDto, 
   PlayersListResponseDto, 
   PlayerStatsDto,
+  PlayersLeadersResponseDto,
+  PlayerLeaderDto,
+  PlayersLeadersQueryDto,
 } from './dto';
 
 @Injectable()
@@ -93,6 +96,106 @@ export class PlayersService {
   }
 
   /**
+   * Get player leaders for a season (supports v2 leaders with category/aggregate filters)
+   * @param seasonCode - Season code
+   * @param query - Leaders query params
+   */
+  async getPlayerLeaders(
+    seasonCode: string,
+    query?: PlayersLeadersQueryDto,
+  ): Promise<PlayersLeadersResponseDto> {
+    try {
+      const effectiveSeasonCode = query?.seasonCode ?? seasonCode;
+      const hasLeaderFilters = Boolean(
+        query?.seasonCode || query?.category || query?.aggregate || query?.limit,
+      );
+
+      if (hasLeaderFilters) {
+        const url = new URL(
+          `${this.baseUrl}/v2/competitions/${COMPETITION_CODE}/stats/players/leaders`,
+        );
+        url.searchParams.append('SeasonCode', effectiveSeasonCode);
+        url.searchParams.append('SeasonMode', 'Single');
+        if (query?.category) url.searchParams.append('category', query.category);
+        if (query?.aggregate) url.searchParams.append('aggregate', query.aggregate);
+        if (query?.limit) url.searchParams.append('limit', String(query.limit));
+
+        this.logger.log(`Calling: ${url.toString()}`);
+        const response = await firstValueFrom(this.httpService.get<any>(url.toString()));
+        const leadersData = response.data?.data ?? response.data?.leaders ?? response.data ?? [];
+        const leadersArray = Array.isArray(leadersData) ? leadersData : [];
+        const leaders = leadersArray
+          .map((item: any) => this.mapStatsLeader(item, query?.aggregate))
+          .filter((entry: PlayerLeaderDto) => Number.isFinite(entry.value));
+        const limitedLeaders = query?.limit ? leaders.slice(0, query.limit) : leaders;
+
+        return {
+          seasonCode: effectiveSeasonCode,
+          roundNumber: null,
+          category: query?.category,
+          aggregate: query?.aggregate,
+          limit: query?.limit,
+          leaders: limitedLeaders,
+        };
+      }
+
+      const roundNumber = await this.getCurrentRoundNumber(effectiveSeasonCode);
+      const url = new URL(
+        `${this.baseUrl}/v3/competitions/${COMPETITION_CODE}/statistics/players/leaders`,
+      );
+      url.searchParams.append('seasonCode', effectiveSeasonCode);
+      if (roundNumber) {
+        url.searchParams.append('roundNumber', String(roundNumber));
+      }
+
+      this.logger.log(`Calling: ${url.toString()}`);
+      let response = await firstValueFrom(this.httpService.get<any>(url.toString()));
+      let data = response.data;
+
+      if (!data) {
+        // fallback to stats endpoint
+        const fallbackUrl = new URL(
+          `${this.baseUrl}/v3/competitions/${COMPETITION_CODE}/stats/players/leaders`,
+        );
+        fallbackUrl.searchParams.append('seasonCode', effectiveSeasonCode);
+        if (roundNumber) {
+          fallbackUrl.searchParams.append('roundNumber', String(roundNumber));
+        }
+        this.logger.warn(`Primary leaders endpoint empty. Fallback: ${fallbackUrl.toString()}`);
+        response = await firstValueFrom(this.httpService.get<any>(fallbackUrl.toString()));
+        data = response.data;
+      }
+
+      let leadersRoot = data?.leaders || data?.data?.leaders || data?.data || data || {};
+      let result = this.normalizeLeadersResponse(effectiveSeasonCode, roundNumber, leadersRoot);
+
+      if (this.isLeadersEmpty(result)) {
+        // fallback to v2 endpoint
+        const v2Url = new URL(
+          `${this.baseUrl}/v2/competitions/${COMPETITION_CODE}/stats/players/leaders`,
+        );
+        v2Url.searchParams.append('seasonCode', effectiveSeasonCode);
+        if (roundNumber) {
+          v2Url.searchParams.append('roundNumber', String(roundNumber));
+        }
+        this.logger.warn(`Leaders empty from v3. Fallback to v2: ${v2Url.toString()}`);
+        const v2Response = await firstValueFrom(this.httpService.get<any>(v2Url.toString()));
+        const v2Data = v2Response.data;
+        leadersRoot = v2Data?.leaders || v2Data?.data?.leaders || v2Data?.data || v2Data || {};
+        result = this.normalizeLeadersResponse(effectiveSeasonCode, roundNumber, leadersRoot);
+      }
+
+      return result;
+    } catch (error) {
+      this.logger.error(`Error fetching player leaders for season ${seasonCode}:`, error.message);
+      throw new HttpException(
+        `Failed to fetch player leaders for season ${seasonCode}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
    * Get player statistics for a specific season
    * @param seasonCode - Season code
    * @param playerCode - Player code
@@ -169,6 +272,126 @@ export class PlayersService {
         `Failed to fetch players for club ${clubCode}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  private extractLeaders(root: any, keyVariants: string[], valueKeys: string[]): PlayerLeaderDto[] {
+    const category = keyVariants.reduce((acc, key) => acc ?? root?.[key], undefined as any);
+    const list = Array.isArray(category)
+      ? category
+      : Array.isArray(category?.leaders)
+        ? category.leaders
+        : Array.isArray(category?.items)
+          ? category.items
+          : Array.isArray(category?.data)
+            ? category.data
+            : [];
+
+    return list
+      .map((item: any) => {
+        const leader = item?.leader || item?.player || item?.person || item;
+        const value = typeof item?.value === 'number'
+          ? item.value
+          : valueKeys.reduce((acc, key) => (typeof acc === 'number' ? acc : leader?.[key] ?? item?.[key]), undefined as any);
+
+        return {
+          playerCode: leader?.code ?? leader?.playerCode ?? item?.playerCode ?? item?.code,
+          name: leader?.name ?? leader?.fullName ?? item?.name,
+          clubCode: leader?.clubCode ?? leader?.club?.code ?? item?.clubCode ?? item?.teamCode,
+          imageUrl: leader?.imageUrl ?? leader?.image ?? leader?.images?.headshot,
+          value: typeof value === 'number' ? value : Number(value) || 0,
+        } as PlayerLeaderDto;
+      })
+      .filter((entry: PlayerLeaderDto) => entry.value > 0)
+      .sort((a: PlayerLeaderDto, b: PlayerLeaderDto) => b.value - a.value)
+      .slice(0, 5);
+  }
+
+  private mapStatsLeader(item: any, aggregate?: string): PlayerLeaderDto {
+    const value = this.resolveAggregateValue(item, aggregate);
+
+    return {
+      playerCode: item?.playerCode ?? item?.player?.code ?? item?.code,
+      name: item?.playerName ?? item?.player?.name ?? item?.name,
+      clubCode: item?.clubCode ?? item?.clubCodes ?? item?.club?.code,
+      imageUrl: item?.imageUrl ?? item?.player?.imageUrl ?? item?.image,
+      value: Number.isFinite(value) ? value : Number(value) || 0,
+    };
+  }
+
+  private resolveAggregateValue(item: any, aggregate?: string): number {
+    const aggregateKey = (aggregate || '').toLowerCase();
+    if (aggregateKey === 'pergame' || aggregateKey === 'pergamereverse') {
+      return Number(item?.averagePerGame ?? item?.value ?? item?.total);
+    }
+    if (aggregateKey === 'accumulated' || aggregateKey === 'accumulatedreverse') {
+      return Number(item?.total ?? item?.value);
+    }
+    if (aggregateKey === 'perminute') {
+      return Number(item?.averagePerMinute ?? item?.value);
+    }
+    if (aggregateKey === 'per100possesions') {
+      return Number(item?.averagePer100Possessions ?? item?.value);
+    }
+    return Number(item?.value ?? item?.total ?? item?.averagePerGame);
+  }
+
+  private normalizeLeadersResponse(
+    seasonCode: string,
+    roundNumber: number | null,
+    leadersRoot: any,
+  ): PlayersLeadersResponseDto {
+    return {
+      seasonCode,
+      roundNumber: roundNumber ?? null,
+      categories: {
+        pir: this.extractLeaders(leadersRoot, ['valuation', 'pir', 'efficiency'], ['value', 'valuation', 'pir']),
+        points: this.extractLeaders(leadersRoot, ['score', 'points'], ['value', 'score', 'points']),
+        rebounds: this.extractLeaders(leadersRoot, ['totalRebounds', 'rebounds'], ['value', 'totalRebounds', 'rebounds']),
+        assists: this.extractLeaders(leadersRoot, ['assists', 'assistances'], ['value', 'assists', 'assistances']),
+        minutes: this.extractLeaders(leadersRoot, ['timePlayed', 'minutes'], ['value', 'timePlayed', 'minutes']),
+      },
+    };
+  }
+
+  private isLeadersEmpty(result: PlayersLeadersResponseDto): boolean {
+    return (
+      result.categories.pir.length === 0 &&
+      result.categories.points.length === 0 &&
+      result.categories.rebounds.length === 0 &&
+      result.categories.assists.length === 0 &&
+      result.categories.minutes.length === 0
+    );
+  }
+
+  private async getCurrentRoundNumber(seasonCode: string): Promise<number | null> {
+    try {
+      const url = `${this.baseUrl}/v2/competitions/${COMPETITION_CODE}/seasons/${seasonCode}/games`;
+      const response = await firstValueFrom(this.httpService.get<any>(url));
+      const games = response.data?.data || response.data || [];
+      if (!Array.isArray(games) || !games.length) return null;
+
+      const now = Date.now();
+      let closestRound: number | null = null;
+      let closestDiff = Number.POSITIVE_INFINITY;
+
+      for (const game of games) {
+        const dateRaw = game?.date;
+        if (!dateRaw) continue;
+        const time = Date.parse(dateRaw);
+        if (Number.isNaN(time)) continue;
+        const diff = Math.abs(time - now);
+        if (diff < closestDiff) {
+          closestDiff = diff;
+          closestRound = game?.round ?? null;
+        }
+      }
+
+      if (closestRound !== null) return closestRound;
+      return games.reduce((max: number, g: any) => Math.max(max, g?.round ?? 0), 0) || null;
+    } catch (error) {
+      this.logger.warn(`Could not resolve current round for season ${seasonCode}: ${error.message}`);
+      return null;
     }
   }
 
