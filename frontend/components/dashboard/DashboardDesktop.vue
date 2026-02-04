@@ -2,7 +2,6 @@
   <div class="dashboard-root">
     <SharedPageHeader
       title="Dashboard"
-      subtitle="Current season overview"
     />
 
     <DashboardCurrentRoundSection />

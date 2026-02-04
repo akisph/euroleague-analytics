@@ -225,3 +225,75 @@ a:hover {
 .leaders-select-menu .mdi-checkbox-blank-outline {
   color: #94a3b8 !important;
 }
+
+/* Global Select Menus (Vuetify v-select/v-autocomplete/v-combobox dropdown) */
+.v-overlay__content.v-select__content,
+.v-overlay__content.v-autocomplete__content,
+.v-overlay__content.v-combobox__content {
+  background: #ffffff !important;
+  border: 1px solid #d6dce8 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 16px 32px rgba(26, 39, 66, 0.18) !important;
+  overflow: hidden;
+}
+
+.v-overlay__content.v-select__content .v-list,
+.v-overlay__content.v-autocomplete__content .v-list,
+.v-overlay__content.v-combobox__content .v-list {
+  background: transparent !important;
+  color: #1a2742 !important;
+}
+
+.v-overlay__content.v-select__content .v-list-item,
+.v-overlay__content.v-autocomplete__content .v-list-item,
+.v-overlay__content.v-combobox__content .v-list-item {
+  color: #1a2742 !important;
+}
+
+.v-overlay__content.v-select__content .v-list-item-title,
+.v-overlay__content.v-select__content .v-list-item-subtitle,
+.v-overlay__content.v-autocomplete__content .v-list-item-title,
+.v-overlay__content.v-autocomplete__content .v-list-item-subtitle,
+.v-overlay__content.v-combobox__content .v-list-item-title,
+.v-overlay__content.v-combobox__content .v-list-item-subtitle {
+  color: #1a2742 !important;
+}
+
+.v-overlay__content.v-select__content .v-list-item__overlay,
+.v-overlay__content.v-select__content .v-list-item__underlay,
+.v-overlay__content.v-autocomplete__content .v-list-item__overlay,
+.v-overlay__content.v-autocomplete__content .v-list-item__underlay,
+.v-overlay__content.v-combobox__content .v-list-item__overlay,
+.v-overlay__content.v-combobox__content .v-list-item__underlay {
+  background: transparent !important;
+}
+
+.v-overlay__content.v-select__content .v-list-item:hover,
+.v-overlay__content.v-autocomplete__content .v-list-item:hover,
+.v-overlay__content.v-combobox__content .v-list-item:hover {
+  background: #f0f7ff !important;
+}
+
+.v-overlay__content.v-select__content .v-list-item--active,
+.v-overlay__content.v-select__content .v-list-item--selected,
+.v-overlay__content.v-autocomplete__content .v-list-item--active,
+.v-overlay__content.v-autocomplete__content .v-list-item--selected,
+.v-overlay__content.v-combobox__content .v-list-item--active,
+.v-overlay__content.v-combobox__content .v-list-item--selected {
+  background: #e0f2fe !important;
+}
+
+.v-overlay__content.v-select__content .mdi-checkbox-marked,
+.v-overlay__content.v-select__content .mdi-checkbox-intermediate,
+.v-overlay__content.v-autocomplete__content .mdi-checkbox-marked,
+.v-overlay__content.v-autocomplete__content .mdi-checkbox-intermediate,
+.v-overlay__content.v-combobox__content .mdi-checkbox-marked,
+.v-overlay__content.v-combobox__content .mdi-checkbox-intermediate {
+  color: #2563eb !important;
+}
+
+.v-overlay__content.v-select__content .mdi-checkbox-blank-outline,
+.v-overlay__content.v-autocomplete__content .mdi-checkbox-blank-outline,
+.v-overlay__content.v-combobox__content .mdi-checkbox-blank-outline {
+  color: #94a3b8 !important;
+}
