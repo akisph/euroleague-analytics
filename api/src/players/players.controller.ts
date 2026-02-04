@@ -100,8 +100,6 @@ export class PlayersController {
       'Accumulated',
       'PerMinute',
       'Per100Possesions',
-      'PerGameReverse',
-      'AccumulatedReverse',
     ],
   })
   @ApiQuery({ name: 'limit', required: false, type: Number })

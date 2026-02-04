@@ -7,6 +7,25 @@
             <div class="leaders-title">Player Leaders</div>
             <div class="leaders-subtitle">Top 5 by category</div>
           </div>
+          <NuxtLink
+            :to="{
+              path: '/players/leaders',
+              query: {
+                aggregate: selectedAggregate,
+                category: selectedCategory,
+              },
+            }"
+            class="leaders-link"
+          >
+            <v-btn
+              size="small"
+              variant="text"
+              color="primary"
+              append-icon="mdi-arrow-right"
+            >
+              Show more
+            </v-btn>
+          </NuxtLink>
         </div>
 
         <div class="leaders-filters">
@@ -79,8 +98,6 @@ const aggregateOptions = [
   { label: 'Accumulated', value: 'Accumulated' },
   { label: 'Per Minute', value: 'PerMinute' },
   { label: 'Per 100 Possessions', value: 'Per100Possesions' },
-  { label: 'Per Game Reverse', value: 'PerGameReverse' },
-  { label: 'Accumulated Reverse', value: 'AccumulatedReverse' },
 ] as const
 
 const categoryOptions = [
@@ -202,6 +219,10 @@ watch([selectedSeasonCode, selectedCategory, selectedAggregate], () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.75rem;
+}
+
+.leaders-link {
+  text-decoration: none;
 }
 
 .leaders-title {
