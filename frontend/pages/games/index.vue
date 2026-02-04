@@ -2,7 +2,6 @@
   <div class="page-light-surface">
     <SharedPageHeader
       title="Games"
-      subtitle="All games for the current season"
     >
     </SharedPageHeader>
 
@@ -14,7 +13,7 @@
     />
 
     <SharedLoadingState :loading="isLoading" message="Loading games...">
-      <GamesList
+      <GamesPage
         v-if="games.length"
         :games="games"
         :selected-season-code="selectedSeasonCode"
@@ -33,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-
+import GamesPage from '~/components/games/GamesPage.vue'
 
 const route = useRoute()
 const seasonStore = useSeasonStore()
