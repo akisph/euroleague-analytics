@@ -12,28 +12,28 @@
             type="radialBar" 
             :options="gaugeOptions" 
             :series="gaugeSeries" 
-            height="350" 
+            :height="chartHeight" 
           />
         </div>
         
         <!-- Legend -->
         <div class="legend-container">
           <div class="legend-item">
-            <div class="legend-color" style="background-color: #F05323;"></div>
+            <div class="legend-color" :style="{ backgroundColor: apexColors[0] }"></div>
             <div class="legend-content">
               <div class="legend-label">2PT%</div>
               <div class="legend-value">{{ player.stats?.twoPointShootingPercentage || '-' }}</div>
             </div>
           </div>
           <div class="legend-item">
-            <div class="legend-color" style="background-color: #FF9800;"></div>
+            <div class="legend-color" :style="{ backgroundColor: apexColors[1] }"></div>
             <div class="legend-content">
               <div class="legend-label">3PT%</div>
               <div class="legend-value">{{ player.stats?.threePointShootingPercentage || '-' }}</div>
             </div>
           </div>
           <div class="legend-item">
-            <div class="legend-color" style="background-color: #1976D2;"></div>
+            <div class="legend-color" :style="{ backgroundColor: apexColors[2] }"></div>
             <div class="legend-content">
               <div class="legend-label">FT%</div>
               <div class="legend-value">{{ player.stats?.freeThrowShootingPercentage || '-' }}</div>
@@ -47,6 +47,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useDisplay } from 'vuetify'
 import apexchart from 'vue3-apexcharts'
 import type { Player } from '~/types'
 
@@ -55,12 +56,24 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const display = useDisplay()
+
+const apexColors = [ '#1a2742','#F05323', '#6b7280'] as const
+
+const chartHeight = computed(() => (display.smAndDown.value ? 260 : 350))
 
 const gaugeOptions = computed(() => ({
   chart: {
     type: 'radialBar',
+    foreColor: '#6b7384',
   },
-  colors: ['#F05323', '#FF9800', '#1976D2'],
+  theme: {
+    mode: 'light',
+  },
+  colors: [...apexColors],
+  stroke: {
+    lineCap: 'round',
+  },
   plotOptions: {
     radialBar: {
       startAngle: -135,
@@ -76,16 +89,20 @@ const gaugeOptions = computed(() => ({
       },
       dataLabels: {
         name: {
+          show: true,
           fontSize: '12px',
-          fontWeight: 600,
-          color: '#8a92a2',
-          offsetY: 10,
+          fontWeight: 800,
+          color: '#6b7280',
+          offsetY: 18,
+          formatter: (_val: string, opts: any) => opts?.w?.globals?.labels?.[opts.seriesIndex] || 'FT%',
         },
         value: {
-          offsetY: -5,
+          show: true,
+          offsetY: -18,
           fontSize: '18px',
-          fontWeight: 700,
-          color: '#1a2742',
+          fontWeight: 900,
+          color: '#6b7280',
+          formatter: (val: number) => `${Number(val).toFixed(1)}%`,
         }
       }
     }

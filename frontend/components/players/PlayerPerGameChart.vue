@@ -6,13 +6,14 @@
     </v-card-title>
     <v-divider />
     <v-card-text class="pa-6">
-      <apexchart type="bar" :options="barChartOptions" :series="barChartSeries" height="350" />
+      <apexchart type="bar" :options="barChartOptions" :series="barChartSeries" :height="chartHeight" />
     </v-card-text>
   </v-card>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useDisplay } from 'vuetify'
 import apexchart from 'vue3-apexcharts'
 import type { Player } from '~/types'
 
@@ -21,6 +22,9 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const display = useDisplay()
+
+const chartHeight = computed(() => (display.smAndDown.value ? 280 : 350))
 
 const barChartOptions = computed(() => ({
   chart: {
@@ -29,10 +33,16 @@ const barChartOptions = computed(() => ({
       show: false,
     }
   },
-  colors: ['#F05323'],
+  theme: {
+    mode: 'light',
+  },
+  colors: ['#1a2742'],
   plotOptions: {
     bar: {
       horizontal: true,
+      borderRadius: 0,
+      borderRadiusApplication: 'end',
+      barHeight: '68%',
       dataLabels: {
         position: 'top',
       },
@@ -40,35 +50,72 @@ const barChartOptions = computed(() => ({
   },
   dataLabels: {
     enabled: true,
-    offsetX: 0,
+    // Render values as a "chip" to the right of each bar.
+    textAnchor: 'start',
+    offsetX: 20,
+    formatter: (value: number) => Number(value).toFixed(1),
     style: {
-      fontSize: '12px',
-      fontWeight: 600,
-      colors: ['#1a2742']
+      fontSize: '11px',
+      fontWeight: 800,
+      colors: ['#1a2742'],
+    },
+    background: {
+      enabled: true,
+      foreColor: '#1a2742',
+      backgroundColor: '#ffffff',
+      borderRadius: 2,
+      padding: 6,
+      opacity: 1,
+      borderWidth: 1,
+      borderColor: '#dbeafe',
     }
   },
   stroke: {
-    show: true,
-    width: 1,
-    colors: ['#e0e6f0']
+    show: false,
+  },
+  grid: {
+    borderColor: '#e0e6f0',
+    strokeDashArray: 4,
+    xaxis: {
+      lines: {
+        show: true,
+      },
+    },
+    yaxis: {
+      lines: {
+        show: false,
+      },
+    },
+    padding: {
+      left: 6,
+      right: 72,
+    },
   },
   tooltip: {
+    enabled: true,
     theme: 'light',
-    style: {
-      fontSize: '12px',
-      color: '#1a2742'
+    marker: {
+      show: false,
     },
-    x: {
-      show: true,
+    custom: ({ series, seriesIndex, dataPointIndex, w }: any) => {
+      const label =
+        w?.globals?.labels?.[dataPointIndex] ||
+        w?.globals?.categoryLabels?.[dataPointIndex] ||
+        ''
+
+      const rawValue = series?.[seriesIndex]?.[dataPointIndex]
+      const value = Number.isFinite(rawValue) ? Number(rawValue).toFixed(1) : '-'
+
+      return `
+        <div class="apex-tooltip-chip">
+          <div class="apex-tooltip-label">${label}</div>
+          <div class="apex-tooltip-value">${value}</div>
+        </div>
+      `
     },
-    y: {
-      title: {
-        formatter: (seriesName: string) => seriesName + ':'
-      }
-    }
   },
   xaxis: {
-    categories: ['PPG', 'RPG', 'APG', 'SPG', 'MPG', 'PIR', 'FC/G', 'FW/G'],
+    categories: ['PTS', 'REB', 'AST', 'STL', 'MIN', 'PIR', 'FC', 'FD'],
     axisBorder: {
       show: false,
     },
@@ -76,8 +123,9 @@ const barChartOptions = computed(() => ({
       show: false,
     },
     labels: {
+      formatter: (value: string) => String(value),
       style: {
-        colors: '#8a92a2',
+        colors: '#6b7280',
         fontSize: '12px',
       }
     }
@@ -85,8 +133,9 @@ const barChartOptions = computed(() => ({
   yaxis: {
     labels: {
       style: {
-        colors: '#8a92a2',
+        colors: '#6b7280',
         fontSize: '12px',
+        fontWeight: 700,
       }
     }
   },
@@ -154,5 +203,33 @@ const barChartSeries = computed(() => {
 
 :deep(.v-divider) {
   opacity: 0.4;
+}
+
+:deep(.apexcharts-tooltip) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+:deep(.apex-tooltip-chip) {
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 8px 10px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+}
+
+:deep(.apex-tooltip-label) {
+  font-size: 11px;
+  font-weight: 800;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+:deep(.apex-tooltip-value) {
+  font-size: 14px;
+  font-weight: 900;
+  color: #1a2742;
 }
 </style>

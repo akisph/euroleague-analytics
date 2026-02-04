@@ -25,82 +25,108 @@
           {{ player.position }}
         </v-chip>
       </div>
+
+      <div v-if="collapsibleInfo" class="details-toggle">
+        <v-btn
+          class="details-btn"
+          size="small"
+          density="compact"
+          variant="text"
+          color="primary"
+          @click="toggleInfo"
+        >
+          {{ infoExpanded ? 'Hide info' : 'Show info' }}
+        </v-btn>
+      </div>
     </v-card-text>
 
-    <v-divider />
+    <v-expand-transition>
+      <div v-show="!collapsibleInfo || infoExpanded">
+        <v-divider />
 
-    <!-- Player Information Section -->
-    <v-row class="info-section pa-6">
-      <v-col cols="12" sm="6" md="3">
-        <div v-if="player.countryName" class="info-item-grid">
-          <v-icon icon="mdi-flag" class="mb-2 info-icon" size="small" />
-          <div class="info-label">Country</div>
-          <div class="info-value">{{ player.countryName }}</div>
-        </div>
-      </v-col>
+        <!-- Player Information Section -->
+        <v-row class="info-section pa-6">
+          <v-col cols="12" sm="6" md="3">
+            <div v-if="player.countryName" class="info-item-grid">
+              <v-icon icon="mdi-flag" class="mb-2 info-icon" size="small" />
+              <div class="info-label">Country</div>
+              <div class="info-value">{{ player.countryName }}</div>
+            </div>
+          </v-col>
 
-      <v-col cols="12" sm="6" md="3">
-        <div v-if="player.height" class="info-item-grid">
-          <v-icon icon="mdi-human-male-height" class="mb-2 info-icon" size="small" />
-          <div class="info-label">Height</div>
-          <div class="info-value">{{ player.height }} cm ({{ heightInFeet }})</div>
-        </div>
-      </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <div v-if="player.height" class="info-item-grid">
+              <v-icon icon="mdi-human-male-height" class="mb-2 info-icon" size="small" />
+              <div class="info-label">Height</div>
+              <div class="info-value">{{ player.height }} cm ({{ heightInFeet }})</div>
+            </div>
+          </v-col>
 
-      <v-col cols="12" sm="6" md="3">
-        <div v-if="player.weight" class="info-item-grid">
-          <v-icon icon="mdi-weight-kilogram" class="mb-2 info-icon" size="small" />
-          <div class="info-label">Weight</div>
-          <div class="info-value">{{ player.weight }} kg</div>
-        </div>
-      </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <div v-if="player.weight" class="info-item-grid">
+              <v-icon icon="mdi-weight-kilogram" class="mb-2 info-icon" size="small" />
+              <div class="info-label">Weight</div>
+              <div class="info-value">{{ player.weight }} kg</div>
+            </div>
+          </v-col>
 
-      <v-col cols="12" sm="6" md="3">
-        <div v-if="playerAge" class="info-item-grid">
-          <v-icon icon="mdi-calendar" class="mb-2 info-icon" size="small" />
-          <div class="info-label">Age</div>
-          <div class="info-value">{{ playerAge }} years</div>
-        </div>
-      </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <div v-if="playerAge" class="info-item-grid">
+              <v-icon icon="mdi-calendar" class="mb-2 info-icon" size="small" />
+              <div class="info-label">Age</div>
+              <div class="info-value">{{ playerAge }} years</div>
+            </div>
+          </v-col>
 
-      <v-col cols="12" sm="6" md="3">
-        <div v-if="player.birthDate" class="info-item-grid">
-          <v-icon icon="mdi-cake-variant" class="mb-2 info-icon" size="small" />
-          <div class="info-label">Birthday</div>
-          <div class="info-value">{{ formatDate(player.birthDate) }}</div>
-        </div>
-      </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <div v-if="player.birthDate" class="info-item-grid">
+              <v-icon icon="mdi-cake-variant" class="mb-2 info-icon" size="small" />
+              <div class="info-label">Birthday</div>
+              <div class="info-value">{{ formatDate(player.birthDate) }}</div>
+            </div>
+          </v-col>
 
-      <v-col cols="12" sm="6" md="3">
-        <div v-if="player.instagramAccount" class="info-item-grid">
-          <v-icon icon="mdi-instagram" class="mb-2 info-icon" size="small" />
-          <div class="info-label">Instagram</div>
-          <v-btn
-            :href="`https://instagram.com/${player.instagramAccount}`"
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="text"
-            size="x-small"
-            color="primary"
-            class="pl-0"
-          >
-            @{{ player.instagramAccount }}
-          </v-btn>
-        </div>
-      </v-col>
-    </v-row>
+          <v-col cols="12" sm="6" md="3">
+            <div v-if="player.instagramAccount" class="info-item-grid">
+              <v-icon icon="mdi-instagram" class="mb-2 info-icon" size="small" />
+              <div class="info-label">Instagram</div>
+              <v-btn
+                :href="`https://instagram.com/${player.instagramAccount}`"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="text"
+                size="x-small"
+                color="primary"
+                class="pl-0"
+              >
+                @{{ player.instagramAccount }}
+              </v-btn>
+            </div>
+          </v-col>
+        </v-row>
+      </div>
+    </v-expand-transition>
   </v-card>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { Player } from '~/types'
 
 interface Props {
   player: Player
+  collapsibleInfo?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  collapsibleInfo: false,
+})
+
+const infoExpanded = ref(!props.collapsibleInfo)
+
+const toggleInfo = () => {
+  infoExpanded.value = !infoExpanded.value
+}
 
 const playerAge = computed(() => {
   if (!props.player?.birthDate) return null
@@ -220,5 +246,17 @@ const formatDate = (dateString: string | undefined) => {
 
 :deep(.v-chip) {
   height: auto;
+}
+
+.details-toggle {
+  display: flex;
+  justify-content: center;
+}
+
+.details-btn {
+  min-width: 0;
+  padding-inline: 0;
+  font-weight: 600;
+  text-transform: none;
 }
 </style>

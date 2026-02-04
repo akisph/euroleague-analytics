@@ -16,70 +16,7 @@
 
     <SharedLoadingState :loading="isLoading" message="Loading player details...">
       <template v-if="player">
-        <div class="page-container">
-          <!-- Profile Header Section -->
-          <v-row class="mb-8">
-          
-
-            <!-- Info Card -->
-            <v-col cols="12" md="12">
-              <PlayersPlayerInfoCard :player="player" />
-            </v-col>
-          </v-row>
-
-          <!-- Stats Sections with Tabs -->
-          <v-tabs v-model="activeTab" color="primary" class="mt-6 text-secondary">
-            <!-- Stats Tab -->
-            <v-tab key="stats" value="stats">
-              <v-icon icon="mdi-chart-box" class="mr-2" />
-              Stats
-            </v-tab>
-
-            <!-- Games Tab -->
-            <v-tab key="games" value="games">
-              <v-icon icon="mdi-basketball" class="mr-2" />
-              Games
-            </v-tab>
-          </v-tabs>
-
-          <!-- Tab Content -->
-          <v-window v-model="activeTab" class="mt-6">
-            <!-- Stats Tab Content -->
-            <v-window-item key="stats" value="stats">
-              <template v-if="player.stats">
-                <!-- Charts Row - Shooting Percentages & Per Game Averages -->
-                <v-row class="gap-6 mb-8">
-                  <v-col cols="12" md="6">
-                    <PlayersPlayerShootingGauges :player="player" />
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <PlayersPlayerPerGameChart :player="player" />
-                  </v-col>
-                </v-row>
-
-                <!-- Detailed Stats Grid -->
-                <v-row class="gap-4">
-                  <v-col cols="12">
-                    <PlayersPlayerScoringStats :player="player" />
-                  </v-col>
-
-                  <v-col cols="12">
-                    <PlayersPlayerReboundsStats :player="player" />
-                  </v-col>
-
-                  <v-col cols="12">
-                    <PlayersPlayerDefenseStats :player="player" />
-                  </v-col>
-                </v-row>
-              </template>
-            </v-window-item>
-
-            <!-- Games Tab Content -->
-            <v-window-item key="games" value="games">
-              <PlayersPlayerGames :player="player" :season-code="seasonCode" />
-            </v-window-item>
-          </v-window>
-        </div>
+        <PlayerDetailsPage :player="player" :season-code="seasonCode" />
       </template>
 
       <SharedEmptyState
@@ -95,6 +32,8 @@
 </template>
 
 <script setup lang="ts">
+import PlayerDetailsPage from '~/components/players/PlayerDetailsPage.vue'
+
 const route = useRoute()
 const router = useRouter()
 const seasonStore = useSeasonStore()
@@ -102,7 +41,6 @@ const { fetchPlayerByCode, currentPlayer: player, isLoading, error } = usePlayer
 
 const playerCode = computed(() => route.params.playerCode as string)
 const seasonCode = computed(() => route.params.seasonCode as string)
-const activeTab = ref('stats')
 
 const breadcrumbs = computed(() => [
   { title: 'Home', to: '/' },
@@ -141,24 +79,5 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 0;
-}
-
-.page-container {
-  padding: 32px 24px;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-@media (max-width: 960px) {
-  .page-container {
-    padding: 20px 16px;
-  }
-}
-
-@media (max-width: 600px) {
-  .page-container {
-    padding: 16px 12px;
-  }
 }
 </style>
