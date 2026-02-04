@@ -108,6 +108,27 @@ export class TeamsService {
     }
   }
 
+  async getTeamStats(
+    seasonCode: string,
+    clubCode: string,
+  ): Promise<any> {
+    try {
+      this.logger.log(`Fetching team stats for club: ${clubCode}, season: ${seasonCode}`);
+
+      const competitionCode = 'E';
+      const url = `${this.baseUrl}/v2/competitions/${competitionCode}/seasons/${seasonCode}/clubs/${clubCode}/stats`;
+
+      const response = await this.httpService.get<any>(url).toPromise();
+      return response.data;
+    } catch (error) {
+      this.logger.error(`Error fetching team stats: ${error.message}`, error.stack);
+      throw new HttpException(
+        `Failed to fetch team stats for club ${clubCode}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async getPlayerByCode(
     playerCode: string,
   ): Promise<any> {

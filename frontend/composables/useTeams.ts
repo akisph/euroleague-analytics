@@ -6,6 +6,7 @@ export const useTeams = () => {
   // State
   const teams = ref<Roster[]>([])
   const currentRoster = ref<Roster | null>(null)
+  const currentTeamStats = ref<any>(null)
   const players = ref<Player[]>([])
   const currentPlayer = ref<Player | null>(null)
   const isLoading = ref(false)
@@ -37,6 +38,21 @@ export const useTeams = () => {
       return response
     } catch (e: unknown) {
       error.value = e instanceof Error ? e.message : 'Failed to fetch roster'
+      throw e
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const fetchTeamStats = async (seasonCode: string, clubCode: string) => {
+    try {
+      isLoading.value = true
+      error.value = null
+      const response = await api.get<any>(`/teams/season/${seasonCode}/${clubCode}/stats`)
+      currentTeamStats.value = response
+      return response
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : 'Failed to fetch team stats'
       throw e
     } finally {
       isLoading.value = false
@@ -92,6 +108,7 @@ export const useTeams = () => {
     // State
     teams,
     currentRoster,
+    currentTeamStats,
     players,
     currentPlayer,
     isLoading,
@@ -100,6 +117,7 @@ export const useTeams = () => {
     // Actions
     fetchSeasonTeams,
     fetchTeamRoster,
+    fetchTeamStats,
     fetchTeamPlayers,
     fetchPlayerByCode,
     getTeamByCode,

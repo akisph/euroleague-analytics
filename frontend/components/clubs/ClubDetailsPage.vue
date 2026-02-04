@@ -9,6 +9,7 @@
     :roster-headers="rosterHeaders"
     :roster-error="rosterError"
     :is-roster-loading="isRosterLoading"
+    :team-stats="teamStats"
     :games-error="gamesError"
     :is-games-loading="isGamesLoading"
     :team-games="teamGames"
@@ -32,6 +33,7 @@ interface Props {
   rosterHeaders: any[]
   rosterError: string | null
   isRosterLoading: boolean
+  teamStats: any
   gamesError: string | null
   isGamesLoading: boolean
   teamGames: any[]

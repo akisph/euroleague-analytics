@@ -31,6 +31,14 @@ export class TeamsController {
     return this.teamsService.getTeamPlayers(seasonCode, clubCode);
   }
 
+  @Get('season/:seasonCode/:clubCode/stats')
+  async getTeamStats(
+    @Param('seasonCode') seasonCode: string,
+    @Param('clubCode') clubCode: string,
+  ): Promise<any> {
+    return this.teamsService.getTeamStats(seasonCode, clubCode);
+  }
+
   @Get('player/:playerCode')
   async getPlayerByCode(
     @Param('playerCode') playerCode: string,

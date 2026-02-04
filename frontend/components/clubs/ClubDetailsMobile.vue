@@ -148,11 +148,34 @@
     </v-expand-transition>
     <v-card class="club-tabs-card">
       <v-tabs v-model="activeTab" align-tabs="start" class="club-tabs" height="40">
+        <v-tab value="stats">Stats</v-tab>
         <v-tab value="games">Games</v-tab>
         <v-tab value="roster">Roster</v-tab>
       </v-tabs>
       <v-divider />
       <v-window v-model="activeTab" class="club-tabs-window">
+        <v-window-item value="stats">
+          <v-card-text class="tab-section">
+            <div v-if="teamStatsRow" class="team-stats-card">
+              <div class="team-stats-section">
+                <div class="team-stats-title">Average Per Game</div>
+                <div class="team-stats-list">
+                  <div v-for="item in averageStats" :key="`avg-${item.key}`" class="stat-row">
+                    <span class="stat-label">{{ item.label }}</span>
+                    <span class="stat-value">{{ formatStatValue(item.value) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <SharedEmptyState
+              v-else
+              title="No stats available"
+              message="Team statistics are not available for this season."
+              icon="mdi-chart-box-outline"
+            />
+          </v-card-text>
+        </v-window-item>
+
         <v-window-item value="games">
           <v-card-text class="tab-section">
             <SharedErrorAlert
@@ -166,19 +189,32 @@
                 <div class="section-header">
                   <div>
                     <div class="section-title">Season Games</div>
-                    <div class="section-subtitle">{{ teamGames.length }} games</div>
+                    <div class="section-subtitle">{{ filteredGames.length }} games</div>
                   </div>
+                  <v-chip-group
+                    v-model="gamesFilter"
+                    class="games-filter"
+                    mandatory
+                    selected-class="is-selected"
+                  >
+                    <v-chip value="all" size="small" variant="outlined">All</v-chip>
+                    <v-chip value="next" size="small" variant="outlined">Next Matches</v-chip>
+                    <v-chip value="last" size="small" variant="outlined">Last Matches</v-chip>
+                  </v-chip-group>
                 </div>
 
-                <div v-if="teamGames.length" class="games-list">
+                <div v-if="filteredGames.length" class="games-list">
                   <div
-                    v-for="game in teamGames"
+                    v-for="game in filteredGames"
                     :key="game.gameCode"
                     class="game-row"
                     @click="navigateTo(`/games/${seasonCode}/${game.gameCode}`)"
                   >
-                    <div class="game-time">
+                    <div class="game-time ">
                       <div class="status">{{ gameStatusLabel(game) }}</div>
+                      <div v-if="isFinalGame(game)" class="status-sub result-tag" :class="resultClass(game)">
+                        {{ resultLabel(game) }}
+                      </div>
                     </div>
 
                     <div class="game-teams">
@@ -210,9 +246,6 @@
                     </div>
 
                     <div class="game-score">
-                      <div class="result-pill" :class="resultClass(game)">
-                        {{ resultLabel(game) }}
-                      </div>
                       <div class="score-line">
                         <span>{{ displayScore(game)?.homeScore ?? '-' }}</span>
                       </div>
@@ -307,7 +340,7 @@
 </template>
 
 <script setup lang="ts">
-import { toRefs } from 'vue'
+import { computed, toRefs } from 'vue'
 
 interface Props {
   club: any
@@ -318,6 +351,7 @@ interface Props {
   rosterHeaders: any[]
   rosterError: string | null
   isRosterLoading: boolean
+  teamStats: any
   gamesError: string | null
   isGamesLoading: boolean
   teamGames: any[]
@@ -334,7 +368,8 @@ const navigateTo = (path: string) => {
 }
 
 const showMore = ref(false)
-const activeTab = ref('games')
+const activeTab = ref('stats')
+const gamesFilter = ref<'next' | 'last' | 'all'>('all')
 
 const formatGameTime = (value?: string) => {
   if (!value) return '--:--'
@@ -350,15 +385,107 @@ const formatGameDate = (value?: string) => {
 
 const gameStatusLabel = (game: any) => {
   if (game?.played) return 'FINAL'
-  return 'SCHEDULED'
+  return 'TBD'
 }
 
 const isScheduledGame = (game: any) => !game?.played
+
+const isFinalGame = (game: any) => game?.played
 
 const displayScore = (game: any) => {
   if (!game?.played) return null
   return { homeScore: game.homeScore ?? null, awayScore: game.awayScore ?? null }
 }
+
+const filteredGames = computed(() => {
+  const sortedAsc = [...props.teamGames].sort((a: any, b: any) => {
+    const aDate = a?.gameDate ? new Date(a.gameDate).getTime() : 0
+    const bDate = b?.gameDate ? new Date(b.gameDate).getTime() : 0
+    return aDate - bDate
+  })
+
+  if (gamesFilter.value === 'all') return sortedAsc
+  if (gamesFilter.value === 'next') {
+    return sortedAsc.filter((g: any) => !g?.played)
+  }
+  return sortedAsc.filter((g: any) => g?.played).reverse()
+})
+
+const teamStatsRow = computed(() => {
+  const data = props.teamStats
+  if (Array.isArray(data) && data.length) {
+    return [...data].sort((a, b) => (b?.gamesPlayed ?? 0) - (a?.gamesPlayed ?? 0))[0]
+  }
+  return data || null
+})
+
+const teamAverage = (key: 'pir' | 'pts' | 'reb' | 'ast') => {
+  const row = teamStatsRow.value
+  if (!row) return null
+  const gamesPlayed = Number(row.gamesPlayed ?? 0)
+  if (!Number.isFinite(gamesPlayed) || gamesPlayed <= 0) return null
+
+  if (key === 'pir') return Number(row.valuation ?? 0) / gamesPlayed
+  if (key === 'pts') return Number(row.score ?? 0) / gamesPlayed
+  if (key === 'reb') return Number(row.totalRebounds ?? 0) / gamesPlayed
+  if (key === 'ast') return Number(row.assistances ?? 0) / gamesPlayed
+  return null
+}
+
+const accumulatedStats = computed(() => {
+  const row = teamStatsRow.value
+  if (!row) return []
+  const source = row.accumulated ?? row
+  return [
+    { key: 'gp', label: 'GP', value: source.gamesPlayed },
+    { key: 'min', label: 'MIN', value: source.timePlayed },
+    { key: 'pir', label: 'PIR', value: source.valuation },
+    { key: 'pts', label: 'PTS', value: source.points },
+    { key: 'reb', label: 'REB', value: source.totalRebounds },
+    { key: 'oreb', label: 'OREB', value: source.offensiveRebounds },
+    { key: 'dreb', label: 'DREB', value: source.defensiveRebounds },
+    { key: 'ast', label: 'AST', value: source.assistances },
+    { key: 'stl', label: 'STL', value: source.steals },
+    { key: 'blk', label: 'BLK', value: source.blocksFavour },
+    { key: 'blkA', label: 'BLK A', value: source.blocksAgainst },
+    { key: 'to', label: 'TO', value: source.turnovers },
+    { key: 'pf', label: 'PF', value: source.foulsCommited },
+    { key: 'rf', label: 'RF', value: source.foulsReceived },
+    { key: 'fg2m', label: '2PM', value: source.fieldGoalsMade2 },
+    { key: 'fg2a', label: '2PA', value: source.fieldGoalsAttempted2 },
+    { key: 'fg3m', label: '3PM', value: source.fieldGoalsMade3 },
+    { key: 'fg3a', label: '3PA', value: source.fieldGoalsAttempted3 },
+    { key: 'ftm', label: 'FTM', value: source.freeThrowsMade },
+    { key: 'fta', label: 'FTA', value: source.freeThrowsAttempted },
+    { key: 'pm', label: '+/-', value: source.plusMinus },
+  ]
+})
+
+const averageStats = computed(() => {
+  const row = teamStatsRow.value
+  if (!row) return []
+  const source = row.averagePerGame ?? row
+  return [
+    { key: 'gp', label: 'Games Played', value: source.gamesPlayed },
+    { key: 'pir', label: 'Performance Index', value: source.valuation },
+    { key: 'pts', label: 'Points', value: source.points },
+    { key: 'reb', label: 'Total Rebounds', value: source.totalRebounds },
+    { key: 'oreb', label: 'Offensive Rebounds', value: source.offensiveRebounds },
+    { key: 'dreb', label: 'Defensive Rebounds', value: source.defensiveRebounds },
+    { key: 'ast', label: 'Assists', value: source.assistances },
+    { key: 'stl', label: 'Steals', value: source.steals },
+    { key: 'blk', label: 'Blocks For', value: source.blocksFavour },
+    { key: 'blkA', label: 'Blocks Against', value: source.blocksAgainst },
+    { key: 'to', label: 'Turnovers', value: source.turnovers },
+    { key: 'pf', label: 'Fouls Committed', value: source.foulsCommited },
+    { key: 'rf', label: 'Fouls Received', value: source.foulsReceived },
+    { key: 'fg2', label: '2PT Made/Attempted', value: formatRatio(source.fieldGoalsMade2, source.fieldGoalsAttempted2) },
+    { key: 'fg3', label: '3PT Made/Attempted', value: formatRatio(source.fieldGoalsMade3, source.fieldGoalsAttempted3) },
+    { key: 'ft', label: 'FT Made/Attempted', value: formatRatio(source.freeThrowsMade, source.freeThrowsAttempted) },
+    { key: 'pm', label: 'Plus/Minus', value: source.plusMinus },
+  ]
+})
+
 
 const resultLabel = (game: any) => {
   if (!game?.played) return ''
@@ -387,6 +514,23 @@ const getInitials = (name: string) => {
 const formatValue = (value: number | null | undefined) => {
   if (!Number.isFinite(value)) return '-'
   return Number(value).toFixed(2)
+}
+
+const formatStatValue = (value: string | number | null | undefined) => {
+  if (typeof value === 'string') return value
+  return formatValue(value)
+}
+
+const formatRatio = (made?: number, attempted?: number) => {
+  const madeNum = Number(made)
+  const attNum = Number(attempted)
+  if (!Number.isFinite(madeNum) && !Number.isFinite(attNum)) return '-/-'
+  const left = Number.isFinite(madeNum) ? madeNum.toFixed(2) : '-'
+  const right = Number.isFinite(attNum) ? attNum.toFixed(2) : '-'
+  const pct = Number.isFinite(madeNum) && Number.isFinite(attNum) && attNum > 0
+    ? `${Math.round((madeNum / attNum) * 100)}%`
+    : '--%'
+  return `${pct} (${left}/${right})`
 }
 
 const getRosterStat = (player: any, key: 'pir' | 'pts' | 'reb' | 'ast') => {
@@ -624,6 +768,8 @@ const getRosterStat = (player: any, key: 'pir' | 'pts' | 'reb' | 'ast') => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.75rem;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .section-title {
@@ -635,6 +781,19 @@ const getRosterStat = (player: any, key: 'pir' | 'pts' | 'reb' | 'ast') => {
 .section-subtitle {
   font-size: 0.75rem;
   color: #8a92a2;
+}
+
+.games-filter :deep(.v-chip) {
+  text-transform: none;
+  font-size: 0.7rem;
+  color: #1a2742;
+  border-color: rgba(26, 39, 66, 0.25) !important;
+}
+
+.games-filter :deep(.v-chip.is-selected) {
+  background: rgba(26, 39, 66, 0.12) !important;
+  color: #1a2742 !important;
+  border-color: rgba(26, 39, 66, 0.4) !important;
 }
 
 .games-list {
@@ -660,6 +819,7 @@ const getRosterStat = (player: any, key: 'pir' | 'pts' | 'reb' | 'ast') => {
 .game-time {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 0.2rem;
   font-size: 0.7rem;
   color: #516078;
@@ -672,9 +832,20 @@ const getRosterStat = (player: any, key: 'pir' | 'pts' | 'reb' | 'ast') => {
 
 .game-time .status {
   font-size: 0.65rem;
+  text-align: center;
+
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #8a92a2;
+}
+
+.game-time .status-sub {
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #516078;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .game-time .status.live {
@@ -809,28 +980,56 @@ const getRosterStat = (player: any, key: 'pir' | 'pts' | 'reb' | 'ast') => {
   gap: 0.35rem;
 }
 
-.stat {
-  background: #ffffff;
-  border: 1px solid #e8edf6;
-  border-radius: 10px;
-  padding: 0.3rem 0.35rem;
+.team-stats-card {
   display: flex;
   flex-direction: column;
+  gap: 0.9rem;
+}
+
+.team-stats-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.team-stats-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #516078;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.team-stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.stat-row {
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.5rem;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e8edf6;
+  gap: 0.5rem;
 }
 
 .stat-label {
   font-size: 0.62rem;
   color: #8a92a2;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
+  flex: 1 1 auto;
 }
 
 .stat-value {
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #1a2742;
+  opacity: 0.85;
 }
 
 .row-chevron {
@@ -847,27 +1046,22 @@ const getRosterStat = (player: any, key: 'pir' | 'pts' | 'reb' | 'ast') => {
   color: #1a2742;
 }
 
-.result-pill {
-  font-size: 0.65rem;
+.result-tag {
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  padding: 2px 8px;
-  border-radius: 999px;
   text-transform: uppercase;
 }
 
-.result-pill.win {
-  background: rgba(40, 167, 69, 0.12);
+.result-tag.win {
   color: #1e7e34;
 }
 
-.result-pill.loss {
-  background: rgba(220, 53, 69, 0.12);
+.result-tag.loss {
   color: #c82333;
 }
 
-.result-pill.neutral {
-  background: rgba(26, 39, 66, 0.08);
+.result-tag.neutral {
   color: #516078;
 }
 

@@ -35,6 +35,7 @@
           :roster-headers="rosterHeaders"
           :roster-error="rosterError"
           :is-roster-loading="isRosterLoading"
+          :team-stats="teamStats"
           :games-error="gamesError"
           :is-games-loading="isGamesLoading"
           :team-games="teamGames"
@@ -61,7 +62,7 @@
 import ClubDetailsPage from '~/components/clubs/ClubDetailsPage.vue'
 const route = useRoute()
 const { fetchClubByCode, fetchClubInfo, currentClub: club, clubInfo, isLoading, error } = useClubs()
-const { fetchTeamRoster, currentRoster, isLoading: isRosterLoading, error: rosterError } = useTeams()
+const { fetchTeamRoster, fetchTeamStats, currentRoster, currentTeamStats, isLoading: isRosterLoading, error: rosterError } = useTeams()
 const { fetchGamesByTeam, games, isLoading: isGamesLoading, error: gamesError } = useGames()
 const { selectedSeasonCode, initializeSeasons } = useSeasons()
 
@@ -184,6 +185,8 @@ const teamGames = computed(() => {
   return sorted
 })
 
+const teamStats = computed(() => currentTeamStats.value)
+
 // Load club when route changes
 watch(clubCode, () => {
   loadClub()
@@ -195,8 +198,12 @@ onMounted(async () => {
 
 watch([seasonCode, clubCode], async () => {
   await loadRoster()
+  if (seasonCode.value && clubCode.value) {
+    await fetchTeamStats(seasonCode.value, clubCode.value)
+  }
   await loadTeamGames()
 }, { immediate: true })
 
 </script>
+
 

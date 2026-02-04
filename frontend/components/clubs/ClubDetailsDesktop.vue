@@ -351,6 +351,7 @@ interface Props {
   rosterHeaders: any[]
   rosterError: string | null
   isRosterLoading: boolean
+  teamStats: any
   gamesError: string | null
   isGamesLoading: boolean
   teamGames: any[]
