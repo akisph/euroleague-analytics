@@ -179,3 +179,49 @@ a:hover {
   font-size: 0.75rem;
   font-weight: 600;
 }
+
+/* Leaders Select Menu (Vuetify v-select dropdown) */
+.leaders-select-menu {
+  background: #ffffff !important;
+  border: 1px solid #d6dce8 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 16px 32px rgba(26, 39, 66, 0.18) !important;
+  overflow: hidden;
+}
+
+.leaders-select-menu .v-list {
+  background: transparent !important;
+  color: #1a2742 !important;
+}
+
+.leaders-select-menu .v-list-item {
+  color: #1a2742 !important;
+}
+
+.leaders-select-menu .v-list-item-title,
+.leaders-select-menu .v-list-item-subtitle {
+  color: #1a2742 !important;
+}
+
+.leaders-select-menu .v-list-item:hover {
+  background: #f0f7ff !important;
+}
+
+.leaders-select-menu .v-list-item--active,
+.leaders-select-menu .v-list-item--selected {
+  background: #e0f2fe !important;
+}
+
+.leaders-select-menu .v-list-item__overlay,
+.leaders-select-menu .v-list-item__underlay {
+  background: transparent !important;
+}
+
+.leaders-select-menu .mdi-checkbox-marked,
+.leaders-select-menu .mdi-checkbox-intermediate {
+  color: #2563eb !important;
+}
+
+.leaders-select-menu .mdi-checkbox-blank-outline {
+  color: #94a3b8 !important;
+}

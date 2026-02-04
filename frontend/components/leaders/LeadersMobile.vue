@@ -14,6 +14,7 @@
             density="compact"
             variant="outlined"
             class="filter-select"
+            :menu-props="{ contentClass: 'leaders-select-menu' }"
             hide-details
             @update:model-value="$emit('update:aggregate', $event)"
           />
@@ -26,8 +27,25 @@
             density="compact"
             variant="outlined"
             class="filter-select"
+            :menu-props="{ contentClass: 'leaders-select-menu' }"
             hide-details
             @update:model-value="$emit('update:category', $event)"
+          />
+          <v-select
+            :model-value="selectedTeams"
+            :items="teamOptions"
+            item-title="label"
+            item-value="value"
+            label="Teams"
+            density="compact"
+            variant="outlined"
+            class="filter-select"
+            :menu-props="{ contentClass: 'leaders-select-menu' }"
+            multiple
+            chips
+            clearable
+            hide-details
+            @update:model-value="$emit('update:teams', $event)"
           />
         </div>
 
@@ -37,7 +55,7 @@
             :key="player.playerCode ?? player.name ?? index"
             class="leader-row"
           >
-            <div class="rank-pill">{{ index + 1 }}</div>
+            <div class="rank-pill">{{ player.rank ?? index + 1 }}</div>
             <v-avatar size="36" class="leader-avatar">
               <v-img
                 v-if="player.imageUrl"
@@ -78,15 +96,17 @@ interface OptionItem {
 interface Props {
   selectedAggregate: string
   selectedCategory: string
+  selectedTeams: string[]
   aggregateOptions: OptionItem[]
   categoryOptions: OptionItem[]
+  teamOptions: OptionItem[]
   leaders: any[]
   isLoading: boolean
   error: string | null
 }
 
 defineProps<Props>()
-defineEmits(['update:aggregate', 'update:category', 'dismiss-error'])
+defineEmits(['update:aggregate', 'update:category', 'update:teams', 'dismiss-error'])
 
 const formatValue = (value: number) => {
   if (!Number.isFinite(value)) return '-'

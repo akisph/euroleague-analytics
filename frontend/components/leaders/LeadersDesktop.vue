@@ -4,7 +4,7 @@
       <v-card class="filters-card mb-6" elevation="0">
         <v-card-text class="pa-4">
           <v-row>
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="4">
               <v-select
                 :model-value="selectedAggregate"
                 :items="aggregateOptions"
@@ -14,11 +14,12 @@
                 density="comfortable"
                 variant="outlined"
                 class="filter-select"
+                :menu-props="{ contentClass: 'leaders-select-menu' }"
                 hide-details
                 @update:model-value="$emit('update:aggregate', $event)"
               />
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="4">
               <v-select
                 :model-value="selectedCategory"
                 :items="categoryOptions"
@@ -28,8 +29,27 @@
                 density="comfortable"
                 variant="outlined"
                 class="filter-select"
+                :menu-props="{ contentClass: 'leaders-select-menu' }"
                 hide-details
                 @update:model-value="$emit('update:category', $event)"
+              />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-select
+                :model-value="selectedTeams"
+                :items="teamOptions"
+                item-title="label"
+                item-value="value"
+                label="Teams"
+                density="comfortable"
+                variant="outlined"
+                class="filter-select"
+                :menu-props="{ contentClass: 'leaders-select-menu' }"
+                multiple
+                chips
+                clearable
+                hide-details
+                @update:model-value="$emit('update:teams', $event)"
               />
             </v-col>
           </v-row>
@@ -54,8 +74,8 @@
           class="leaders-table"
           hide-default-footer
         >
-          <template #item.rank="{ index }">
-            {{ index + 1 }}
+          <template #item.rank="{ item, index }">
+            {{ item.rank ?? index + 1 }}
           </template>
           <template #item.playerName="{ item }">
             <div class="d-flex align-center gap-2">
@@ -103,8 +123,10 @@ interface OptionItem {
 interface Props {
   selectedAggregate: string
   selectedCategory: string
+  selectedTeams: string[]
   aggregateOptions: OptionItem[]
   categoryOptions: OptionItem[]
+  teamOptions: OptionItem[]
   leaders: any[]
   isLoading: boolean
   error: string | null
@@ -112,7 +134,7 @@ interface Props {
 }
 
 defineProps<Props>()
-defineEmits(['update:aggregate', 'update:category', 'dismiss-error'])
+defineEmits(['update:aggregate', 'update:category', 'update:teams', 'dismiss-error'])
 
 const tableHeaders = [
   { title: 'Rank', key: 'rank', sortable: true, width: '80px' },

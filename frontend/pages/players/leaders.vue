@@ -9,14 +9,17 @@
       <LeadersPage
         :selected-aggregate="selectedAggregate"
         :selected-category="selectedCategory"
+        :selected-teams="selectedTeams"
         :aggregate-options="aggregateOptions"
         :category-options="categoryOptions"
+        :team-options="teamOptions"
         :leaders="leaders"
         :is-loading="isLoading"
         :error="error"
         :response-json="responseJson"
         @update:aggregate="selectedAggregate = $event"
         @update:category="selectedCategory = $event"
+        @update:teams="selectedTeams = $event"
         @dismiss-error="error = null"
       />
     </SharedLoadingState>
@@ -34,6 +37,7 @@ const error = ref<string | null>(null)
 const leadersData = ref<any | null>(null)
 
 const selectedSeasonCode = computed(() => seasonStore.selectedSeasonCode)
+const { fetchCurrentStandings, allTeamStandings } = useStandings()
 
 const aggregateOptions = [
   { label: 'Per Game', value: 'PerGame' },
@@ -118,16 +122,51 @@ const normalizeCategory = (value: string | undefined) => {
   return categoryOptions.find(option => option.value === value)?.value
 }
 
+const parseCsvQuery = (value: unknown): string[] => {
+  if (!value) return []
+  if (Array.isArray(value)) {
+    return value.flatMap(v => parseCsvQuery(v)).filter(Boolean)
+  }
+  if (typeof value !== 'string') return []
+  return value
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean)
+}
+
 const selectedAggregate = ref<(typeof aggregateOptions)[number]['value']>(
   normalizeAggregate(route.query.aggregate as string | undefined) || 'PerGame',
 )
 const selectedCategory = ref<(typeof categoryOptions)[number]['value']>(
   normalizeCategory(route.query.category as string | undefined) || 'Valuation',
 )
+const selectedTeams = ref<string[]>(parseCsvQuery(route.query.teams))
+
+const teamOptions = computed(() => {
+  const map = new Map<string, { label: string; value: string }>()
+  for (const team of allTeamStandings.value || []) {
+    if (!team?.teamCode) continue
+    map.set(team.teamCode, {
+      label: team.teamName || team.teamCode,
+      value: team.teamCode,
+    })
+  }
+  return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label))
+})
+
+const leadersAll = computed(() => {
+  const rawLeaders = leadersData.value?.leaders
+  const list = Array.isArray(rawLeaders) ? rawLeaders : []
+  return list.map((item: any, index: number) => ({
+    ...item,
+    rank: index + 1,
+  }))
+})
 
 const leaders = computed(() => {
-  const rawLeaders = leadersData.value?.leaders
-  return Array.isArray(rawLeaders) ? rawLeaders : []
+  const list = leadersAll.value
+  if (!selectedTeams.value.length) return list
+  return list.filter((item: any) => item?.clubCode && selectedTeams.value.includes(item.clubCode))
 })
 
 const responseJson = computed(() => {
@@ -161,12 +200,23 @@ watch([selectedSeasonCode, selectedCategory, selectedAggregate], () => {
   loadLeaders()
 }, { immediate: true })
 
-watch([selectedCategory, selectedAggregate], () => {
+watch(selectedSeasonCode, async (seasonCode) => {
+  if (!seasonCode) return
+  try {
+    await fetchCurrentStandings(seasonCode)
+  } catch {
+    // team filter is optional; ignore standings load failures
+  }
+}, { immediate: true })
+
+watch([selectedCategory, selectedAggregate, selectedTeams], () => {
+  const teamsQuery = selectedTeams.value.length ? selectedTeams.value.join(',') : undefined
   router.replace({
     query: {
       ...route.query,
       category: selectedCategory.value,
       aggregate: selectedAggregate.value,
+      teams: teamsQuery,
     },
   })
 })

@@ -38,6 +38,7 @@
             density="compact"
             variant="outlined"
             class="filter-select"
+            :menu-props="{ contentClass: 'leaders-select-menu' }"
           />
           <v-select
             v-model="selectedCategory"
@@ -48,6 +49,7 @@
             density="compact"
             variant="outlined"
             class="filter-select"
+            :menu-props="{ contentClass: 'leaders-select-menu' }"
           />
         </div>
 
