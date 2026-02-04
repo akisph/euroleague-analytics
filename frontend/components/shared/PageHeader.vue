@@ -80,6 +80,7 @@ defineProps<Props>()
 
   .header-actions {
     width: 100%;
+    justify-content: flex-end;
   }
 
   .page-title {

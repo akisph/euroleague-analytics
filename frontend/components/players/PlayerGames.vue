@@ -19,6 +19,145 @@
       <p class="text-body-2 text-medium-emphasis">No game data available</p>
     </v-card-text>
 
+    <v-card-text v-else-if="isMobile" class="pa-6">
+      <div class="games-mobile-list">
+        <div
+          v-for="item in gameStats"
+          :key="item.game.gameCode"
+          class="game-row"
+        >
+          <div class="game-header" @click="toggleExpanded(item.game.gameCode)">
+            <div class="game-main">
+              <div class="game-top">
+                <div class="game-opponent">
+                  <span class="home-away-indicator">{{ getHomeAway(item) }}</span>
+                  {{ getOpponentClub(item).name }}
+                </div>
+                <div class="game-meta">
+                  <span class="game-code">{{ getOpponentClub(item).code }}</span>
+                  <span class="game-date">{{ formatDate(item.game.date) }}</span>
+                  <v-chip
+                    :color="getResult(item) === 'W' ? 'success' : 'error'"
+                    size="x-small"
+                    variant="flat"
+                    class="result-chip"
+                  >
+                    {{ getResult(item) }}
+                  </v-chip>
+                </div>
+              </div>
+
+              <div class="game-stats">
+                <div class="stat">
+                  <span class="stat-label">PIR</span>
+                  <span class="stat-value">{{ formatNumber(item.stats?.valuation) }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">PTS</span>
+                  <span class="stat-value">{{ formatNumber(item.stats?.points) }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">REB</span>
+                  <span class="stat-value">{{ formatNumber(item.stats?.totalRebounds) }}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">AST</span>
+                  <span class="stat-value">{{ formatNumber(item.stats?.assistances) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <v-icon
+              icon="mdi-chevron-right"
+              class="row-chevron"
+              :class="{ expanded: isExpanded(item.game.gameCode) }"
+            />
+          </div>
+
+          <v-expand-transition>
+            <div v-show="isExpanded(item.game.gameCode)" class="game-details">
+              <div class="game-details-header">
+                <div class="game-scoreline">
+                  <span class="score-team">{{ item.game.local.club.code }}</span>
+                  <span class="score-value">{{ item.game.local.score }}</span>
+                  <span class="score-sep">-</span>
+                  <span class="score-value">{{ item.game.road.score }}</span>
+                  <span class="score-team">{{ item.game.road.club.code }}</span>
+                </div>
+                <div class="game-subline">
+                  <span>Round {{ item.game.round }}</span>
+                  <span v-if="shouldShowRoundName(item)" class="dot">&middot;</span>
+                  <span v-if="shouldShowRoundName(item)">{{ item.game.roundName }}</span>
+                </div>
+              </div>
+
+              <div class="details-stats">
+                <div class="detail-stat">
+                  <span class="detail-label">MIN</span>
+                  <span class="detail-value">{{ formatMinutes(item.stats?.timePlayed) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">PTS</span>
+                  <span class="detail-value">{{ formatNumber(item.stats?.points) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">REB</span>
+                  <span class="detail-value">{{ formatNumber(item.stats?.totalRebounds) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">AST</span>
+                  <span class="detail-value">{{ formatNumber(item.stats?.assistances) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">OREB</span>
+                  <span class="detail-value">{{ formatNumber(item.stats?.offensiveRebounds) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">DREB</span>
+                  <span class="detail-value">{{ formatNumber(item.stats?.defensiveRebounds) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">STL</span>
+                  <span class="detail-value">{{ formatNumber(item.stats?.steals) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">BLK</span>
+                  <span class="detail-value">{{ formatNumber((item.stats as any)?.blocksFavour) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">TO</span>
+                  <span class="detail-value">{{ formatNumber(item.stats?.turnovers) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">+/-</span>
+                  <span class="detail-value">{{ formatPlusMinus(item.stats?.plusMinus) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">FG</span>
+                  <span class="detail-value">{{ formatShooting(
+                    Number(item.stats?.fieldGoalsMade2 || 0) + Number(item.stats?.fieldGoalsMade3 || 0),
+                    Number(item.stats?.fieldGoalsAttempted2 || 0) + Number(item.stats?.fieldGoalsAttempted3 || 0)
+                  ) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">3P</span>
+                  <span class="detail-value">{{ formatShooting(item.stats?.fieldGoalsMade3, item.stats?.fieldGoalsAttempted3) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">FT</span>
+                  <span class="detail-value">{{ formatShooting(item.stats?.freeThrowsMade, item.stats?.freeThrowsAttempted) }}</span>
+                </div>
+                <div class="detail-stat">
+                  <span class="detail-label">PIR</span>
+                  <span class="detail-value">{{ formatNumber(item.stats?.valuation) }}</span>
+                </div>
+              </div>
+            </div>
+          </v-expand-transition>
+        </div>
+      </div>
+    </v-card-text>
+
     <v-data-table
       v-else
       :headers="tableHeaders"
@@ -107,6 +246,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue'
+import { useDisplay } from 'vuetify'
 import type { Player } from '~/types'
 
 interface Props {
@@ -158,6 +298,16 @@ const gameStats = ref<GameData[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const playersComposable = usePlayers()
+const display = useDisplay()
+
+const isMobile = computed(() => display.smAndDown.value)
+const expanded = ref<Record<string, boolean>>({})
+
+const isExpanded = (gameCode: number) => Boolean(expanded.value[String(gameCode)])
+const toggleExpanded = (gameCode: number) => {
+  const key = String(gameCode)
+  expanded.value[key] = !expanded.value[key]
+}
 
 const tableHeaders = [
   { title: 'Opponent', key: 'opponent', sortable: true, width: '150px' },
@@ -189,6 +339,11 @@ const formatDate = (dateString: string | undefined) => {
   })
 }
 
+const getOpponentClub = (item: GameData) => {
+  const isLocal = item.playerClubCode === item.game.local.club.code
+  return isLocal ? item.game.road.club : item.game.local.club
+}
+
 const getOpponentTeam = (item: GameData) => {
   const isLocal = item.playerClubCode === item.game.local.club.code
   return isLocal ? item.game.road.club.name : item.game.local.club.name
@@ -210,10 +365,46 @@ const calculatePercentage = (made: number, attempted: number) => {
   return `${((made / attempted) * 100).toFixed(1)}%`
 }
 
+const normalizeText = (value: unknown) => String(value ?? '').toLowerCase().replace(/\s+/g, ' ').trim()
+
+const shouldShowRoundName = (item: GameData) => {
+  const name = normalizeText(item.game.roundName)
+  if (!name) return false
+  const primary = normalizeText(`Round ${item.game.round}`)
+  return name !== primary
+}
+
+const formatNumber = (value: unknown) => {
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) return '-'
+  return String(Math.round(numberValue))
+}
+
+const formatMinutes = (timePlayed: unknown) => {
+  const seconds = Number(timePlayed)
+  if (!Number.isFinite(seconds)) return '-'
+  return `${Math.round(seconds / 60)}'`
+}
+
+const formatPlusMinus = (value: unknown) => {
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) return '-'
+  return `${numberValue > 0 ? '+' : ''}${Math.round(numberValue)}`
+}
+
+const formatShooting = (made: unknown, attempted: unknown) => {
+  const madeValue = Number(made)
+  const attemptedValue = Number(attempted)
+  if (!Number.isFinite(madeValue) || !Number.isFinite(attemptedValue) || attemptedValue === 0) return '-'
+  const pct = ((madeValue / attemptedValue) * 100).toFixed(1)
+  return `${Math.round(madeValue)}/${Math.round(attemptedValue)} (${pct}%)`
+}
+
 const loadPlayerGames = async () => {
   try {
     isLoading.value = true
     error.value = null
+    expanded.value = {}
     
     console.log('[PlayerGames] Loading games for player:', props.player.playerCode, 'season:', props.seasonCode)
     
@@ -291,6 +482,217 @@ watch(() => [props.player.playerCode, props.seasonCode], () => {
 :deep(.v-chip) {
   font-weight: 600;
   height: auto;
+}
+
+.games-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.game-row {
+  background: #f9fafb;
+  border: 1px solid #eef2f7;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.game-header {
+  display: grid;
+  grid-template-columns: 1fr 20px;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.65rem;
+  cursor: pointer;
+}
+
+.game-header:hover {
+  background: #f0f7ff;
+}
+
+.game-main {
+  min-width: 0;
+}
+
+.game-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.game-opponent {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #1a2742;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.game-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+}
+
+.game-date {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #8a92a2;
+  letter-spacing: 0.02em;
+}
+
+.game-code {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #8a92a2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+:deep(.result-chip) {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding-inline: 6px;
+}
+
+.game-stats {
+  margin-top: 0.35rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.stat {
+  background: #ffffff;
+  border: 1px solid #e8edf6;
+  border-radius: 10px;
+  padding: 0.3rem 0.35rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-label {
+  font-size: 0.62rem;
+  color: #8a92a2;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.stat-value {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1a2742;
+}
+
+.row-chevron {
+  color: #8a92a2;
+  transition: transform 0.18s ease;
+}
+
+.row-chevron.expanded {
+  transform: rotate(90deg);
+}
+
+.game-details {
+  border-top: 1px solid #eef2f7;
+  background: #ffffff;
+  padding: 0.65rem 0.65rem 0.75rem;
+}
+
+.game-details-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.game-scoreline {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  color: #1a2742;
+}
+
+.score-team {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+}
+
+.score-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1a2742;
+}
+
+.score-sep {
+  color: #8a92a2;
+}
+
+.game-subline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: #8a92a2;
+  font-weight: 500;
+}
+
+.dot {
+  opacity: 0.8;
+}
+
+.details-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.detail-stat {
+  border: 1px solid #e8edf6;
+  background: #fbfcff;
+  border-radius: 12px;
+  padding: 0.45rem 0.55rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.detail-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #6b7280;
+  letter-spacing: 0.06em;
+}
+
+.detail-value {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1a2742;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 420px) {
+  .game-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .details-stats {
+    grid-template-columns: 1fr;
+  }
 }
 
 :deep(.games-table) {

@@ -6,7 +6,14 @@
       :breadcrumbs="breadcrumbs"
     >
       <template #actions>
-        <v-btn variant="outlined" prepend-icon="mdi-arrow-left" @click="$router.back()">
+        <v-btn
+          class="back-btn"
+          variant="tonal"
+          color="primary"
+          size="small"
+          prepend-icon="mdi-arrow-left"
+          @click="$router.back()"
+        >
           Back
         </v-btn>
       </template>
@@ -79,5 +86,11 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+
+.back-btn {
+  border-radius: 999px;
+  font-weight: 700;
+  text-transform: none;
 }
 </style>
