@@ -138,6 +138,11 @@ a:hover {
   font-weight: 500;
 }
 
+/* Avatars */
+.v-avatar {
+  background-color: transparent !important;
+}
+
 /* Data Table */
 .v-data-table {
   background-color: var(--color-surface) !important;

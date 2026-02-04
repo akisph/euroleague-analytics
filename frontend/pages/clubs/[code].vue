@@ -35,6 +35,8 @@
                       v-if="club.images?.crest"
                       :src="club.images.crest"
                       :alt="club.name"
+                      :cover="false"
+                      class="club-crest-img"
                     />
                     <span v-else class="text-h3 font-weight-bold">
                       {{ club.code.substring(0, 3) }}
@@ -177,6 +179,8 @@
                       v-if="club.venue.images && Object.keys(club.venue.images).length"
                       :src="Object.values(club.venue.images)[0]"
                       :alt="club.venue.name"
+                      :cover="false"
+                      class="club-crest-img"
                     />
                     <v-icon v-else icon="mdi-stadium" size="30" />
                   </v-avatar>
@@ -605,13 +609,17 @@ onBeforeUnmount(() => {
   color: #F05323 !important;
 }
 
-/* Slightly muted avatar background so initials/icons remain visible */
+/* Keep avatars transparent to show full crests */
 .page-light-surface :deep(.v-avatar) {
-  background-color: #f3f4f6 !important;
+  background-color: transparent !important;
 }
 
 .roster-avatar :deep(img) {
   object-fit: contain !important;
+}
+
+.club-crest-img {
+  object-fit: contain;
 }
 
 .roster-inactive {

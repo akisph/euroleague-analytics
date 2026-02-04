@@ -54,14 +54,26 @@
                       <div class="game-teams">
                         <div class="team-row">
                           <v-avatar size="22" color="#e0e6f0">
-                            <v-img v-if="game.homeTeamImage" :src="game.homeTeamImage" :alt="game.homeTeamName" />
+                            <v-img
+                              v-if="game.homeTeamImage"
+                              :src="game.homeTeamImage"
+                              :alt="game.homeTeamName"
+                              :cover="false"
+                              class="team-avatar-img"
+                            />
                             <span v-else class="team-code">{{ game.homeTeamCode?.substring(0, 3) }}</span>
                           </v-avatar>
                           <span class="team-name">{{ game.homeTeamName }}</span>
                         </div>
                         <div class="team-row">
                           <v-avatar size="22" color="#e0e6f0">
-                            <v-img v-if="game.awayTeamImage" :src="game.awayTeamImage" :alt="game.awayTeamName" />
+                            <v-img
+                              v-if="game.awayTeamImage"
+                              :src="game.awayTeamImage"
+                              :alt="game.awayTeamName"
+                              :cover="false"
+                              class="team-avatar-img"
+                            />
                             <span v-else class="team-code">{{ game.awayTeamCode?.substring(0, 3) }}</span>
                           </v-avatar>
                           <span class="team-name">{{ game.awayTeamName }}</span>
@@ -104,14 +116,26 @@
                       <div class="game-teams">
                         <div class="team-row">
                           <v-avatar size="22" color="#e0e6f0">
-                            <v-img v-if="game.homeTeamImage" :src="game.homeTeamImage" :alt="game.homeTeamName" />
+                            <v-img
+                              v-if="game.homeTeamImage"
+                              :src="game.homeTeamImage"
+                              :alt="game.homeTeamName"
+                              :cover="false"
+                              class="team-avatar-img"
+                            />
                             <span v-else class="team-code">{{ game.homeTeamCode?.substring(0, 3) }}</span>
                           </v-avatar>
                           <span class="team-name">{{ game.homeTeamName }}</span>
                         </div>
                         <div class="team-row">
                           <v-avatar size="22" color="#e0e6f0">
-                            <v-img v-if="game.awayTeamImage" :src="game.awayTeamImage" :alt="game.awayTeamName" />
+                            <v-img
+                              v-if="game.awayTeamImage"
+                              :src="game.awayTeamImage"
+                              :alt="game.awayTeamName"
+                              :cover="false"
+                              class="team-avatar-img"
+                            />
                             <span v-else class="team-code">{{ game.awayTeamCode?.substring(0, 3) }}</span>
                           </v-avatar>
                           <span class="team-name">{{ game.awayTeamName }}</span>
@@ -154,14 +178,26 @@
                       <div class="game-teams">
                         <div class="team-row">
                           <v-avatar size="22" color="#e0e6f0">
-                            <v-img v-if="game.homeTeamImage" :src="game.homeTeamImage" :alt="game.homeTeamName" />
+                            <v-img
+                              v-if="game.homeTeamImage"
+                              :src="game.homeTeamImage"
+                              :alt="game.homeTeamName"
+                              :cover="false"
+                              class="team-avatar-img"
+                            />
                             <span v-else class="team-code">{{ game.homeTeamCode?.substring(0, 3) }}</span>
                           </v-avatar>
                           <span class="team-name">{{ game.homeTeamName }}</span>
                         </div>
                         <div class="team-row">
                           <v-avatar size="22" color="#e0e6f0">
-                            <v-img v-if="game.awayTeamImage" :src="game.awayTeamImage" :alt="game.awayTeamName" />
+                            <v-img
+                              v-if="game.awayTeamImage"
+                              :src="game.awayTeamImage"
+                              :alt="game.awayTeamName"
+                              :cover="false"
+                              class="team-avatar-img"
+                            />
                             <span v-else class="team-code">{{ game.awayTeamCode?.substring(0, 3) }}</span>
                           </v-avatar>
                           <span class="team-name">{{ game.awayTeamName }}</span>
@@ -625,6 +661,10 @@ const gameStatusLabel = (game: Game) => {
   font-size: 0.6rem;
   font-weight: 700;
   color: #516078;
+}
+
+.team-avatar-img {
+  object-fit: contain;
 }
 
 .game-score {
