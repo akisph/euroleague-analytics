@@ -18,11 +18,8 @@
         {{ player.clubName }}
       </p>
       <div class="d-flex gap-2 justify-center flex-wrap mb-4">
-        <v-chip v-if="player.dorsal" color="primary" variant="flat" size="small" class="font-weight-bold">
-          #{{ player.dorsal }}
-        </v-chip>
-        <v-chip v-if="player.position" variant="tonal" size="small" class="font-weight-bold">
-          {{ player.position }}
+        <v-chip v-if="formattedPosition" variant="tonal" size="small" class="font-weight-bold">
+          {{ formattedPosition }}
         </v-chip>
       </div>
 
@@ -146,6 +143,21 @@ const heightInFeet = computed(() => {
   const feet = Math.floor(totalInches / 12)
   const inches = Math.round(totalInches % 12)
   return `${feet}'${inches}"`
+})
+
+const formattedPosition = computed(() => {
+  const value = props.player?.position
+  if (!value) return ''
+  if (typeof value === 'number') {
+    if (value === 1) return 'Guard'
+    if (value === 2) return 'Forward'
+    if (value === 3) return 'Center'
+  }
+  const normalized = String(value).trim().toUpperCase()
+  if (normalized === 'G' || normalized === 'GUARD') return 'Guard'
+  if (normalized === 'F' || normalized === 'FORWARD') return 'Forward'
+  if (normalized === 'C' || normalized === 'CENTER' || normalized === 'CENTRE') return 'Center'
+  return String(value)
 })
 
 const formatDate = (dateString: string | undefined) => {

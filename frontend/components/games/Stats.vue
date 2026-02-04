@@ -19,65 +19,65 @@
               <span class="text-h6 font-weight-bold">{{ homeTotals.score ?? '-' }}</span>
             </v-card-title>
             <v-card-text>
-              <v-list density="compact">
+              <v-list density="compact" class="stat-list">
                 <v-list-item>
-                  <v-list-item-title>Accuracy</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ homeTotals.accuracyPct != null ? `${homeTotals.accuracyPct}%` : '-' }}</v-list-item-subtitle>
+                  <v-list-item-title>{{ isMobile ? 'ACC%' : 'Accuracy' }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">{{ accuracyLabel(homeTotals) }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Assists</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'AST' : 'Assists' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.assistances ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Blocks</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'BLK' : 'Blocks' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.blocksFavour ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Defensive Rebounds</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'DREB' : 'Defensive Rebounds' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.defensiveRebounds ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Offensive Rebounds</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'OREB' : 'Offensive Rebounds' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.offensiveRebounds ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Field Goals 2pt (Made / Attempted)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ homeTotals.fieldGoalsMade2 ?? '-' }} / {{ homeTotals.fieldGoalsAttempted2 ?? '-' }}</v-list-item-subtitle>
+                  <v-list-item-title>{{ isMobile ? '2PT' : 'Field Goals 2pt (Made / Attempted)' }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">{{ shotLabel(homeTotals.fieldGoalsMade2, homeTotals.fieldGoalsAttempted2) }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Field Goals 3pt (Made / Attempted)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ homeTotals.fieldGoalsMade3 ?? '-' }} / {{ homeTotals.fieldGoalsAttempted3 ?? '-' }}</v-list-item-subtitle>
+                  <v-list-item-title>{{ isMobile ? '3PT' : 'Field Goals 3pt (Made / Attempted)' }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">{{ shotLabel(homeTotals.fieldGoalsMade3, homeTotals.fieldGoalsAttempted3) }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Field Goals Total (Made / Attempted)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ homeTotals.fieldGoalsMadeTotal ?? '-' }} / {{ homeTotals.fieldGoalsAttemptedTotal ?? '-' }}</v-list-item-subtitle>
+                  <v-list-item-title>{{ isMobile ? 'FG' : 'Field Goals Total (Made / Attempted)' }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">{{ shotLabel(homeTotals.fieldGoalsMadeTotal, homeTotals.fieldGoalsAttemptedTotal) }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Fouls</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'FLS' : 'Fouls' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.foulsCommited ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Fouls Received</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'FR' : 'Fouls Received' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.foulsReceived ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Free Throws (Made / Attempted)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ homeTotals.freeThrowsMade ?? '-' }} / {{ homeTotals.freeThrowsAttempted ?? '-' }}</v-list-item-subtitle>
+                  <v-list-item-title>{{ isMobile ? 'FT' : 'Free Throws (Made / Attempted)' }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">{{ shotLabel(homeTotals.freeThrowsMade, homeTotals.freeThrowsAttempted) }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Points</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'PTS' : 'Points' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.points ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Steals</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'STL' : 'Steals' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.steals ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Total Rebounds</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'REB' : 'Total Rebounds' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.totalRebounds ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Turnovers</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'TO' : 'Turnovers' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ homeTotals.turnovers ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
@@ -96,65 +96,65 @@
               <span class="text-h6 font-weight-bold">{{ awayTotals.score ?? '-' }}</span>
             </v-card-title>
             <v-card-text>
-              <v-list density="compact">
+              <v-list density="compact" class="stat-list">
                 <v-list-item>
-                  <v-list-item-title>Accuracy</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ awayTotals.accuracyPct != null ? `${awayTotals.accuracyPct}%` : '-' }}</v-list-item-subtitle>
+                  <v-list-item-title>{{ isMobile ? 'ACC%' : 'Accuracy' }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">{{ accuracyLabel(awayTotals) }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Assists</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'AST' : 'Assists' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.assistances ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Blocks</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'BLK' : 'Blocks' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.blocksFavour ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Defensive Rebounds</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'DREB' : 'Defensive Rebounds' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.defensiveRebounds ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Offensive Rebounds</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'OREB' : 'Offensive Rebounds' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.offensiveRebounds ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Field Goals 2pt (Made / Attempted)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ awayTotals.fieldGoalsMade2 ?? '-' }} / {{ awayTotals.fieldGoalsAttempted2 ?? '-' }}</v-list-item-subtitle>
+                  <v-list-item-title>{{ isMobile ? '2PT' : 'Field Goals 2pt (Made / Attempted)' }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">{{ shotLabel(awayTotals.fieldGoalsMade2, awayTotals.fieldGoalsAttempted2) }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Field Goals 3pt (Made / Attempted)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ awayTotals.fieldGoalsMade3 ?? '-' }} / {{ awayTotals.fieldGoalsAttempted3 ?? '-' }}</v-list-item-subtitle>
+                  <v-list-item-title>{{ isMobile ? '3PT' : 'Field Goals 3pt (Made / Attempted)' }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">{{ shotLabel(awayTotals.fieldGoalsMade3, awayTotals.fieldGoalsAttempted3) }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Field Goals Total (Made / Attempted)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ awayTotals.fieldGoalsMadeTotal ?? '-' }} / {{ awayTotals.fieldGoalsAttemptedTotal ?? '-' }}</v-list-item-subtitle>
+                  <v-list-item-title>{{ isMobile ? 'FG' : 'Field Goals Total (Made / Attempted)' }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">{{ shotLabel(awayTotals.fieldGoalsMadeTotal, awayTotals.fieldGoalsAttemptedTotal) }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Fouls</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'FLS' : 'Fouls' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.foulsCommited ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Fouls Received</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'FR' : 'Fouls Received' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.foulsReceived ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Free Throws (Made / Attempted)</v-list-item-title>
-                  <v-list-item-subtitle class="text-right">{{ awayTotals.freeThrowsMade ?? '-' }} / {{ awayTotals.freeThrowsAttempted ?? '-' }}</v-list-item-subtitle>
+                  <v-list-item-title>{{ isMobile ? 'FT' : 'Free Throws (Made / Attempted)' }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">{{ shotLabel(awayTotals.freeThrowsMade, awayTotals.freeThrowsAttempted) }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Points</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'PTS' : 'Points' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.points ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Steals</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'STL' : 'Steals' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.steals ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Total Rebounds</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'REB' : 'Total Rebounds' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.totalRebounds ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <v-list-item-title>Turnovers</v-list-item-title>
+                  <v-list-item-title>{{ isMobile ? 'TO' : 'Turnovers' }}</v-list-item-title>
                   <v-list-item-subtitle class="text-right">{{ awayTotals.turnovers ?? '-' }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
@@ -172,6 +172,7 @@
 
 <script setup lang="ts">
 import { watch, ref, computed } from 'vue'
+import { useDisplay } from 'vuetify'
 import { useApi } from '~/composables/useApi'
 
 const props = defineProps<{ game?: any }>()
@@ -179,6 +180,8 @@ const homeTeamName = computed(() => props.game?.homeTeamName ?? 'Home')
 const awayTeamName = computed(() => props.game?.awayTeamName ?? 'Away')
 
 const api = useApi()
+const display = useDisplay()
+const isMobile = computed(() => display.smAndDown.value)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const stats = ref<any | null>(null)
@@ -261,7 +264,54 @@ const extractTotals = (side: 'local' | 'road') => {
 const homeTotals = computed(() => extractTotals('local'))
 const awayTotals = computed(() => extractTotals('road'))
 
+const formatNumber = (value: any) => {
+  const num = Number(value)
+  return Number.isFinite(num) ? String(num) : '-'
+}
+
+const formatPct = (made: any, attempted: any) => {
+  const m = Number(made)
+  const a = Number(attempted)
+  if (!Number.isFinite(m) || !Number.isFinite(a) || a === 0) return '-'
+  return `${Math.round((m / a) * 100)}%`
+}
+
+const shotLabel = (made: any, attempted: any) => {
+  const pctLabel = formatPct(made, attempted)
+  const madeLabel = formatNumber(made)
+  const attLabel = formatNumber(attempted)
+  return pctLabel === '-' ? `${madeLabel} / ${attLabel}` : `${pctLabel} (${madeLabel}/${attLabel})`
+}
+
+const accuracyLabel = (totals: any) => {
+  if (totals?.accuracyPct != null) return `${totals.accuracyPct}%`
+  return shotLabel(totals?.accuracyMade, totals?.accuracyAttempted)
+}
+
 // Stats.vue shows numeric totals per team; chart moved to TeamComparison component
 </script>
 
-<style scoped></style>
+<style scoped>
+.stat-list :deep(.v-list-item__content) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.stat-list :deep(.v-list-item-title) {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a2742;
+  flex: 1 1 auto;
+}
+
+.stat-list :deep(.v-list-item-subtitle) {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+</style>

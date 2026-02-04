@@ -371,9 +371,11 @@ onBeforeUnmount(() => {
 }
 
 .team-name {
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
 
 .team-code {
@@ -404,6 +406,10 @@ onBeforeUnmount(() => {
 
   .game-row {
     grid-template-columns: 52px 1fr 32px;
+  }
+
+  .team-row {
+    font-size: 0.75rem;
   }
 }
 </style>

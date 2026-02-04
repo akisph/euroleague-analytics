@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { useApi } from '~/composables/useApi'
 import { useDisplay } from 'vuetify'
 
@@ -370,9 +370,22 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 768px) {
+  .live-teams-card {
+    border-radius: 16px;
+  }
+
+  .stat-section {
+    background: #f9fafb;
+    border-color: #e0e6f0;
+  }
+
   .stat-row {
     grid-template-columns: 1fr;
     text-align: center;
+    background: #ffffff;
+    border: 1px solid #e8edf6;
+    border-radius: 12px;
+    padding: 0.75rem;
   }
 
   .stat-side {
@@ -394,11 +407,14 @@ onBeforeUnmount(() => {
   }
 
   .stat-mobile-line .stat-label {
-    font-size: 0.95rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #516078;
   }
 
   .stat-value {
     min-width: auto;
+    font-size: 0.85rem;
   }
 
   .stat-section :deep(.apexcharts-canvas) {

@@ -6,11 +6,22 @@
           <div class="text-h6 font-weight-medium">Player Statistics</div>
           <div class="text-caption text-secondary">Per-player boxscore for both teams</div>
         </v-col>
-        <v-col cols="12" md="6" class="d-flex justify-start justify-md-end">
+        <v-col cols="12" md="6" class="d-flex flex-wrap justify-start justify-md-end gap-2">
           <v-tabs v-model="selectedTeam" class="team-tabs" variant="text" color="primary">
-            <v-tab :value="homeTeamCode">{{ homeTeamName }}</v-tab>
-            <v-tab :value="awayTeamCode">{{ awayTeamName }}</v-tab>
+            <v-tab :value="homeTeamCode">{{ props.mobile ? homeTeamCode : homeTeamName }}</v-tab>
+            <v-tab :value="awayTeamCode">{{ props.mobile ? awayTeamCode : awayTeamName }}</v-tab>
           </v-tabs>
+          <v-select
+            v-model="sortKey"
+            :items="sortOptions"
+            item-title="label"
+            item-value="value"
+            density="compact"
+            variant="underlinded"
+            hide-details
+            class="sort-select"
+            placeholder="Sort by"
+          />
         </v-col>
       </v-row>
     </v-card-title>
@@ -30,12 +41,102 @@
             <v-card class="pa-3">
               <div class="text-subtitle-1 mb-3">{{ selectedTeamLabel }}</div>
               <v-data-table
-                :items="displayPlayers"
+                v-if="!props.mobile"
+                :items="sortedPlayers"
                 :headers="headers"
                 :items-per-page="itemsPerPage"
                 dense
                 hide-default-footer
               />
+
+              <v-expansion-panels
+                v-else
+                variant="accordion"
+                class="players-panels"
+              >
+                <v-expansion-panel
+                  v-for="player in sortedPlayers"
+                  :key="`${player.name}-${player.number}`"
+                >
+                  <v-expansion-panel-title>
+                    <div class="player-row">
+                      <v-avatar size="36" class="player-avatar">
+                        <v-img v-if="player.imageUrl" :src="player.imageUrl" :alt="player.name" :cover="false" />
+                        <v-icon v-else icon="mdi-account" />
+                      </v-avatar>
+                      <div class="player-main">
+                        <div class="player-name">
+                          {{ player.name }}
+                          <span v-if="player.number" class="player-number">(#{{ player.number }})</span>
+                        </div>
+                        <div class="player-position">{{ player.position || '-' }}</div>
+                        <div class="player-stats">
+                          <div class="stat-cell">
+                            <span class="stat-key">PIR</span>
+                            <span class="stat-val">{{ formatNumber(player.pir) }}</span>
+                          </div>
+                          <div class="stat-cell">
+                            <span class="stat-key">PTS</span>
+                            <span class="stat-val">{{ formatNumber(player.points) }}</span>
+                          </div>
+                          <div class="stat-cell">
+                            <span class="stat-key">REB</span>
+                            <span class="stat-val">{{ formatNumber(player.rebounds) }}</span>
+                          </div>
+                          <div class="stat-cell">
+                            <span class="stat-key">AST</span>
+                            <span class="stat-val">{{ formatNumber(player.assists) }}</span>
+                          </div>
+                          <div class="stat-cell">
+                            <span class="stat-key">MIN</span>
+                            <span class="stat-val">{{ player.minutes || '-' }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <div class="player-details">
+                      <div class="detail-row">
+                        <span class="detail-label">Minutes</span>
+                        <span class="detail-value">{{ player.minutes || '-' }}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">Games</span>
+                        <span class="detail-value">{{ formatNumber(player.gamesPlayed) }}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">Points</span>
+                        <span class="detail-value">{{ formatNumber(player.points) }}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">Assists</span>
+                        <span class="detail-value">{{ formatNumber(player.assists) }}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">Rebounds</span>
+                        <span class="detail-value">{{ formatNumber(player.rebounds) }}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">Steals</span>
+                        <span class="detail-value">{{ formatNumber(player.steals) }}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">Turnovers</span>
+                        <span class="detail-value">{{ formatNumber(player.turnovers) }}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">Fouls</span>
+                        <span class="detail-value">{{ formatNumber(player.fouls) }}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">PIR</span>
+                        <span class="detail-value">{{ formatNumber(player.pir) }}</span>
+                      </div>
+                    </div>
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+              </v-expansion-panels>
             </v-card>
           </v-col>
         </v-row>
@@ -48,7 +149,7 @@
 import { ref, watch, computed } from 'vue'
 import { useApi } from '~/composables/useApi'
 
-const props = defineProps<{ game?: any; live?: boolean }>()
+const props = defineProps<{ game?: any; live?: boolean; mobile?: boolean }>()
 
 const api = useApi()
 const isLoading = ref(false)
@@ -73,7 +174,7 @@ const fetchPlayers = async () => {
       const homeCode = (homeTeamCode.value || '').trim().toUpperCase()
       const awayCode = (awayTeamCode.value || '').trim().toUpperCase()
 
-      const mapPlayer = (p: any) => ({
+  const mapPlayer = (p: any) => ({
         name: p?.player ?? p?.Player ?? 'Unknown',
         number: p?.dorsal ?? p?.Dorsal ?? null,
         minutes: p?.minutes ?? p?.Minutes ?? null,
@@ -84,6 +185,9 @@ const fetchPlayers = async () => {
         turnovers: p?.turnovers ?? p?.Turnovers ?? 0,
         fouls: p?.foulsCommited ?? p?.FoulsCommited ?? 0,
         pir: p?.valuation ?? p?.Valuation ?? 0,
+        gamesPlayed: p?.gamesPlayed ?? p?.GamesPlayed ?? null,
+        position: p?.positionName ?? p?.PositionName ?? p?.position ?? p?.Position ?? null,
+        imageUrl: p?.imageUrl ?? p?.playerImage ?? p?.player?.imageUrl ?? null,
         teamCode: (p?.team ?? p?.Team ?? '').trim().toUpperCase() || null,
       })
 
@@ -183,6 +287,9 @@ const normalizePlayer = (p: any) => {
     turnovers: totals?.turnovers ?? 0,
     fouls: totals?.foulsCommited ?? totals?.fouls ?? 0,
     pir: totals?.valuation ?? totals?.pir ?? 0,
+    gamesPlayed: totals?.gamesPlayed ?? totals?.gp ?? null,
+    position: p.positionName ?? p.player?.positionName ?? p.player?.position?.name ?? p.position?.name ?? p.position ?? null,
+    imageUrl: person?.images?.headshot ?? person?.images?.action ?? p?.player?.images?.headshot ?? p?.player?.images?.action ?? null,
     teamCode: p.player?.club?.code ?? p.teamCode ?? p.clubCode ?? p.team?.code ?? null,
   }
 }
@@ -214,6 +321,7 @@ const awayPlayers = computed(() => extractPlayersBySide('road'))
 
 const headers = [
   { title: 'Name', key: 'name' },
+  { title: 'GP', key: 'gamesPlayed' },
   { title: 'Min', key: 'minutes' },
   { title: 'Pts', key: 'points' },
   { title: 'PIR', key: 'pir' },
@@ -251,8 +359,166 @@ const itemsPerPage = computed(() => {
   // otherwise show all players for the selected team
   return Math.max(displayPlayers.value.length, 24)
 })
+
+const sortKey = ref<string>('pir_desc')
+
+const sortOptions = [
+  { label: 'PIR Ascending', value: 'pir_asc' },
+  { label: 'PIR Descending', value: 'pir_desc' },
+  { label: 'PTS Ascending', value: 'points_asc' },
+  { label: 'PTS Descending', value: 'points_desc' },
+  { label: 'REB Ascending', value: 'rebounds_asc' },
+  { label: 'REB Descending', value: 'rebounds_desc' },
+  { label: 'AST Ascending', value: 'assists_asc' },
+  { label: 'AST Descending', value: 'assists_desc' },
+  { label: 'MIN Ascending', value: 'minutes_asc' },
+  { label: 'MIN Descending', value: 'minutes_desc' },
+  { label: 'GP Ascending', value: 'gamesPlayed_asc' },
+  { label: 'GP Descending', value: 'gamesPlayed_desc' },
+  { label: 'STL Ascending', value: 'steals_asc' },
+  { label: 'STL Descending', value: 'steals_desc' },
+  { label: 'TO Ascending', value: 'turnovers_asc' },
+  { label: 'TO Descending', value: 'turnovers_desc' },
+  { label: 'FLS Ascending', value: 'fouls_asc' },
+  { label: 'FLS Descending', value: 'fouls_desc' },
+]
+
+const sortedPlayers = computed(() => {
+  const list = [...displayPlayers.value]
+  const [field, dir] = sortKey.value.split('_')
+  const multiplier = dir === 'asc' ? 1 : -1
+  return list.sort((a: any, b: any) => {
+    const av = Number(a?.[field] ?? -Infinity)
+    const bv = Number(b?.[field] ?? -Infinity)
+    if (Number.isFinite(av) || Number.isFinite(bv)) {
+      return (av - bv) * multiplier
+    }
+    return 0
+  })
+})
+
+const formatNumber = (value: number | string | null | undefined) => {
+  if (value == null) return '-'
+  const num = Number(value)
+  if (Number.isNaN(num)) return String(value)
+  return num.toFixed(2)
+}
 </script>
 
 <style scoped>
 .v-data-table tbody tr td:first-child { font-weight: 600 }
+
+.players-panels :deep(.v-expansion-panel) {
+  border-radius: 12px;
+  border: 1px solid #e8edf6;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.players-panels :deep(.v-expansion-panel-title) {
+  background: #f9fafb;
+}
+
+.sort-select {
+  min-width: 140px;
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.6rem;
+  justify-content: space-between;
+}
+
+.player-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.player-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1a2742;
+}
+
+.player-number {
+  font-size: 0.72rem;
+  color: #8a92a2;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.player-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.2rem 0.75rem;
+  font-size: 0.72rem;
+  color: #516078;
+  font-weight: 600;
+}
+
+.stat-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-key {
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #8a92a2;
+  font-weight: 600;
+}
+
+.stat-val {
+  font-size: 0.74rem;
+  color: #1a2742;
+  font-weight: 700;
+}
+.row-chevron {
+  color: #8a92a2;
+  font-size: 1.1rem;
+}
+
+
+.player-position {
+  font-size: 0.7rem;
+  color: #8a92a2;
+  font-weight: 600;
+  text-transform: none;
+}
+
+.player-avatar :deep(img) {
+  object-fit: contain;
+}
+
+.player-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 0.75rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+}
+
+.detail-label {
+  color: #8a92a2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.detail-value {
+  color: #1a2742;
+  font-weight: 600;
+}
 </style>

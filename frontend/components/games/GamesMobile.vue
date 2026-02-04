@@ -652,9 +652,12 @@ const gameStatusLabel = (game: Game) => {
 }
 
 .team-name {
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: normal;
 }
 
 .team-code {
