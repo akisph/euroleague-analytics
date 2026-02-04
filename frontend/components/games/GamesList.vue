@@ -28,99 +28,6 @@
             :value="roundNum"
           >
             <div v-if="gamesByRound[roundNum]" class="pa-4">
-              <!-- Completed Games -->
-              <div v-if="gamesByRound[roundNum].completed.length > 0" class="mb-8">
-                <div class="d-flex align-center mb-4">
-                  <v-icon icon="mdi-check-circle" color="success" class="mr-2" />
-                  <span class="text-success font-weight-bold text-h6">Completed ({{ gamesByRound[roundNum].completed.length }})</span>
-                </div>
-
-                <template v-if="effectiveViewMode === 'grid'">
-                  <div
-                    v-for="dayItem in getGamesByDayGrouped(gamesByRound[roundNum].completed)"
-                    :key="dayItem.date"
-                    class="mb-6"
-                  >
-                    <div class="day-header">
-                      <v-icon icon="mdi-calendar" size="16" class="mr-2" />
-                      {{ dayItem.date }}
-                    </div>
-                    <v-row class="mt-3">
-                      <v-col
-                        v-for="game in dayItem.games"
-                        :key="game.gameCode"
-                        cols="12"
-                        sm="6"
-                        lg="4"
-                      >
-                        <GamesCard
-                          :game="game"
-                          :is-live="isGameLive(game)"
-                          :live-home-score="getLiveScore(game)?.homeScore ?? null"
-                          :live-away-score="getLiveScore(game)?.awayScore ?? null"
-                          :live-minute="getLiveScore(game)?.minuteLabel ?? null"
-                          show-details
-                          show-action
-                          @view-details="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
-                        />
-                      </v-col>
-                    </v-row>
-                  </div>
-                </template>
-
-                <template v-else>
-                  <div v-if="getGamesByDay(gamesByRound[roundNum].completed).length > 0">
-                    <div
-                      v-for="dayItem in getGamesByDayGrouped(gamesByRound[roundNum].completed)"
-                      :key="dayItem.date"
-                      class="mb-4"
-                    >
-                      <div class="day-header">
-                        <v-icon icon="mdi-calendar" size="16" class="mr-2" />
-                        {{ dayItem.date }}
-                      </div>
-                      <div class="schedule-board">
-                        <button
-                          v-for="game in dayItem.games"
-                          :key="game.gameCode"
-                          type="button"
-                          class="schedule-row"
-                          @click="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
-                        >
-                          <div class="schedule-team home" :class="{ winner: game.played && (game.homeScore || 0) > (game.awayScore || 0) }">
-                            <v-avatar size="32" color="#e0e6f0" class="team-avatar">
-                              <v-img v-if="game.homeTeamImage" :src="game.homeTeamImage" :alt="game.homeTeamName" />
-                              <span v-else class="team-code">{{ game.homeTeamCode?.substring(0, 3) }}</span>
-                            </v-avatar>
-                            <div class="team-name">{{ game.homeTeamName }}</div>
-                            <span v-if="showInlineScore(game)" class="team-score-inline">
-                              {{ getDisplayScore(game)?.homeScore }}
-                            </span>
-                          </div>
-                          <div class="schedule-center">
-                            <div v-if="showInlineScore(game)" class="score">
-                              {{ getDisplayScore(game)?.homeScore }} - {{ getDisplayScore(game)?.awayScore }}
-                            </div>
-                            <div class="meta">{{ formatEventTime(game.gameDate) }}</div>
-                            <div v-if="game.arena" class="meta arena">{{ game.arena }}</div>
-                          </div>
-                          <div class="schedule-team away" :class="{ winner: game.played && (game.awayScore || 0) > (game.homeScore || 0) }">
-                            <v-avatar size="32" color="#e0e6f0" class="team-avatar">
-                              <v-img v-if="game.awayTeamImage" :src="game.awayTeamImage" :alt="game.awayTeamName" />
-                              <span v-else class="team-code">{{ game.awayTeamCode?.substring(0, 3) }}</span>
-                            </v-avatar>
-                            <div class="team-name">{{ game.awayTeamName }}</div>
-                            <span v-if="showInlineScore(game)" class="team-score-inline">
-                              {{ getDisplayScore(game)?.awayScore }}
-                            </span>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </template>
-              </div>
-
               <!-- Live Games -->
               <div v-if="gamesByRound[roundNum].live.length > 0" class="mb-8">
                 <div class="d-flex align-center mb-4">
@@ -147,7 +54,7 @@
                         lg="4"
                       >
                         <GamesCard
-                          :game="game"
+                          :game="getDisplayGame(game)"
                           :is-live="isGameLive(game)"
                           :live-home-score="getLiveScore(game)?.homeScore ?? null"
                           :live-away-score="getLiveScore(game)?.awayScore ?? null"
@@ -216,6 +123,105 @@
                 </template>
               </div>
 
+              <!-- Completed Games -->
+              <div v-if="gamesByRound[roundNum].completed.length > 0" class="mb-8">
+                <div class="d-flex align-center mb-4">
+                  <v-icon icon="mdi-check-circle" color="success" class="mr-2" />
+                  <span class="text-success font-weight-bold text-h6">Completed ({{ gamesByRound[roundNum].completed.length }})</span>
+                </div>
+
+                <template v-if="effectiveViewMode === 'grid'">
+                  <div
+                    v-for="dayItem in getGamesByDayGrouped(gamesByRound[roundNum].completed)"
+                    :key="dayItem.date"
+                    class="mb-6"
+                  >
+                    <div class="day-header">
+                      <v-icon icon="mdi-calendar" size="16" class="mr-2" />
+                      {{ dayItem.date }}
+                    </div>
+                    <v-row class="mt-3">
+                      <v-col
+                        v-for="game in dayItem.games"
+                        :key="game.gameCode"
+                        cols="12"
+                        sm="6"
+                        lg="4"
+                      >
+                        <GamesCard
+                          :game="getDisplayGame(game)"
+                          :is-live="isGameLive(game)"
+                          :live-home-score="getLiveScore(game)?.homeScore ?? null"
+                          :live-away-score="getLiveScore(game)?.awayScore ?? null"
+                          :live-minute="getLiveScore(game)?.minuteLabel ?? null"
+                          show-details
+                          show-action
+                          @view-details="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
+                        />
+                      </v-col>
+                    </v-row>
+                  </div>
+                </template>
+
+                <template v-else>
+                  <div v-if="getGamesByDay(gamesByRound[roundNum].completed).length > 0">
+                    <div
+                      v-for="dayItem in getGamesByDayGrouped(gamesByRound[roundNum].completed)"
+                      :key="dayItem.date"
+                      class="mb-4"
+                    >
+                      <div class="day-header">
+                        <v-icon icon="mdi-calendar" size="16" class="mr-2" />
+                        {{ dayItem.date }}
+                      </div>
+                      <div class="schedule-board">
+                        <button
+                          v-for="game in dayItem.games"
+                          :key="game.gameCode"
+                          type="button"
+                          class="schedule-row"
+                          @click="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
+                        >
+                          <div
+                            class="schedule-team home"
+                            :class="{ winner: (game.played || isFinishedFromLive(game)) && (getDisplayScore(game)?.homeScore || 0) > (getDisplayScore(game)?.awayScore || 0) }"
+                          >
+                            <v-avatar size="32" color="#e0e6f0" class="team-avatar">
+                              <v-img v-if="game.homeTeamImage" :src="game.homeTeamImage" :alt="game.homeTeamName" />
+                              <span v-else class="team-code">{{ game.homeTeamCode?.substring(0, 3) }}</span>
+                            </v-avatar>
+                            <div class="team-name">{{ game.homeTeamName }}</div>
+                            <span v-if="showInlineScore(game)" class="team-score-inline">
+                              {{ getDisplayScore(game)?.homeScore }}
+                            </span>
+                          </div>
+                          <div class="schedule-center">
+                            <div v-if="showInlineScore(game)" class="score">
+                              {{ getDisplayScore(game)?.homeScore }} - {{ getDisplayScore(game)?.awayScore }}
+                            </div>
+                            <div class="meta">{{ formatEventTime(game.gameDate) }}</div>
+                            <div v-if="game.arena" class="meta arena">{{ game.arena }}</div>
+                          </div>
+                          <div
+                            class="schedule-team away"
+                            :class="{ winner: (game.played || isFinishedFromLive(game)) && (getDisplayScore(game)?.awayScore || 0) > (getDisplayScore(game)?.homeScore || 0) }"
+                          >
+                            <v-avatar size="32" color="#e0e6f0" class="team-avatar">
+                              <v-img v-if="game.awayTeamImage" :src="game.awayTeamImage" :alt="game.awayTeamName" />
+                              <span v-else class="team-code">{{ game.awayTeamCode?.substring(0, 3) }}</span>
+                            </v-avatar>
+                            <div class="team-name">{{ game.awayTeamName }}</div>
+                            <span v-if="showInlineScore(game)" class="team-score-inline">
+                              {{ getDisplayScore(game)?.awayScore }}
+                            </span>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+
               <!-- Scheduled Games -->
               <div v-if="gamesByRound[roundNum].scheduled.length > 0">
                 <div class="d-flex align-center mb-4">
@@ -242,7 +248,7 @@
                         lg="4"
                       >
                         <GamesCard
-                          :game="game"
+                          :game="getDisplayGame(game)"
                           :is-live="isGameLive(game)"
                           :live-home-score="getLiveScore(game)?.homeScore ?? null"
                           :live-away-score="getLiveScore(game)?.awayScore ?? null"
@@ -345,7 +351,7 @@ const gamesByRound = computed(() => {
     if (!grouped[round]) {
       grouped[round] = { completed: [], live: [], scheduled: [] }
     }
-    if (game.played) {
+    if (game.played || isFinishedFromLive(game)) {
       grouped[round].completed.push(game)
     } else if (isGameLive(game)) {
       grouped[round].live.push(game)
@@ -440,8 +446,24 @@ const getLiveScore = (game: Game) => {
   return liveMap.value[game.gameCode]
 }
 
+const isFinishedFromLive = (game: Game) => {
+  if (game.played) return false
+  const live = getLiveScore(game)
+  if (!live || live.isLive) return false
+  const home = live.homeScore ?? 0
+  const away = live.awayScore ?? 0
+  return home > 0 || away > 0
+}
+
 const getDisplayScore = (game: Game) => {
-  if (game.played) {
+  if (game.played || isFinishedFromLive(game)) {
+    if (!game.played) {
+      const live = getLiveScore(game)
+      return {
+        homeScore: live?.homeScore ?? 0,
+        awayScore: live?.awayScore ?? 0,
+      }
+    }
     return {
       homeScore: game.homeScore ?? null,
       awayScore: game.awayScore ?? null,
@@ -461,8 +483,22 @@ const isGameLive = (game: Game) => {
 }
 
 const showInlineScore = (game: Game) => {
-  if (game.played) return true
+  if (game.played || isFinishedFromLive(game)) return true
   return isGameLive(game)
+}
+
+const getDisplayGame = (game: Game) => {
+  if (game.played) return game
+  if (isFinishedFromLive(game)) {
+    const live = getLiveScore(game)
+    return {
+      ...game,
+      played: true,
+      homeScore: live?.homeScore ?? 0,
+      awayScore: live?.awayScore ?? 0,
+    }
+  }
+  return game
 }
 
 const pickLastMarkerTime = (plays: any[] | undefined) => {

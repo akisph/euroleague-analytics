@@ -54,7 +54,7 @@
                   :data-game-code="game.gameCode"
                 >
                   <GamesCard
-                    :game="game"
+                    :game="getDisplayGame(game)"
                     :is-live="isGameLive(game.gameCode)"
                     :live-home-score="getLiveScore(game.gameCode)?.homeScore ?? null"
                     :live-away-score="getLiveScore(game.gameCode)?.awayScore ?? null"
@@ -123,6 +123,10 @@ const parseGameTime = (value?: string) => {
 // Sort all games by date
 const sortedGames = computed(() => {
   return [...games.value].sort((a, b) => {
+    const aLive = isGameLive(a.gameCode)
+    const bLive = isGameLive(b.gameCode)
+    if (aLive && !bLive) return -1
+    if (!aLive && bLive) return 1
     const aTime = parseGameTime(a.gameDate)
     const bTime = parseGameTime(b.gameDate)
     if (!Number.isFinite(aTime) && !Number.isFinite(bTime)) return 0
@@ -162,6 +166,29 @@ const resolveMinuteLabel = (pbp: any) => {
 
 const getLiveScore = (gameCode: number) => liveMap.value[gameCode]
 const isGameLive = (gameCode: number) => Boolean(liveMap.value[gameCode]?.isLive)
+
+const isFinishedFromLive = (game: Game) => {
+  if (game.played) return false
+  const live = getLiveScore(game.gameCode)
+  if (!live || live.isLive) return false
+  const home = live.homeScore ?? 0
+  const away = live.awayScore ?? 0
+  return home > 0 || away > 0
+}
+
+const getDisplayGame = (game: Game) => {
+  if (game.played) return game
+  if (isFinishedFromLive(game)) {
+    const live = getLiveScore(game.gameCode)
+    return {
+      ...game,
+      played: true,
+      homeScore: live?.homeScore ?? 0,
+      awayScore: live?.awayScore ?? 0,
+    }
+  }
+  return game
+}
 
 const fetchLiveForGame = async (seasonCode: string, gameCode: number) => {
   const [boxscore, pbp] = await Promise.all([
