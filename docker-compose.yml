@@ -30,12 +30,24 @@ services:
       - PORT=3004
     networks:
       - web
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.euroleague-api.rule=Host(`elhoopslab.sfilippou.gr`) && PathPrefix(`/api`)
+      - traefik.http.routers.euroleague-api.entrypoints=websecure
+      - traefik.http.routers.euroleague-api.tls=true
+      - traefik.http.routers.euroleague-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.euroleague-api-http.rule=Host(`elhoopslab.sfilippou.gr`) && PathPrefix(`/api`)
+      - traefik.http.routers.euroleague-api-http.entrypoints=web
+      - traefik.http.routers.euroleague-api-http.middlewares=redirect-to-https
+      - traefik.http.middlewares.euroleague-api-strip.stripprefix.prefixes=/api
+      - traefik.http.routers.euroleague-api.middlewares=euroleague-api-strip
+      - traefik.http.services.euroleague-api.loadbalancer.server.port=3004
 
   web:
     build:
       context: ./frontend
       args:
-        - NUXT_PUBLIC_API_BASE_URL=http://89.167.19.50:3004
+        - NUXT_PUBLIC_API_BASE_URL=https://elhoopslab.sfilippou.gr/api
     ports:
       - "3005:3005"
     environment:
