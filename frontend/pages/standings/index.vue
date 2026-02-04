@@ -6,7 +6,7 @@
     />
 
     <SharedLoadingState :loading="false" message="Loading standings...">
-      <StandingsCurrentStandings
+      <StandingsPage
         title="Current Standings"
         subtitle="Regular Season"
       />

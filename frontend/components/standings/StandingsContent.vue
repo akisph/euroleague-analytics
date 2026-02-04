@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 const seasonStore = useSeasonStore()
-const { fetchCurrentStandings, standings, allTeamStandings, isLoading, error } = useStandings()
+const { fetchCurrentStandings, allTeamStandings, isLoading, error } = useStandings()
 
 interface Props {
   title?: string
@@ -46,7 +46,7 @@ const selectedSeasonCode = computed(() => seasonStore.selectedSeasonCode)
 
 const loadStandings = async () => {
   if (!selectedSeasonCode.value) return
-  
+
   try {
     await fetchCurrentStandings(selectedSeasonCode.value)
   } catch (err) {
@@ -87,11 +87,5 @@ onMounted(async () => {
   background-color: #ffffff;
   border: none;
   box-shadow: none;
-}
-
-@media (max-width: 768px) {
-  .standings-wrapper {
-    border-radius: 12px;
-  }
 }
 </style>
