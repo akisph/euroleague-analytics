@@ -24,8 +24,46 @@ export class TeamsService {
       const competitionCode = 'E';
       const url = `${this.baseUrl}/v2/competitions/${competitionCode}/seasons/${seasonCode}/clubs/${clubCode}/people`;
 
-      const response = await this.httpService.get<any>(url).toPromise();
-      return response.data;
+      const [rosterResponse, statsResponse] = await Promise.all([
+        this.httpService.get<any>(url).toPromise(),
+        this.httpService.get<any>(
+          `${this.baseUrl}/v2/competitions/${competitionCode}/seasons/${seasonCode}/clubs/${clubCode}/people/stats`,
+        ).toPromise().catch((error) => {
+          this.logger.warn(`Roster stats not available for ${clubCode}`, error?.message);
+          return null;
+        }),
+      ]);
+
+      const rosterData = rosterResponse.data;
+      const statsData = statsResponse?.data;
+      const statsList = statsData?.playerStats || statsData?.players || statsData?.items || [];
+      const statsMap = new Map<string, any>();
+
+      if (Array.isArray(statsList)) {
+        statsList.forEach((item: any) => {
+          const person = item?.player ?? item?.person ?? {};
+          const personCode = person.code ?? item?.playerCode ?? item?.personCode;
+          if (!personCode) return;
+          const accumulated = item?.accumulated ?? item?.total ?? item?.stats ?? item;
+          statsMap.set(String(personCode), accumulated);
+        });
+      }
+
+      const attachStats = (entry: any) => {
+        const personCode = entry?.person?.code ?? entry?.personCode ?? entry?.player?.code;
+        const playerStats = personCode ? statsMap.get(String(personCode)) : null;
+        return { ...entry, playerStats };
+      };
+
+      if (Array.isArray(rosterData)) {
+        return rosterData.map(attachStats);
+      }
+
+      if (rosterData?.people && Array.isArray(rosterData.people)) {
+        return { ...rosterData, people: rosterData.people.map(attachStats) };
+      }
+
+      return rosterData;
     } catch (error) {
       this.logger.error(`Error fetching roster: ${error.message}`, error.stack);
       throw new HttpException(

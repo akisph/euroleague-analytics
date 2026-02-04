@@ -22,8 +22,8 @@ export const useThemeStore = defineStore('theme', {
         if (saved) {
           this.isDark = saved === 'dark'
         } else {
-          // Check system preference
-          this.isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          // Default to light theme across the app.
+          this.isDark = false
         }
       }
     },
