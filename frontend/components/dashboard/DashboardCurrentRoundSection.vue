@@ -24,8 +24,8 @@
             class="game-row"
             @click="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
           >
-            <div class="game-time">
-              <div class="time">{{ formatGameTime(game.gameDate) }}</div>
+            <div class="game-time" :class="{ 'game-time--center': isMobile, 'game-time--center-desktop': !isMobile }">
+              <div v-if="!isGameLive(game.gameCode)" class="time">{{ formatGameTime(game.gameDate) }}</div>
               <div class="status" :class="{ live: isGameLive(game.gameCode) }">
                 {{ gameStatusLabel(game) }}
               </div>
@@ -76,12 +76,15 @@
 
 <script setup lang="ts">
 import type { Game } from '~/types'
+import { useDisplay } from 'vuetify'
 
 const seasonStore = useSeasonStore()
 const { fetchSeasonGames, games } = useGames()
 const { fetchSeasonRounds } = useRounds()
 const api = useApi()
 const { toAthensDate } = useTimeZone()
+const display = useDisplay()
+const isMobile = computed(() => display.smAndDown.value)
 
 const isLoading = ref(true)
 const error = ref<string | null>(null)
@@ -336,6 +339,18 @@ onBeforeUnmount(() => {
   gap: 0.2rem;
   font-size: 0.7rem;
   color: #516078;
+}
+
+.game-time--center {
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
+
+.game-time--center-desktop {
+  align-items: center;
+  text-align: center;
+  justify-content: center;
 }
 
 .game-time .time {
