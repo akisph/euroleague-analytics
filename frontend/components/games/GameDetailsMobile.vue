@@ -13,19 +13,18 @@
           <v-card-text class="pa-4">
        
             <div class="mobile-header">
-              <div v-if="!isLive" class="text-secondary">
-                {{ formattedGameDate }}
+              <div class="text-secondary">
+                <template v-if="!isLive">
+                  {{ formattedGameDate }}
+                </template>
               </div>
-          
-            <div class="card-actions">
-              <v-btn icon="mdi-arrow-left" variant="text" class="back-btn" @click="navigateTo('/games')" />
-            </div>
+
+              <div class="card-actions">
+                <v-btn icon="mdi-arrow-left" variant="text" class="back-btn" @click="navigateTo('/games')" />
+              </div>
             </div>
 
-            <div v-if="isLive" class="text-center hero-live-mobile">
-              <span class="live-dot" aria-hidden="true"></span>
-              LIVE{{ liveTotalMinuteLabel ? ` � ${liveTotalMinuteLabel}` : '' }}
-            </div>
+            
             
             
 
@@ -41,12 +40,17 @@
                 <div class="team-score" v-if="showScores">{{ displayHomeScore }}</div>
               </div>
 
-              <div class="w-100 d-flex  flex-column align-center justify-center">
-                
-               <span>VS</span>
-                  <v-chip v-if="!isLive" variant="flat" color="green">
-                {{ game.played ? 'Final' : 'Scheduled' }}
-              </v-chip>
+              <div class="w-100 d-flex flex-column align-center justify-center">
+                <span>VS</span>
+                <v-chip v-if="!isLive" variant="flat" color="green">
+                  {{ game.played ? 'Final' : 'Scheduled' }}
+                </v-chip>
+                <div v-else class="live-chip-row">
+                  <v-chip variant="flat" >
+                    Live
+                  </v-chip>
+                  <span class="live-time">{{ liveTotalMinuteLabel || '' }}</span>
+                </div>
               </div>
 
               <div class="mobile-team">
@@ -1056,6 +1060,19 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: #28a745;
   box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15);
+}
+
+.live-chip-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.live-time {
+  color: #28a745;
+  font-weight: 600;
+  font-size: 0.8rem;
 }
 
 .pregame-card {
