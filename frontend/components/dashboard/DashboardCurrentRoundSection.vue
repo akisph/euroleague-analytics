@@ -251,7 +251,7 @@ const gameStatusLabel = (game: Game) => {
     return minute ? `LIVE ${minute}` : 'LIVE'
   }
   if (game.played || isFinishedFromLive(game)) return 'Final'
-  return 'Scheduled'
+  return 'TBP'
 }
 
 watch(selectedSeasonCode, () => {

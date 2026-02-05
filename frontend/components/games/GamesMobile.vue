@@ -48,7 +48,6 @@
                       @click="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
                     >
                       <div class="game-time">
-                        <div class="time">{{ formatGameTime(game.gameDate) }}</div>
                         <div class="status live">{{ gameStatusLabel(game) }}</div>
                       </div>
                       <div class="game-teams">
