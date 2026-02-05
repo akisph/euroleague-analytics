@@ -20,14 +20,14 @@
             <div class="stat-row" v-for="row in shootingRows" :key="row.label">
               <template v-if="isMobile">
                 <div class="stat-mobile-line">
-                  <span class="stat-value">{{ row.home.made }}/{{ row.home.att }}</span>
+                  <span class="stat-value stat-value--left">{{ row.home.made }}/{{ row.home.att }}</span>
                   <span class="stat-label">{{ row.label }}</span>
-                  <span class="stat-value">{{ row.away.made }}/{{ row.away.att }}</span>
+                  <span class="stat-value stat-value--right">{{ row.away.made }}/{{ row.away.att }}</span>
                 </div>
-                <div class="stat-side center">
+                <div class="stat-side center stat-mobile-chart">
                   <apexchart
                     type="radialBar"
-                    height="140"
+                    height="120"
                     :options="radialOptionsCombined(row.label)"
                     :series="[row.home.pct, row.away.pct]"
                   />
@@ -61,7 +61,7 @@
         <div class="bar-section">
           <apexchart
             type="bar"
-            height="340"
+            :height="isMobile ? 220 : 340"
             :options="barOptions"
             :series="barSeries"
           />
@@ -385,7 +385,7 @@ onBeforeUnmount(() => {
     background: #ffffff;
     border: 1px solid #e8edf6;
     border-radius: 12px;
-    padding: 0.75rem;
+    padding: 0.6rem;
   }
 
   .stat-side {
@@ -395,26 +395,38 @@ onBeforeUnmount(() => {
   }
 
   .stat-side.center {
-    margin-top: 0.5rem;
+    margin-top: 0.35rem;
   }
 
   .stat-mobile-line {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem;
+    gap: 0.5rem;
     width: 100%;
   }
 
   .stat-mobile-line .stat-label {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: #516078;
   }
 
   .stat-value {
     min-width: auto;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .stat-value--left {
+    text-align: left;
+  }
+
+  .stat-value--right {
+    text-align: right;
+  }
+
+  .stat-mobile-chart :deep(.apexcharts-canvas) {
+    max-width: 180px;
   }
 
   .stat-section :deep(.apexcharts-canvas) {
@@ -423,6 +435,10 @@ onBeforeUnmount(() => {
 
   .bar-header {
     grid-template-columns: 40px 1fr 40px;
+  }
+
+  .bar-section :deep(.apexcharts-canvas) {
+    max-width: 100%;
   }
 }
 </style>

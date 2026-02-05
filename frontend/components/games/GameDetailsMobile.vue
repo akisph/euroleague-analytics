@@ -63,23 +63,136 @@
           </v-card-text>
         </v-card>
 
-        <v-tabs v-if="game.played || isLive" v-model="activeTab" class="mt-4 game-tabs">
-          <v-tab value="stats">Stats</v-tab>
-          <v-tab value="players">Players</v-tab>
-          <v-tab value="teams">Teams</v-tab>
-        </v-tabs>
+        <template v-if="game.played || isLive">
+          <template v-if="isLive">
+            <v-tabs v-model="activeTab" class="mt-4 game-tabs">
+              <v-tab value="live-events">Live Events</v-tab>
+              <v-tab value="players">Players</v-tab>
+              <v-tab value="teams">Teams</v-tab>
+            </v-tabs>
 
-        <v-window v-if="game.played || isLive" v-model="activeTab">
-          <v-window-item value="stats">
-            <GamesStats :game="game" />
-          </v-window-item>
-          <v-window-item value="players">
-            <GamesPlayersStats :game="game" mobile />
-          </v-window-item>
-          <v-window-item value="teams">
-            <GamesTeamComparison :game="game" />
-          </v-window-item>
-        </v-window>
+            <v-window v-model="activeTab">
+              <v-window-item value="live-events" v-show="activeTab === 'live-events'">
+                <v-card class="mt-4">
+                  <v-card-title class="d-flex align-center">
+                    <v-icon icon="mdi-broadcast" class="mr-2" />
+                    Live Events
+                  </v-card-title>
+                  <v-card-text>
+                    <v-expansion-panels
+                      v-model="openLivePanel"
+                      variant="accordion"
+                      class="live-panels"
+                    >
+                      <v-expansion-panel
+                        v-for="(section, idx) in liveEventSections"
+                        :key="section.key"
+                      >
+                        <v-expansion-panel-title>
+                          <div class="panel-title">
+                            <span class="panel-label">{{ section.label }}</span>
+                            <span v-if="section.endScore" class="panel-score">
+                              {{ section.endScore }}
+                            </span>
+                          </div>
+                        </v-expansion-panel-title>
+                        <v-expansion-panel-text>
+                          <div v-if="section.items.length">
+                            <div
+                              v-for="event in liveEventsToShowBySection(section)"
+                              :key="event.key"
+                              class="event-row"
+                            >
+                              <div
+                                class="event-side event-side--home"
+                                :class="{ 'event-side--active': event.side === 'home' }"
+                              >
+                                <div class="event-meta">
+                                  <span class="event-quarter">{{ section.label }}</span>
+                                  <span class="event-time">{{ event.time }}</span>
+                                </div>
+                                <div class="event-body">
+                                  <div class="event-title">{{ event.playInfo }}</div>
+                                  <div class="event-subtitle">{{ event.team }} · {{ event.player }}</div>
+                                </div>
+                              </div>
+                              <div
+                                class="event-side event-side--center"
+                                :class="{ 'event-side--active': event.side === 'neutral' }"
+                              >
+                                <div class="event-meta">
+                                  <span class="event-quarter">{{ section.label }}</span>
+                                  <span class="event-time">{{ event.time }}</span>
+                                </div>
+                                <div class="event-body">
+                                  <div class="event-title">{{ event.playInfo }}</div>
+                                  <div class="event-subtitle">{{ event.team }} · {{ event.player }}</div>
+                                </div>
+                              </div>
+                              <div
+                                class="event-side event-side--away"
+                                :class="{ 'event-side--active': event.side === 'away' }"
+                              >
+                                <div class="event-meta">
+                                  <span class="event-quarter">{{ section.label }}</span>
+                                  <span class="event-time">{{ event.time }}</span>
+                                </div>
+                                <div class="event-body">
+                                  <div class="event-title">{{ event.playInfo }}</div>
+                                  <div class="event-subtitle">{{ event.team }} · {{ event.player }}</div>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="event-actions">
+                              <v-btn
+                                v-if="idx === openLivePanel && liveEventsLimit < section.items.length"
+                                variant="outlined"
+                                color="primary"
+                                size="small"
+                                @click="liveEventsLimit += 40"
+                              >
+                                Show more
+                              </v-btn>
+                            </div>
+                          </div>
+                          <div v-else class="text-caption text-medium-emphasis">No events for this period.</div>
+                        </v-expansion-panel-text>
+                      </v-expansion-panel>
+                    </v-expansion-panels>
+                  </v-card-text>
+                </v-card>
+              </v-window-item>
+
+              <v-window-item value="players" v-show="activeTab === 'players'">
+                <GamesLivePlayersStats :game="game" mobile />
+              </v-window-item>
+
+              <v-window-item value="teams" v-show="activeTab === 'teams'">
+                <GamesLiveTeamsStats :game="game" />
+              </v-window-item>
+            </v-window>
+          </template>
+
+          <template v-else>
+            <v-tabs v-model="activeTab" class="mt-4 game-tabs">
+              <v-tab value="stats">Stats</v-tab>
+              <v-tab value="players">Players</v-tab>
+              <v-tab value="teams">Teams</v-tab>
+            </v-tabs>
+
+            <v-window v-model="activeTab">
+              <v-window-item value="stats" v-show="activeTab === 'stats'">
+                <GamesStats :game="game" />
+              </v-window-item>
+              <v-window-item value="players" v-show="activeTab === 'players'">
+                <GamesPlayersStats :game="game" mobile />
+              </v-window-item>
+              <v-window-item value="teams" v-show="activeTab === 'teams'">
+                <GamesTeamComparison :game="game" />
+              </v-window-item>
+            </v-window>
+          </template>
+        </template>
       </template>
 
       <SharedEmptyState

@@ -145,7 +145,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { useApi } from '~/composables/useApi'
 
 const props = defineProps<{ game?: any; mobile?: boolean }>()
@@ -428,5 +428,23 @@ onBeforeUnmount(() => {
 .detail-value {
   color: #1a2742;
   font-weight: 600;
+}
+@media (max-width: 768px) {
+  .team-tabs {
+    width: 100%;
+  }
+
+  .sort-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .player-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .player-details {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
