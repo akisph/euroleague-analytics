@@ -20,7 +20,7 @@
               </div>
 
               <div class="card-actions">
-                <v-btn icon="mdi-arrow-left" variant="text" class="back-btn" @click="navigateTo('/games')" />
+                <v-btn icon="mdi-arrow-left" variant="text" size="x-small" class="back-btn" @click="navigateTo('/games')" />
               </div>
             </div>
 
