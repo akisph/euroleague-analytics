@@ -41,14 +41,13 @@
               </div>
 
               <div class="w-100 d-flex flex-column align-center justify-center">
-                <span>VS</span>
                 <v-chip v-if="!isLive" variant="flat" color="green">
                   {{ game.played ? 'Final' : 'Scheduled' }}
                 </v-chip>
                 <div v-else class="live-chip-row">
-                  <v-chip variant="flat" >
+                  <span class="bg-green px-1 rounded-lg" >
                     Live
-                  </v-chip>
+                  </span>
                   <span class="live-time">{{ liveTotalMinuteLabel || '' }}</span>
                 </div>
               </div>
