@@ -282,7 +282,7 @@ const setupPolling = () => {
   }
   pollId.value = window.setInterval(() => {
     fetchPlayers()
-  }, 150000)
+  }, 15000)
 }
 
 watch([seasonCode, gameCode], () => {

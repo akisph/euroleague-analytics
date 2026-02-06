@@ -59,6 +59,9 @@
                           :live-home-score="getLiveScore(game)?.homeScore ?? null"
                           :live-away-score="getLiveScore(game)?.awayScore ?? null"
                           :live-minute="getLiveScore(game)?.minuteLabel ?? null"
+                          :live-quarter="getLiveScore(game)?.quarter ?? null"
+                          :live-quarter="getLiveScore(game)?.quarter ?? null"
+                          :live-quarter="getLiveScore(game)?.quarter ?? null"
                           show-details
                           show-action
                           @view-details="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
@@ -336,7 +339,7 @@ const display = useDisplay()
 const api = useApi()
 const { toAthensDate } = useTimeZone()
 const selectedRoundTab = ref<number | null>(null)
-const liveMap = ref<Record<number, { isLive: boolean; homeScore: number | null; awayScore: number | null; minuteLabel?: string | null }>>({})
+const liveMap = ref<Record<number, { isLive: boolean; homeScore: number | null; awayScore: number | null; minuteLabel?: string | null; quarter?: number | null }>>({})
 const livePollId = ref<number | null>(null)
 
 const effectiveViewMode = computed(() => {
@@ -534,6 +537,7 @@ const fetchLiveForGame = async (seasonCode: string, gameCode: number) => {
     homeScore: pickLatestQuarterValue(homeRow),
     awayScore: pickLatestQuarterValue(awayRow),
     minuteLabel: resolveMinuteLabel(pbp) ?? null,
+    quarter: pbp?.actualQuarter ?? null,
   }
 }
 
@@ -546,14 +550,14 @@ const loadLiveForVisibleGames = async () => {
   )
   if (!scheduled.length) return
 
-  const updates: Record<number, { isLive: boolean; homeScore: number | null; awayScore: number | null; minuteLabel?: string | null }> = {}
+  const updates: Record<number, { isLive: boolean; homeScore: number | null; awayScore: number | null; minuteLabel?: string | null; quarter?: number | null }> = {}
   await Promise.all(
     scheduled.map(async (game) => {
       try {
         const liveData = await fetchLiveForGame(seasonCode, game.gameCode)
         updates[game.gameCode] = liveData
       } catch {
-        updates[game.gameCode] = { isLive: false, homeScore: null, awayScore: null, minuteLabel: null }
+        updates[game.gameCode] = { isLive: false, homeScore: null, awayScore: null, minuteLabel: null, quarter: null }
       }
     }),
   )

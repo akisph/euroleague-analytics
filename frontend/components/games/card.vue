@@ -121,6 +121,7 @@ interface Props {
   liveHomeScore?: number | null
   liveAwayScore?: number | null
   liveMinute?: string | null
+  liveQuarter?: number | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -178,9 +179,38 @@ const displayAwayScore = computed(() => {
   return props.liveAwayScore ?? 0
 })
 
+const parseLiveMinute = (value?: string | null) => {
+  if (!value) return null
+  const match = value.match(/^(\d{1,2}):(\d{2})$/)
+  if (!match) return null
+  const min = Number(match[1])
+  const sec = Number(match[2])
+  if (!Number.isFinite(min) || !Number.isFinite(sec)) return null
+  return { min, sec }
+}
+
+const formatElapsed = (minutesTotal: number) => {
+  const min = Math.floor(minutesTotal)
+  const sec = Math.round((minutesTotal - min) * 60)
+  const safeSec = sec === 60 ? 0 : sec
+  const safeMin = sec === 60 ? min + 1 : min
+  return `${safeMin}:${String(safeSec).padStart(2, '0')}`
+}
+
+const liveElapsedLabel = computed(() => {
+  const quarter = Number(props.liveQuarter ?? 0)
+  const parsed = parseLiveMinute(props.liveMinute)
+  if (!quarter || !parsed) return null
+  const quarterLength = quarter > 4 ? 5 : 10
+  const remaining = parsed.min + parsed.sec / 60
+  const elapsedInQuarter = Math.max(0, quarterLength - remaining)
+  const totalElapsed = (quarter - 1) * quarterLength + elapsedInQuarter
+  return formatElapsed(totalElapsed)
+})
+
 const liveLabel = computed(() => {
   if (props.game.played) return 'Final'
-  return props.liveMinute ? `Live ${props.liveMinute}` : 'Live'
+  return liveElapsedLabel.value ? `Live ${liveElapsedLabel.value}` : (props.liveMinute ? `Live ${props.liveMinute}` : 'Live')
 })
 </script>
 
