@@ -260,17 +260,17 @@
               <v-window-item value="live-events" v-show="activeTab === 'live-events'">
                 <GamesLiveEvents
                   :game="game"
-                  :live-boxscore="liveBoxscore"
-                  :live-play-by-play="livePlayByPlay"
+                  :live-boxscore="effectiveLiveBoxscore"
+                  :live-play-by-play="effectiveLivePlayByPlay"
                 />
               </v-window-item>
 
               <v-window-item value="players" v-show="activeTab === 'players'">
-                <GamesLivePlayersStats :game="game" />
+                <GamesLivePlayersStats :game="game" :mock="forceLive" />
               </v-window-item>
 
               <v-window-item value="teams" v-show="activeTab === 'teams'">
-                <GamesLiveTeamsStats :game="game" />
+                <GamesLiveTeamsStats :game="game" :mock="forceLive" />
               </v-window-item>
             </v-window>
           </template>
@@ -316,6 +316,7 @@ import VueApexCharts from 'vue3-apexcharts'
 import { useNuxtApp } from '#app'
 
 const route = useRoute()
+const forceLive = computed(() => route.query.forceLive === "1")
 const { fetchGameDetails, currentGame: game, isLoading, error } = useGames()
 const api = useApi()
 
@@ -361,6 +362,36 @@ const formattedGameDate = computed(() => formatDateTime(game.value?.gameDate))
 const liveBoxscore = ref<any | null>(null)
 const livePlayByPlay = ref<any | null>(null)
 const livePollId = ref<number | null>(null)
+
+const mockLiveBoxscore = computed(() => {
+  if (!forceLive.value) return null
+  const homeCode = (game.value?.homeTeamCode || "HOME").trim().toUpperCase()
+  const awayCode = (game.value?.awayTeamCode || "AWAY").trim().toUpperCase()
+  return {
+    isLive: true,
+    endOfQuarter: [
+      { team: homeCode, quarter1: 22, quarter2: 45, quarter3: 64, quarter4: 78 },
+      { team: awayCode, quarter1: 20, quarter2: 41, quarter3: 60, quarter4: 73 },
+    ],
+  }
+})
+
+const mockLivePlayByPlay = computed(() => {
+  if (!forceLive.value) return null
+  return {
+    actualQuarter: 4,
+    fourthQuarter: [
+      { markerTime: "02:45", playInfo: "2PT Made", team: game.value?.homeTeamName || "Home", player: "Player A", codeTeam: game.value?.homeTeamCode },
+      { markerTime: "02:12", playInfo: "3PT Made", team: game.value?.awayTeamName || "Away", player: "Player B", codeTeam: game.value?.awayTeamCode },
+    ],
+  }
+})
+
+const effectiveLiveBoxscore = computed(() => liveBoxscore.value || mockLiveBoxscore.value)
+const effectiveLivePlayByPlay = computed(() => livePlayByPlay.value || mockLivePlayByPlay.value)
+
+const isLive = computed(() => Boolean(effectiveLiveBoxscore.value?.isLive) || forceLive.value)
+
 const loadLiveBoxscore = async () => {
   if (!seasonCode.value || !gameCode.value) return
   try {

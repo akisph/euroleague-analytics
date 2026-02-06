@@ -78,17 +78,17 @@
               <v-window-item value="live-events" v-show="activeTab === 'live-events'">
                 <GamesLiveEvents
                   :game="game"
-                  :live-boxscore="liveBoxscore"
-                  :live-play-by-play="livePlayByPlay"
+                  :live-boxscore="effectiveLiveBoxscore"
+                  :live-play-by-play="effectiveLivePlayByPlay"
                 />
               </v-window-item>
 
               <v-window-item value="players" v-show="activeTab === 'players'">
-                <GamesLivePlayersStats :game="game" mobile />
+                <GamesLivePlayersStats :game="game" mobile :mock="forceLive" />
               </v-window-item>
 
               <v-window-item value="teams" v-show="activeTab === 'teams'">
-                <GamesLiveTeamsStats :game="game" />
+                <GamesLiveTeamsStats :game="game" :mock="forceLive" />
               </v-window-item>
             </v-window>
           </template>
@@ -132,6 +132,7 @@ import VueApexCharts from 'vue3-apexcharts'
 import { useNuxtApp } from '#app'
 
 const route = useRoute()
+const forceLive = computed(() => route.query.forceLive === '1')
 const { fetchGameDetails, currentGame: game, isLoading, error } = useGames()
 const api = useApi()
 
@@ -200,6 +201,104 @@ const loadLivePlayByPlay = async () => {
     livePlayByPlay.value = null
   }
 }
+
+const mockLiveBoxscore = computed(() => {
+  if (!forceLive.value) return null
+  const homeCode = (game.value?.homeTeamCode || 'HOME').trim().toUpperCase()
+  const awayCode = (game.value?.awayTeamCode || 'AWAY').trim().toUpperCase()
+  return {
+    isLive: true,
+    endOfQuarter: [
+      { team: homeCode, quarter1: 22, quarter2: 45, quarter3: 64, quarter4: 78 },
+      { team: awayCode, quarter1: 20, quarter2: 41, quarter3: 60, quarter4: 73 },
+    ],
+  }
+})
+
+const mockLivePlayByPlay = computed(() => {
+  if (!forceLive.value) return null
+  return {
+    actualQuarter: 4,
+    fourthQuarter: [
+      { markerTime: '02:45', playInfo: '2PT Made', team: game.value?.homeTeamName || 'Home', player: 'Player A', codeTeam: game.value?.homeTeamCode },
+      { markerTime: '02:12', playInfo: '3PT Made', team: game.value?.awayTeamName || 'Away', player: 'Player B', codeTeam: game.value?.awayTeamCode },
+    ],
+  }
+})
+
+const effectiveLiveBoxscore = computed(() => liveBoxscore.value || mockLiveBoxscore.value)
+const effectiveLivePlayByPlay = computed(() => livePlayByPlay.value || mockLivePlayByPlay.value)
+
+const isLive = computed(() => Boolean(effectiveLiveBoxscore.value?.isLive) || forceLive.value)
+
+const pickLatestQuarterValue = (row: any) => {
+  if (!row) return null
+  const candidates = [row.quarter4, row.quarter3, row.quarter2, row.quarter1]
+  for (const value of candidates) {
+    if (typeof value === 'number' && value > 0) return value
+  }
+  return null
+}
+
+const displayHomeScore = computed(() => {
+  if (game.value?.played) return game.value.homeScore ?? null
+  const rows = effectiveLiveBoxscore.value?.endOfQuarter || effectiveLiveBoxscore.value?.byQuarter || []
+  const homeRow = rows?.[0]
+  return pickLatestQuarterValue(homeRow) ?? 0
+})
+
+const displayAwayScore = computed(() => {
+  if (game.value?.played) return game.value.awayScore ?? null
+  const rows = effectiveLiveBoxscore.value?.endOfQuarter || effectiveLiveBoxscore.value?.byQuarter || []
+  const awayRow = rows?.[1]
+  return pickLatestQuarterValue(awayRow) ?? 0
+})
+
+const showScores = computed(() => game.value?.played || isLive.value)
+
+const lastMarkerTime = (plays: any[] | undefined) => {
+  if (!Array.isArray(plays) || !plays.length) return null
+  for (let i = plays.length - 1; i >= 0; i -= 1) {
+    const marker = plays[i]?.markerTime
+    if (marker) return marker
+  }
+  return null
+}
+
+const liveMinuteLabel = computed(() => {
+  const pbp = effectiveLivePlayByPlay.value
+  if (!pbp) return null
+  const q = Number(pbp.actualQuarter ?? 0)
+  if (q === 1) return lastMarkerTime(pbp.firstQuarter)
+  if (q === 2) return lastMarkerTime(pbp.secondQuarter)
+  if (q === 3) return lastMarkerTime(pbp.thirdQuarter)
+  if (q === 4) return lastMarkerTime(pbp.fourthQuarter)
+  if (q > 4) return lastMarkerTime(pbp.extraTime)
+  return null
+})
+
+const parseMarkerToElapsed = (marker: string | null, quarter: number) => {
+  if (!marker || !quarter || quarter < 1) return null
+  const match = marker.match(/^(\d{1,2}):(\d{2})$/)
+  if (!match) return null
+  const min = Number(match[1])
+  const sec = Number(match[2])
+  if (!Number.isFinite(min) || !Number.isFinite(sec)) return null
+  const quarterLength = 10
+  const elapsedInQuarter = quarterLength - (min + sec / 60)
+  const total = (quarter - 1) * quarterLength + elapsedInQuarter
+  return total
+}
+
+const liveTotalMinuteLabel = computed(() => {
+  const pbp = effectiveLivePlayByPlay.value
+  if (!pbp) return null
+  const q = Number(pbp.actualQuarter ?? 0)
+  const marker = liveMinuteLabel.value
+  const total = parseMarkerToElapsed(marker, q)
+  if (total == null) return null
+  return total.toFixed(2)
+})
 
 const isPregameLoading = ref(false)
 const pregamePlayers = ref<any[]>([])
