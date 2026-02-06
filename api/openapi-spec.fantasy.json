@@ -1,0 +1,121 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Euroleague Fantasy (Dunkest) API",
+    "version": "0.0.0",
+    "description": "Placeholder OpenAPI spec for the fantasy module. Endpoints and schemas are not finalized."
+  },
+  "servers": [
+    { "url": "http://localhost:3000" }
+  ],
+  "paths": {
+    "/fantasy/season/{seasonCode}/health": {
+      "get": {
+        "tags": ["Fantasy"],
+        "summary": "Fantasy module health check",
+        "parameters": [
+          {
+            "name": "seasonCode",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "example": "E2025" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" }
+                  },
+                  "required": ["status"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fantasy/season/{seasonCode}/players/stats": {
+      "get": {
+        "tags": ["Fantasy"],
+        "summary": "Get fantasy player stats (Dunkest)",
+        "parameters": [
+          {
+            "name": "seasonCode",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "example": "E2025" }
+          },
+          {
+            "name": "statsType",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "enum": ["tot", "avg"], "example": "avg" }
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "2025-09-01" }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "2026-06-01" }
+          },
+          {
+            "name": "weeks[]",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "array", "items": { "type": "integer" } }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/fantasy/season/{seasonCode}/teams/pir-allowed": {
+      "get": {
+        "tags": ["Fantasy"],
+        "summary": "Get team PIR allowed vs position (Dunkest)",
+        "parameters": [
+          {
+            "name": "seasonCode",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "example": "E2025" }
+          },
+          {
+            "name": "statsId",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 25 }
+          },
+          {
+            "name": "positionId",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "parameters": {}
+  }
+}
