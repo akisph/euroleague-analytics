@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
     <!-- Navigation Bar -->
-    <header class="app-navbar">
-      <div class="navbar-wrapper">
+    <header class="app-navbar" :class="{ 'app-navbar--menu-open': isFantasyOpen }">
+      <div class="navbar-wrapper" :class="{ 'navbar-wrapper--menu-open': isFantasyOpen }">
         <!-- Logo -->
         <NuxtLink to="/" class="navbar-logo">
           <div class="logo-icon">🏀</div>
@@ -20,8 +20,8 @@
             {{ item.title }}
           </NuxtLink>
 
-          <div class="nav-group" :class="{ 'nav-link--active': isFantasyActive }">
-            <button class="nav-link nav-group-trigger" type="button">
+          <div class="nav-group" :class="{ 'nav-link--active': isFantasyActive, 'nav-group--open': isFantasyOpen }">
+            <button class="nav-link nav-group-trigger" type="button" @click="toggleFantasyMenu">
               Fantasy
               <span class="nav-caret">▾</span>
             </button>
@@ -86,11 +86,11 @@ const isLoadingSeasons = ref(false)
 
 // Navigation items
 const navItems: NavItem[] = [
-  { title: 'HOME', icon: 'mdi-home', to: '/' },
-  { title: 'CLUBS', icon: 'mdi-shield-home', to: '/clubs' },
-  { title: 'GAMES', icon: 'mdi-basketball', to: '/games' },
-  { title: 'PLAYERS', icon: 'mdi-account-multiple', to: '/players' },
-  { title: 'STANDINGS', icon: 'mdi-format-list-numbered', to: '/standings' },
+  { title: 'Home', icon: 'mdi-home', to: '/' },
+  { title: 'Clubs', icon: 'mdi-shield-home', to: '/clubs' },
+  { title: 'Games', icon: 'mdi-basketball', to: '/games' },
+  { title: 'Players', icon: 'mdi-account-multiple', to: '/players' },
+  { title: 'Standings', icon: 'mdi-format-list-numbered', to: '/standings' },
 ]
 
 // Check if route is active
@@ -102,6 +102,11 @@ const isActiveRoute = (itemPath: string) => {
 }
 
 const isFantasyActive = computed(() => route.path.startsWith('/fantasy'))
+const isFantasyOpen = ref(false)
+
+const toggleFantasyMenu = () => {
+  isFantasyOpen.value = !isFantasyOpen.value
+}
 
 // Selected season computed
 const selectedSeason = computed({
@@ -120,6 +125,10 @@ onMounted(async () => {
   } finally {
     isLoadingSeasons.value = false
   }
+})
+
+watch(() => route.path, () => {
+  isFantasyOpen.value = false
 })
 </script>
 
@@ -151,6 +160,10 @@ onMounted(async () => {
   width: 100%;
   padding: 1rem 2rem;
   gap: 2rem;
+}
+
+.navbar-wrapper--menu-open {
+  overflow: visible;
 }
 
 .navbar-logo {
@@ -185,6 +198,7 @@ onMounted(async () => {
   flex: 1;
   align-items: center;
   flex-wrap: nowrap;
+  position: relative;
 }
 
 .nav-link {
@@ -247,7 +261,8 @@ onMounted(async () => {
 }
 
 .nav-group:hover .nav-submenu,
-.nav-group:focus-within .nav-submenu {
+.nav-group:focus-within .nav-submenu,
+.nav-group--open .nav-submenu {
   display: flex;
 }
 
@@ -389,19 +404,26 @@ onMounted(async () => {
     scrollbar-width: none;
   }
 
+  .app-navbar--menu-open .navbar-menu {
+    overflow: visible;
+  }
+
   .navbar-menu::-webkit-scrollbar {
     display: none;
   }
 
   .nav-submenu {
-    position: static;
-    display: flex;
-    flex-direction: row;
-    padding: 0;
-    border: none;
-    background: transparent;
-    box-shadow: none;
-    gap: 0.25rem;
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    left: 0;
+    display: none;
+    flex-direction: column;
+    padding: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #1a2742;
+    box-shadow: 0 8px 20px rgba(12, 19, 33, 0.25);
+    gap: 0.35rem;
+    min-width: 140px;
   }
 
   .nav-group {
