@@ -12,6 +12,7 @@
             <v-tab :value="awayTeamCode">{{ props.mobile ? awayTeamCode : awayTeamName }}</v-tab>
           </v-tabs>
           <v-select
+            v-if="props.mobile"
             v-model="sortKey"
             :items="sortOptions"
             item-title="label"
@@ -215,12 +216,11 @@ const awayPlayers = computed(() => extractPlayersByTeam(awayTeamCode.value))
 
 const headers = [
   { title: 'Name', key: 'name' },
-  { title: 'GP', key: 'gamesPlayed' },
   { title: 'Min', key: 'minutes' },
   { title: 'Pts', key: 'points' },
   { title: 'PIR', key: 'pir' },
-  { title: 'Ast', key: 'assists' },
-  { title: 'Reb', key: 'rebounds' },
+  { title: 'AST', key: 'assists' },
+  { title: 'RB', key: 'rebounds' },
   { title: 'Stl', key: 'steals' },
   { title: 'TO', key: 'turnovers' },
   { title: 'Fls', key: 'fouls' },
@@ -242,38 +242,26 @@ const selectedTeamLabel = computed(() => {
 
 const itemsPerPage = computed(() => Math.max(displayPlayers.value.length, 24))
 
-const sortKey = ref<string>('pir_desc')
+const sortKey = ref<string>('pir')
 
 const sortOptions = [
-  { label: 'PIR Ascending', value: 'pir_asc' },
-  { label: 'PIR Descending', value: 'pir_desc' },
-  { label: 'PTS Ascending', value: 'points_asc' },
-  { label: 'PTS Descending', value: 'points_desc' },
-  { label: 'REB Ascending', value: 'rebounds_asc' },
-  { label: 'REB Descending', value: 'rebounds_desc' },
-  { label: 'AST Ascending', value: 'assists_asc' },
-  { label: 'AST Descending', value: 'assists_desc' },
-  { label: 'MIN Ascending', value: 'minutes_asc' },
-  { label: 'MIN Descending', value: 'minutes_desc' },
-  { label: 'GP Ascending', value: 'gamesPlayed_asc' },
-  { label: 'GP Descending', value: 'gamesPlayed_desc' },
-  { label: 'STL Ascending', value: 'steals_asc' },
-  { label: 'STL Descending', value: 'steals_desc' },
-  { label: 'TO Ascending', value: 'turnovers_asc' },
-  { label: 'TO Descending', value: 'turnovers_desc' },
-  { label: 'FLS Ascending', value: 'fouls_asc' },
-  { label: 'FLS Descending', value: 'fouls_desc' },
+  { label: 'PIR', value: 'pir' },
+  { label: 'Points', value: 'points' },
+  { label: 'Minutes', value: 'minutes' },
+  { label: 'Fouls', value: 'fouls' },
+  { label: 'Assists', value: 'assists' },
+  { label: 'Steals', value: 'steals' },
+  { label: 'Turnovers', value: 'turnovers' },
 ]
 
 const sortedPlayers = computed(() => {
   const list = [...displayPlayers.value]
-  const [field, dir] = sortKey.value.split('_')
-  const multiplier = dir === 'asc' ? 1 : -1
+  const field = sortKey.value
   return list.sort((a: any, b: any) => {
     const av = Number(a?.[field] ?? -Infinity)
     const bv = Number(b?.[field] ?? -Infinity)
     if (Number.isFinite(av) || Number.isFinite(bv)) {
-      return (av - bv) * multiplier
+      return (bv - av)
     }
     return 0
   })

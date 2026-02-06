@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <v-card class="mt-4">
     <v-card-title class="d-flex align-center">
       <v-icon icon="mdi-broadcast" class="mr-2" />
@@ -17,7 +17,7 @@
           <v-expansion-panel-title>
             <div class="panel-title">
               <span class="panel-label">{{ section.label }}</span>
-              <span v-if="section.endScore" class="panel-score">
+              <span v-if="section.endScore" class="panel-score text-secondary">
                 {{ section.endScore }}
               </span>
             </div>
@@ -33,39 +33,40 @@
                   class="event-side event-side--home"
                   :class="{ 'event-side--active': event.side === 'home' }"
                 >
-                  <div class="event-meta">
+                  <div class="event-meta home_team_indicator">
                     <span class="event-quarter">{{ section.label }}</span>
                     <span class="event-time">{{ event.time }}</span>
                   </div>
                   <div class="event-body">
-                    <div class="event-title">{{ event.playInfo }}</div>
-                    <div class="event-subtitle">{{ event.team }} · {{ event.player }}</div>
+                    <div class="event-title" :class="eventOutcomeClass(event)">{{ event.playInfo }}</div>
+                    <div class="event-subtitle">{{ event.player }}</div>
                   </div>
                 </div>
                 <div
-                  class="event-side event-side--center"
+                  class="event-side event-side--center "
                   :class="{ 'event-side--active': event.side === 'neutral' }"
                 >
-                  <div class="event-meta">
+               
+                  <div class="event-body">
+                    <div class="event-title" :class="eventOutcomeClass(event)">{{ event.playInfo }}</div>
+
                     <span class="event-quarter">{{ section.label }}</span>
                     <span class="event-time">{{ event.time }}</span>
-                  </div>
-                  <div class="event-body">
-                    <div class="event-title">{{ event.playInfo }}</div>
-                    <div class="event-subtitle">{{ event.team }} · {{ event.player }}</div>
                   </div>
                 </div>
                 <div
                   class="event-side event-side--away"
                   :class="{ 'event-side--active': event.side === 'away' }"
                 >
-                  <div class="event-meta">
+                
+                  <div class="event-meta away_team_indicator">
                     <span class="event-quarter">{{ section.label }}</span>
                     <span class="event-time">{{ event.time }}</span>
                   </div>
                   <div class="event-body">
-                    <div class="event-title">{{ event.playInfo }}</div>
-                    <div class="event-subtitle">{{ event.team }} · {{ event.player }}</div>
+                  
+                    <div class="event-title" :class="eventOutcomeClass(event)">{{ event.playInfo }}</div>
+                    <div class="event-subtitle text-secondary">{{ event.player }}</div>
                   </div>
                 </div>
               </div>
@@ -109,15 +110,59 @@ const normalizeEvent = (item: any, keyPrefix: string, idx: number) => {
   const homeCode = normalizeTeamCode(props.game?.homeTeamCode)
   const awayCode = normalizeTeamCode(props.game?.awayTeamCode)
   const side = codeTeam && codeTeam === homeCode ? 'home' : codeTeam && codeTeam === awayCode ? 'away' : 'neutral'
+  const playInfoText = (item?.playInfo || item?.playType || 'Event').toString()
+  const displayPlayInfo = formatPlayInfo(playInfoText)
 
   return {
     key: `${keyPrefix}-${item?.numberOfPlay ?? idx}`,
     time: item?.markerTime || '-',
-    playInfo: item?.playInfo || item?.playType || 'Event',
+    playInfo: displayPlayInfo,
     team: item?.team || '-',
     player: item?.player || '',
     side,
+    outcome: classifyOutcome(playInfoText),
   }
+}
+
+const classifyOutcome = (text: string) => {
+  const normalized = text.toLowerCase()
+  if (normalized.includes('time out') || normalized.includes('timeout')) return 'neutral'
+  if (normalized.includes('missed')) return 'negative'
+  if (normalized === 'in' || normalized.includes(' in')) return 'positive'
+  if (normalized === 'out' || normalized.includes(' out')) return 'negative'
+  if (normalized.includes('foul drawn') || normalized.includes('fouls drawn') || normalized.includes('foul received') || normalized.includes('fouls received')) {
+    return 'positive'
+  }
+  const positive = [
+    'made',
+    'assist',
+    'rebound',
+    'jump ball',
+    'two pointer',
+    'three pointer',
+    'steal',
+    'block',
+  ]
+  const negative = [
+    'turnover',
+    'shot rejected',
+  ]
+
+  if (positive.some((term) => normalized.includes(term))) return 'positive'
+  if (negative.some((term) => normalized.includes(term))) return 'negative'
+  if (normalized.includes('foul')) return 'negative'
+  return 'neutral'
+}
+
+const formatPlayInfo = (text: string) => {
+  const normalized = text.toLowerCase()
+  if (normalized.includes('missed free throw')) return text.replace(/missed\s+free throw/ig, 'Missed FT')
+  if (normalized.includes('missed two pointer')) return `2PT X · ${text}`
+  if (normalized.includes('missed three pointer')) return text.replace(/missed\s+three pointer/ig, 'Missed +3 PT')
+  if (normalized.includes('free throw in') || normalized.includes('free throw made')) return text.replace(/free throw in/ig, '+1 FT').replace(/free throw made/ig, '+1 FT')
+  if (normalized.includes('two pointer') || normalized.includes('2pt made')) return text.replace(/two pointer/ig, '+2 PT')
+  if (normalized.includes('three pointer') || normalized.includes('3pt made')) return text.replace(/three pointer/ig, '+3 PT')
+  return text
 }
 
 const liveEventSections = computed(() => {
@@ -197,6 +242,12 @@ const liveEventsToShowBySection = (section: any) => {
   const reversed = [...items].reverse()
   return reversed.slice(0, liveEventsLimit.value)
 }
+
+const eventOutcomeClass = (event: any) => {
+  if (event?.outcome === 'positive') return 'event-title--positive'
+  if (event?.outcome === 'negative') return 'event-title--negative'
+  return ''
+}
 </script>
 
 <style scoped>
@@ -244,7 +295,6 @@ const liveEventsToShowBySection = (section: any) => {
 
 .panel-score {
   font-size: 0.85rem;
-  color: #28a745;
   font-weight: 700;
 }
 
@@ -275,7 +325,8 @@ const liveEventsToShowBySection = (section: any) => {
 }
 
 .event-side--center.event-side--active {
-  grid-template-columns: 64px 1fr;
+  /* grid-template-columns: 64px 1fr; */
+  display:flex;
   justify-content: center;
   text-align: center;
 }
@@ -321,6 +372,14 @@ const liveEventsToShowBySection = (section: any) => {
   color: #1a2742;
 }
 
+.event-title--positive {
+  color: #2f9e44;
+}
+
+.event-title--negative {
+  color: #e55353;
+}
+
 .event-subtitle {
   font-size: 0.75rem;
   color: #8a92a2;
@@ -342,4 +401,29 @@ const liveEventsToShowBySection = (section: any) => {
   display: flex;
   justify-content: center;
 }
+
+
+.away_team_indicator{
+  padding-right: 10px;
+  border-right:1px solid #8a92a2;
+}
+
+.home_team_indicator{
+  padding-left: 10px;
+  border-left:1px solid #8a92a2;
+}
 </style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
