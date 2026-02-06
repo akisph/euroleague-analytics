@@ -126,15 +126,16 @@ const scoreStyle = (value: string | undefined, col: 'l3' | 'l5' | 'l10' | 'all')
   const { avg } = columnStats.value[col] ?? { avg: 0 }
   if (!Number.isFinite(avg) || avg === 0) return {}
   const diffRatio = Math.min(Math.abs(numeric - avg) / avg, 1)
-  const opacity = Math.max(0.25, Math.min(1, diffRatio))
+  const intensity = Math.min(1, Math.sqrt(diffRatio) * 1.1)
+  const opacity = Math.max(0.3, Math.min(0.8, 0.3 + intensity * 0.5))
   const isAbove = numeric > avg
   const isBelow = numeric < avg
   if (!isAbove && !isBelow) {
     return {}
   }
   const backgroundColor = isAbove
-    ? `rgba(24, 128, 79, ${opacity})`
-    : `rgba(180, 35, 24, ${opacity})`
+    ? `rgba(64, 167, 110, ${opacity})`
+    : `rgba(210, 94, 86, ${opacity})`
   return { backgroundColor }
 }
 
