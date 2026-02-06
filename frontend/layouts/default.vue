@@ -43,18 +43,7 @@
         </nav>
 
         <!-- Right Side Actions -->
-        <div class="navbar-right">
-          <v-select
-            v-model="selectedSeason"
-            :items="seasonOptions"
-            label="Season"
-            density="compact"
-            variant="outlined"
-            hide-details
-            class="season-selector"
-            :loading="isLoadingSeasons"
-          />
-        </div>
+        <div class="navbar-right navbar-right--desktop"></div>
       </div>
     </header>
 
@@ -68,6 +57,18 @@
     <!-- Footer -->
     <footer class="app-footer">
       <div class="footer-content">
+        <div class="footer-season">
+          <v-select
+            v-model="selectedSeason"
+            :items="seasonOptions"
+            label="Season"
+            density="compact"
+            variant="outlined"
+            hide-details
+            class="season-selector season-selector--footer"
+            :loading="isLoadingSeasons"
+          />
+        </div>
         <p class="footer-text">© {{ new Date().getFullYear() }}EL HoopsLab by S.Filippou</p>
       </div>
     </footer>
@@ -323,6 +324,28 @@ onMounted(async () => {
   text-align: center;
 }
 
+.footer-season {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.season-selector--footer :deep(.v-field) {
+  background-color: #ffffff;
+  border-color: #e0e6f0;
+}
+
+.season-selector--footer :deep(.v-field__input) {
+  color: #1a2742;
+  font-weight: 600;
+}
+
+.season-selector--footer {
+  width: 100%;
+  max-width: 220px;
+}
+
 .footer-text {
   color: #8a92a2;
   font-size: 0.875rem;
@@ -399,6 +422,10 @@ onMounted(async () => {
     font-size: 0.85rem;
   }
 
+  .navbar-right--desktop {
+    display: none;
+  }
+
   .content-wrapper {
     padding: 1rem;
   }
@@ -447,26 +474,8 @@ onMounted(async () => {
     font-size: 0.7rem;
   }
 
-  .navbar-right {
-    order: 3;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(to right, #1a2742 0%, #1e3050 100%);
-    padding: 0.5rem 0.75rem;
-    z-index: 101;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .season-selector {
-    min-width: 100%;
-    font-size: 0.8rem;
-  }
-
   .content-wrapper {
     padding: 0.75rem;
-    padding-bottom: 4rem; /* space for fixed selector */
   }
 
   .app-footer {
