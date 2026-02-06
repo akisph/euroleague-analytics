@@ -69,6 +69,7 @@ const navItems: NavItem[] = [
   { title: 'GAMES', icon: 'mdi-basketball', to: '/games' },
   { title: 'PLAYERS', icon: 'mdi-account-multiple', to: '/players' },
   { title: 'STANDINGS', icon: 'mdi-format-list-numbered', to: '/standings' },
+  { title: 'FANTASY TEAM', icon: 'mdi-star-outline', to: '/fantasy/team' },
 ]
 
 // Check if route is active

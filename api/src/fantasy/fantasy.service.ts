@@ -3,12 +3,14 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { FantasyPlayersStatsQueryDto, FantasyTeamsPirAllowedQueryDto } from './dto';
+import { TeamsService } from '../teams/teams.service';
 
 @Injectable()
 export class FantasyService {
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
+    private readonly teamsService: TeamsService,
   ) {}
 
   getHealth(): { status: 'ok' } {
@@ -54,7 +56,20 @@ export class FantasyService {
         params,
       }),
     );
-    return response.data ?? [];
+    const teams = Array.isArray(response.data) ? response.data : [];
+    const clubIndex = await this.getClubIndex(seasonCode);
+
+    return teams.map((team: any) => {
+      const club = clubIndex.get(this.normalizeName(team?.name ?? ''));
+      if (!club) {
+        return team;
+      }
+      return {
+        ...team,
+        id: club.code ?? club.clubCode ?? team.id,
+        name: club.name ?? club.clubName ?? team.name,
+      };
+    });
   }
 
   private mapSeasonCodeToSeasonId(seasonCode: string): number {
@@ -75,5 +90,39 @@ export class FantasyService {
       from: `${endYear}-09-15`,
       to: `${endYear + 1}-06-15`,
     };
+  }
+
+  private async getClubIndex(seasonCode: string): Promise<Map<string, any>> {
+    const clubsResponse = await this.teamsService.getSeasonTeams(seasonCode);
+    const clubsList =
+      (Array.isArray(clubsResponse) && clubsResponse) ||
+      clubsResponse?.data ||
+      clubsResponse?.items ||
+      clubsResponse?.clubs ||
+      [];
+
+    const index = new Map<string, any>();
+    if (Array.isArray(clubsList)) {
+      clubsList.forEach((club: any) => {
+        const name = club?.name ?? club?.clubName ?? club?.displayName ?? '';
+        const key = this.normalizeName(name);
+        if (key) {
+          index.set(key, club);
+        }
+      });
+    }
+    return index;
+  }
+
+  private normalizeName(input: string): string {
+    if (!input) return '';
+    return input
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/basketball|bc|fc|club|klub|ak|bk|bc\./g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+      .replace(/\s+/g, ' ');
   }
 }
