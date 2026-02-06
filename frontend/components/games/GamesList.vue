@@ -60,8 +60,6 @@
                           :live-away-score="getLiveScore(game)?.awayScore ?? null"
                           :live-minute="getLiveScore(game)?.minuteLabel ?? null"
                           :live-quarter="getLiveScore(game)?.quarter ?? null"
-                          :live-quarter="getLiveScore(game)?.quarter ?? null"
-                          :live-quarter="getLiveScore(game)?.quarter ?? null"
                           show-details
                           show-action
                           @view-details="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
