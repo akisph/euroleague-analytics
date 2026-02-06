@@ -19,6 +19,27 @@
           >
             {{ item.title }}
           </NuxtLink>
+
+          <div class="nav-group" :class="{ 'nav-link--active': isFantasyActive }">
+            <button class="nav-link nav-group-trigger" type="button">
+              Fantasy
+              <span class="nav-caret">▾</span>
+            </button>
+            <div class="nav-submenu">
+              <NuxtLink
+                to="/fantasy/team"
+                :class="['nav-sub-link', { 'nav-sub-link--active': isActiveRoute('/fantasy/team') }]"
+              >
+                Team
+              </NuxtLink>
+              <NuxtLink
+                to="/fantasy/players"
+                :class="['nav-sub-link', { 'nav-sub-link--active': isActiveRoute('/fantasy/players') }]"
+              >
+                Players
+              </NuxtLink>
+            </div>
+          </div>
         </nav>
 
         <!-- Right Side Actions -->
@@ -64,13 +85,11 @@ const isLoadingSeasons = ref(false)
 
 // Navigation items
 const navItems: NavItem[] = [
-  { title: 'DASHBOARD', icon: 'mdi-view-dashboard', to: '/' },
+  { title: 'HOME', icon: 'mdi-home', to: '/' },
   { title: 'CLUBS', icon: 'mdi-shield-home', to: '/clubs' },
   { title: 'GAMES', icon: 'mdi-basketball', to: '/games' },
   { title: 'PLAYERS', icon: 'mdi-account-multiple', to: '/players' },
   { title: 'STANDINGS', icon: 'mdi-format-list-numbered', to: '/standings' },
-  { title: 'FANTASY TEAM', icon: 'mdi-star-outline', to: '/fantasy/team' },
-  { title: 'FANTASY PLAYERS', icon: 'mdi-star', to: '/fantasy/players' },
 ]
 
 // Check if route is active
@@ -80,6 +99,8 @@ const isActiveRoute = (itemPath: string) => {
   }
   return route.path.startsWith(itemPath)
 }
+
+const isFantasyActive = computed(() => route.path.startsWith('/fantasy'))
 
 // Selected season computed
 const selectedSeason = computed({
@@ -162,6 +183,7 @@ onMounted(async () => {
   gap: 0.5rem;
   flex: 1;
   align-items: center;
+  flex-wrap: nowrap;
 }
 
 .nav-link {
@@ -171,9 +193,11 @@ onMounted(async () => {
   font-weight: 600;
   font-size: 0.875rem;
   letter-spacing: 0.3px;
-  border-radius: 6px;
+  border-radius: 999px;
   transition: all 0.2s ease;
   position: relative;
+  border: none;
+  background: transparent;
 }
 
 .nav-link:hover {
@@ -183,19 +207,67 @@ onMounted(async () => {
 
 .nav-link--active {
   color: #F05323;
-  background-color: rgba(240, 83, 35, 0.15);
+  background-color: rgba(240, 83, 35, 0.2);
   font-weight: 700;
 }
 
-.nav-link--active::after {
-  content: '';
+.nav-group {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav-group-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.nav-caret {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.nav-submenu {
   position: absolute;
-  bottom: -12px;
+  top: calc(100% + 0.5rem);
   left: 0;
-  right: 0;
-  height: 3px;
-  background-color: #F05323;
-  border-radius: 2px;
+  display: none;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem;
+  background: #1a2742;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  min-width: 140px;
+  box-shadow: 0 8px 20px rgba(12, 19, 33, 0.25);
+  z-index: 200;
+}
+
+.nav-group:hover .nav-submenu,
+.nav-group:focus-within .nav-submenu {
+  display: flex;
+}
+
+.nav-sub-link {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.nav-sub-link:hover {
+  background-color: rgba(240, 83, 35, 0.15);
+  color: #F05323;
+}
+
+.nav-sub-link--active {
+  background-color: rgba(240, 83, 35, 0.2);
+  color: #F05323;
 }
 
 .navbar-right {
@@ -283,18 +355,43 @@ onMounted(async () => {
 
   .navbar-menu {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
     order: 3;
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
     margin-top: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .navbar-menu::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-submenu {
+    position: static;
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    gap: 0.25rem;
+  }
+
+  .nav-group {
+    width: auto;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
   }
 
   .nav-link {
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 0.9rem;
     font-size: 0.75rem;
     font-weight: 500;
+    white-space: nowrap;
   }
 
   .season-selector {
@@ -331,8 +428,18 @@ onMounted(async () => {
   .navbar-menu {
     order: 2;
     margin-top: 0;
-    justify-content: space-around;
-    gap: 0.125rem;
+    justify-content: flex-start;
+    gap: 0.35rem;
+  }
+
+  .nav-group {
+    width: auto;
+    justify-content: flex-start;
+  }
+
+  .nav-sub-link {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.5rem;
   }
 
   .nav-link {
