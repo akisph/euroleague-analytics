@@ -36,7 +36,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="team in sortedItems" :key="team.id">
+        <tr
+          v-for="team in sortedItems"
+          :key="team.id"
+          class="row-clickable"
+          @click="goToClub(team.id)"
+        >
           <td class="team-name">{{ team.name }}</td>
           <td :style="scoreStyle(team.l3, 'l3')">{{ formatValue(team.l3) }}</td>
           <td :style="scoreStyle(team.l5, 'l5')">{{ formatValue(team.l5) }}</td>
@@ -57,6 +62,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const router = useRouter()
 
 const sortKey = ref<'name' | 'l3' | 'l5' | 'l10' | 'all'>('all')
 const sortDir = ref<'asc' | 'desc'>('desc')
@@ -131,6 +137,11 @@ const scoreStyle = (value: string | undefined, col: 'l3' | 'l5' | 'l10' | 'all')
     : `rgba(180, 35, 24, ${opacity})`
   return { backgroundColor }
 }
+
+const goToClub = (clubCode: string) => {
+  if (!clubCode) return
+  router.push(`/clubs/${clubCode}`)
+}
 </script>
 
 <style scoped>
@@ -185,6 +196,14 @@ const scoreStyle = (value: string | undefined, col: 'l3' | 'l5' | 'l10' | 'all')
   font-weight: 600;
   color: #1a2742;
   transition: background-color 0.2s ease;
+}
+
+.row-clickable {
+  cursor: pointer;
+}
+
+.row-clickable:hover {
+  background: #f6f8fb;
 }
 
 .fantasy-table tbody tr:hover {

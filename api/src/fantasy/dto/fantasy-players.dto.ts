@@ -35,6 +35,14 @@ export class FantasyPlayerStatsDto {
 
   @IsOptional()
   @IsString()
+  playerCode?: string;
+
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
+
+  @IsOptional()
+  @IsString()
   cr?: string;
 
   @IsOptional()

@@ -6,6 +6,7 @@ export * from './standing'
 export * from './season'
 export * from './round'
 export * from './fantasy'
+export * from './fantasy-player'
 
 // API Response wrapper types
 export interface ApiResponse<T> {
