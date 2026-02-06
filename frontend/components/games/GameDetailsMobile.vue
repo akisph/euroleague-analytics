@@ -13,7 +13,7 @@
           <v-card-text class="pa-4">
        
             <div class="mobile-header">
-              <div class="text-secondary">
+              <div class="text-secondary" :class="game?.played ? 'date-text--final' : 'date-text--tbp'">
                 <template v-if="!isLive">
                   {{ formattedGameDate }}
                 </template>
@@ -29,7 +29,7 @@
             
 
             <div class="mobile-teams">
-              <div class="mobile-team">
+              <div class="mobile-team" :class="{ 'mobile-team--scheduled': !showScores }">
                 <v-avatar size="56" class="team-avatar">
                   <v-img v-if="game.homeTeamImage" :src="game.homeTeamImage" :alt="game.homeTeamName" :cover="false" />
                 </v-avatar>
@@ -41,7 +41,11 @@
               </div>
 
               <div class="w-100 d-flex flex-column align-center justify-center">
-                <v-chip v-if="!isLive" variant="flat" color="green">
+                <v-chip
+                  v-if="!isLive"
+                  variant="flat"
+                  :class="game.played ? 'status-chip--final' : 'status-chip--tbp'"
+                >
                   {{ game.played ? 'Final' : 'Scheduled' }}
                 </v-chip>
                 <div v-else class="live-chip-row">
@@ -52,7 +56,7 @@
                 </div>
               </div>
 
-              <div class="mobile-team">
+              <div class="mobile-team" :class="{ 'mobile-team--scheduled': !showScores }">
                 <v-avatar size="56" class="team-avatar">
                   <v-img v-if="game.awayTeamImage" :src="game.awayTeamImage" :alt="game.awayTeamName" :cover="false" />
                 </v-avatar>
@@ -66,7 +70,130 @@
           </v-card-text>
         </v-card>
 
-        <template v-if="game.played || isLive">
+        <template v-if="!game.played && !isLive">
+          <v-card class="pregame-card mt-6">
+            <v-card-title class="d-flex align-center">
+              <v-icon icon="mdi-chart-bar" class="mr-2" />
+              Key Players
+            </v-card-title>
+            <v-card-text>
+              <SharedLoadingState :loading="isPregameLoading" message="Loading player data...">
+                <v-row>
+                  <v-col cols="6" sm="6">
+                    <div class="team-section">
+                      <div class="team-section-title">{{ game.homeTeamName }}</div>
+                      <div v-if="homeTopPlayers.length">
+                        <div class="player-card">
+                          <div class="player-info">
+                            <div class="player-name">{{ homeTopPlayers[0].name }}</div>
+                            <NuxtLink
+                              :to="`/players/${seasonCode}/${homeTopPlayers[0].code}`"
+                              class="player-link"
+                            >
+                              View Profile ->
+                            </NuxtLink>
+                          </div>
+                        </div>
+                      </div>
+                      <div v-else class="text-caption text-medium-emphasis">No player data.</div>
+                    </div>
+                  </v-col>
+                  <v-col cols="6" sm="6">
+                    <div class="team-section">
+                      <div class="team-section-title">{{ game.awayTeamName }}</div>
+                      <div v-if="awayTopPlayers.length">
+                        <div class="player-card">
+                          <div class="player-info">
+                            <div class="player-name">{{ awayTopPlayers[0].name }}</div>
+                            <NuxtLink
+                              :to="`/players/${seasonCode}/${awayTopPlayers[0].code}`"
+                              class="player-link"
+                            >
+                              View Profile ->
+                            </NuxtLink>
+                          </div>
+                        </div>
+                      </div>
+                      <div v-else class="text-caption text-medium-emphasis">No player data.</div>
+                    </div>
+                  </v-col>
+                </v-row>
+
+                <div v-if="homeTopPlayers.length && awayTopPlayers.length" class="compare-block">
+                  <div class="compare-title">Top Player Comparison</div>
+                  <div class="compare-subtitle">Games & Minutes</div>
+                  <div class="compare-grid">
+                    <apexchart
+                      v-if="gpGaugeOptions && gpGaugeSeries"
+                      type="radialBar"
+                      :options="gpGaugeOptions"
+                      :series="gpGaugeSeries"
+                      height="220"
+                    />
+                    <apexchart
+                      v-if="mpgGaugeOptions && mpgGaugeSeries"
+                      type="radialBar"
+                      :options="mpgGaugeOptions"
+                      :series="mpgGaugeSeries"
+                      height="220"
+                    />
+                  </div>
+
+                  <div class="compare-subtitle">Impact Radar</div>
+                  <apexchart
+                    v-if="radarOptions && radarSeries"
+                    type="radar"
+                    :options="radarOptions"
+                    :series="radarSeries"
+                    height="320"
+                  />
+
+                  <div class="compare-subtitle">Efficiency Gauges</div>
+                  <div class="compare-grid">
+                    <apexchart
+                      v-if="twopGaugeOptions && twopGaugeSeries"
+                      type="radialBar"
+                      :options="twopGaugeOptions"
+                      :series="twopGaugeSeries"
+                      height="200"
+                    />
+                    <apexchart
+                      v-if="threepGaugeOptions && threepGaugeSeries"
+                      type="radialBar"
+                      :options="threepGaugeOptions"
+                      :series="threepGaugeSeries"
+                      height="200"
+                    />
+                    <apexchart
+                      v-if="ftGaugeOptions && ftGaugeSeries"
+                      type="radialBar"
+                      :options="ftGaugeOptions"
+                      :series="ftGaugeSeries"
+                      height="200"
+                    />
+                    <apexchart
+                      v-if="fgGaugeOptions && fgGaugeSeries"
+                      type="radialBar"
+                      :options="fgGaugeOptions"
+                      :series="fgGaugeSeries"
+                      height="200"
+                    />
+                  </div>
+
+                  <apexchart
+                    v-if="chartOptions && chartSeries"
+                    type="bar"
+                    :options="chartOptions"
+                    :series="chartSeries"
+                    height="480"
+                  />
+                </div>
+              </SharedLoadingState>
+            </v-card-text>
+          </v-card>
+        </template>
+
+        <template v-else>
           <template v-if="isLive">
             <v-tabs v-model="activeTab" class="mt-4 game-tabs">
               <v-tab value="live-events">Live Events</v-tab>
@@ -786,6 +913,24 @@ onBeforeUnmount(() => {
   color: #F05323 !important;
 }
 
+.status-chip--final {
+  background-color: rgba(90, 167, 255, 0.18) !important;
+  color: #5aa7ff !important;
+}
+
+.status-chip--tbp {
+  background-color: rgba(240, 83, 35, 0.12) !important;
+  color: #F05323 !important;
+}
+
+.date-text--final {
+  color: #5aa7ff !important;
+}
+
+.date-text--tbp {
+  color: #F05323 !important;
+}
+
 /* Specific safe overrides for avatars and tiny UI pieces */
 .page-light-surface :deep(.v-avatar) {
   background-color: #f3f4f6 !important;
@@ -1256,6 +1401,10 @@ onBeforeUnmount(() => {
   grid-template-columns: 56px 1fr auto;
   align-items: center;
   gap: 0.75rem;
+}
+
+.mobile-team--scheduled {
+  grid-template-columns: 56px 1fr;
 }
 
 .mobile-divider {

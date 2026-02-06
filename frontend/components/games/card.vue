@@ -53,9 +53,11 @@
               </div>
               <v-chip
                 size="x-small"
-                :color="game.played ? 'success' : 'success'"
                 variant="flat"
-                :class="['status-badge', { 'status-badge--live': !game.played }]"
+                :class="[
+                  'status-badge',
+                  { 'status-badge--live': !game.played, 'status-badge--final': game.played },
+                ]"
               >
                 {{ game.played ? 'Final' : liveLabel }}
               </v-chip>
@@ -148,6 +150,13 @@ const isAwayWinner = computed(() => {
 const formattedDate = computed(() => {
   if (!props.game.gameDate) return null
   const date = new Date(props.game.gameDate)
+  if (props.game.played) {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    })
+  }
   return date.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
@@ -312,7 +321,7 @@ const liveLabel = computed(() => {
 }
 
 .score--win {
-  color: #28a745;
+  color: inherit;
 }
 
 .score-divider {
@@ -334,6 +343,11 @@ const liveLabel = computed(() => {
 .status-badge--live {
   background-color: rgba(40, 167, 69, 0.22) !important;
   color: #28a745 !important;
+}
+
+.status-badge--final {
+  background-color: rgba(90, 167, 255, 0.18) !important;
+  color: #5aa7ff !important;
 }
 
 .game-details {

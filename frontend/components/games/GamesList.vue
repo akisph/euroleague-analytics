@@ -31,8 +31,8 @@
               <!-- Live Games -->
               <div v-if="gamesByRound[roundNum].live.length > 0" class="mb-8">
                 <div class="d-flex align-center mb-4">
-                  <v-icon icon="mdi-access-point" color="success" class="mr-2" />
-                  <span class="font-weight-bold text-h6 text-success">Live ({{ gamesByRound[roundNum].live.length }})</span>
+                  <v-icon icon="mdi-access-point" color="#28a745" class="mr-2" />
+                  <span class="font-weight-bold text-h6 status-title status-title--live">Live ({{ gamesByRound[roundNum].live.length }})</span>
                 </div>
 
                 <template v-if="effectiveViewMode === 'grid'">
@@ -103,7 +103,7 @@
                             <div class="score">
                               {{ getDisplayScore(game)?.homeScore }} - {{ getDisplayScore(game)?.awayScore }}
                             </div>
-                            <div class="meta">{{ formatEventTime(game.gameDate) }}</div>
+                            <div class="meta">{{ formatEventDate(game.gameDate) }}</div>
                             <div v-if="game.arena" class="meta arena">{{ game.arena }}</div>
                           </div>
                           <div class="schedule-team away">
@@ -126,8 +126,8 @@
               <!-- Completed Games -->
               <div v-if="gamesByRound[roundNum].completed.length > 0" class="mb-8">
                 <div class="d-flex align-center mb-4">
-                  <v-icon icon="mdi-check-circle" color="success" class="mr-2" />
-                  <span class="text-success font-weight-bold text-h6">Completed ({{ gamesByRound[roundNum].completed.length }})</span>
+                  <v-icon icon="mdi-check-circle" color="#5aa7ff" class="mr-2" />
+                  <span class="font-weight-bold text-h6 status-title status-title--final">Completed ({{ gamesByRound[roundNum].completed.length }})</span>
                 </div>
 
                 <template v-if="effectiveViewMode === 'grid'">
@@ -199,7 +199,7 @@
                             <div v-if="showInlineScore(game)" class="score">
                               {{ getDisplayScore(game)?.homeScore }} - {{ getDisplayScore(game)?.awayScore }}
                             </div>
-                            <div class="meta">{{ formatEventTime(game.gameDate) }}</div>
+                            <div class="meta">{{ formatEventDate(game.gameDate) }}</div>
                             <div v-if="game.arena" class="meta arena">{{ game.arena }}</div>
                           </div>
                           <div
@@ -225,8 +225,8 @@
               <!-- Scheduled Games -->
               <div v-if="gamesByRound[roundNum].scheduled.length > 0">
                 <div class="d-flex align-center mb-4">
-                  <v-icon icon="mdi-clock-outline" color="primary" class="mr-2" />
-                  <span class="font-weight-bold text-h6 text-primary">Scheduled ({{ gamesByRound[roundNum].scheduled.length }})</span>
+                  <v-icon icon="mdi-clock-outline" color="#F05323" class="mr-2" />
+                  <span class="font-weight-bold text-h6 status-title status-title--tbp">Scheduled ({{ gamesByRound[roundNum].scheduled.length }})</span>
                 </div>
 
                 <template v-if="effectiveViewMode === 'grid'">
@@ -651,6 +651,14 @@ const formatEventTime = (dateString: string | undefined) => {
   })
   return `${event} · ${time}`
 }
+const formatEventDate = (dateString: string | undefined) => {
+  if (!dateString) return '-'
+  return new Date(dateString).toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
+}
 </script>
 
 <style scoped>
@@ -690,6 +698,22 @@ const formatEventTime = (dateString: string | undefined) => {
   border: 1px solid #e0e6f0;
   padding: 0.35rem 0.75rem;
   border-radius: 999px;
+}
+
+.status-title {
+  letter-spacing: 0.02em;
+}
+
+.status-title--live {
+  color: #28a745;
+}
+
+.status-title--final {
+  color: #5aa7ff;
+}
+
+.status-title--tbp {
+  color: #F05323;
 }
 
 .schedule-board {

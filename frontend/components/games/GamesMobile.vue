@@ -28,7 +28,7 @@
             <div v-if="gamesByRound[roundNum]" class="round-block">
               <div v-if="gamesByRound[roundNum].live.length" class="status-block">
                 <div class="status-title live">
-                  <v-icon icon="mdi-access-point" size="16" class="mr-2" />
+                  <v-icon icon="mdi-access-point" size="16" color="#28a745" class="mr-2" />
                   Live ({{ gamesByRound[roundNum].live.length }})
                 </div>
                 <div
@@ -48,7 +48,7 @@
                       @click="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
                     >
                       <div class="game-time">
-                        <div class="status live">{{ gameStatusLabel(game) }}</div>
+                        <div class="status" :class="statusClass(game)">{{ gameStatusLabel(game) }}</div>
                       </div>
                       <div class="game-teams">
                         <div class="team-row">
@@ -89,7 +89,7 @@
 
               <div v-if="gamesByRound[roundNum].completed.length" class="status-block">
                 <div class="status-title completed">
-                  <v-icon icon="mdi-check-circle" size="16" class="mr-2" />
+                  <v-icon icon="mdi-check-circle" size="16" color="#5aa7ff" class="mr-2" />
                   Finished ({{ gamesByRound[roundNum].completed.length }})
                 </div>
                 <div
@@ -109,8 +109,7 @@
                       @click="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
                     >
                       <div class="game-time">
-                        <div class="time">{{ formatGameTime(game.gameDate) }}</div>
-                        <div class="status">{{ gameStatusLabel(game) }}</div>
+                        <div class="status" :class="statusClass(game)">{{ gameStatusLabel(game) }}</div>
                       </div>
                       <div class="game-teams">
                         <div class="team-row">
@@ -151,7 +150,7 @@
 
               <div v-if="gamesByRound[roundNum].scheduled.length" class="status-block">
                 <div class="status-title scheduled">
-                  <v-icon icon="mdi-calendar-clock" size="16" class="mr-2" />
+                  <v-icon icon="mdi-calendar-clock" size="16" color="#F05323" class="mr-2" />
                   TBP ({{ gamesByRound[roundNum].scheduled.length }})
                 </div>
                 <div
@@ -172,7 +171,7 @@
                     >
                       <div class="game-time">
                         <div class="time">{{ formatGameTime(game.gameDate) }}</div>
-                        <div class="status">{{ gameStatusLabel(game) }}</div>
+                        <div class="status" :class="statusClass(game)">{{ gameStatusLabel(game) }}</div>
                       </div>
                       <div class="game-teams">
                         <div class="team-row">
@@ -500,6 +499,12 @@ const gameStatusLabel = (game: Game) => {
   if (game.played || isFinishedFromLive(game)) return 'Final'
   return 'TBP'
 }
+
+const statusClass = (game: Game) => {
+  if (isGameLive(game)) return 'status--live'
+  if (game.played || isFinishedFromLive(game)) return 'status--final'
+  return 'status--tbp'
+}
 </script>
 
 <style scoped>
@@ -572,8 +577,12 @@ const gameStatusLabel = (game: Game) => {
   color: #28a745;
 }
 
+.status-title.completed {
+  color: #5aa7ff;
+}
+
 .status-title.scheduled {
-  color: #516078;
+  color: #F05323;
 }
 
 .day-block {
@@ -630,8 +639,16 @@ const gameStatusLabel = (game: Game) => {
   color: #8a92a2;
 }
 
-.game-time .status.live {
+.game-time .status.status--live {
   color: #28a745;
+}
+
+.game-time .status.status--final {
+  color: #5aa7ff;
+}
+
+.game-time .status.status--tbp {
+  color: #F05323;
 }
 
 .game-teams {

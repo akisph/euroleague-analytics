@@ -31,15 +31,18 @@
           <v-card-text class="pa-6">
             <div class="hero-top">
               <div class="hero-badges">
-                <v-chip v-if="!isLive" variant="tonal" color="primary">
+                <v-chip
+                  v-if="!isLive"
+                  variant="tonal"
+                  :class="game.played ? 'date-chip--final' : 'date-chip--tbp'"
+                >
                   {{ formattedGameDate }}
                 </v-chip>
               </div>
               <v-chip
                 v-if="!isLive"
-                :color="game.played ? 'success' : 'primary'"
                 variant="flat"
-                class="status-chip"
+                :class="['status-chip', game.played ? 'status-chip--final' : 'status-chip--tbp']"
               >
                 {{ game.played ? 'Final' : 'Scheduled' }}
               </v-chip>
@@ -74,14 +77,19 @@
                     </NuxtLink>
                   </div>
                 </div>
-                <div class="team-score" v-if="showScores" :class="isHomeWinner ? 'text-success' : ''">
-                  {{ displayHomeScore }}
-                </div>
+                
               </div>
 
               <!-- Center -->
               <div class="score-block">
-                <div class="center-divider">{{ game.played ? '-' : 'VS' }}</div>
+                <div class="center-divider">
+                  <template v-if="showScores">
+                    {{ displayHomeScore }} - {{ displayAwayScore }}
+                  </template>
+                  <template v-else>
+                    {{ game.played ? '-' : 'VS' }}
+                  </template>
+                </div>
                 <div v-if="game.arena" class="arena-text">
                   {{ game.arena }}
                 </div>
@@ -115,9 +123,7 @@
                     </NuxtLink>
                   </div>
                 </div>
-                <div class="team-score" v-if="showScores" :class="isAwayWinner ? 'text-success' : ''">
-                  {{ displayAwayScore }}
-                </div>
+                
               </div>
             </div>
           </v-card-text>
@@ -391,6 +397,31 @@ const effectiveLiveBoxscore = computed(() => liveBoxscore.value || mockLiveBoxsc
 const effectiveLivePlayByPlay = computed(() => livePlayByPlay.value || mockLivePlayByPlay.value)
 
 const isLive = computed(() => Boolean(effectiveLiveBoxscore.value?.isLive) || forceLive.value)
+
+const pickLatestQuarterValue = (row: any) => {
+  if (!row) return null
+  const candidates = [row.quarter4, row.quarter3, row.quarter2, row.quarter1]
+  for (const value of candidates) {
+    if (typeof value === 'number' && value > 0) return value
+  }
+  return null
+}
+
+const displayHomeScore = computed(() => {
+  if (game.value?.played) return game.value.homeScore ?? null
+  const rows = effectiveLiveBoxscore.value?.endOfQuarter || effectiveLiveBoxscore.value?.byQuarter || []
+  const homeRow = rows?.[0]
+  return pickLatestQuarterValue(homeRow) ?? 0
+})
+
+const displayAwayScore = computed(() => {
+  if (game.value?.played) return game.value.awayScore ?? null
+  const rows = effectiveLiveBoxscore.value?.endOfQuarter || effectiveLiveBoxscore.value?.byQuarter || []
+  const awayRow = rows?.[1]
+  return pickLatestQuarterValue(awayRow) ?? 0
+})
+
+const showScores = computed(() => game.value?.played || isLive.value)
 
 const loadLiveBoxscore = async () => {
   if (!seasonCode.value || !gameCode.value) return
@@ -900,6 +931,26 @@ onBeforeUnmount(() => {
   color: #F05323 !important;
 }
 
+.status-chip--final {
+  background-color: rgba(90, 167, 255, 0.18) !important;
+  color: #5aa7ff !important;
+}
+
+.status-chip--tbp {
+  background-color: rgba(240, 83, 35, 0.12) !important;
+  color: #F05323 !important;
+}
+
+.date-chip--final {
+  background-color: rgba(90, 167, 255, 0.16) !important;
+  color: #5aa7ff !important;
+}
+
+.date-chip--tbp {
+  background-color: rgba(240, 83, 35, 0.12) !important;
+  color: #F05323 !important;
+}
+
 /* Specific safe overrides for avatars and tiny UI pieces */
 .page-light-surface :deep(.v-avatar) {
   background-color: #f3f4f6 !important;
@@ -988,8 +1039,8 @@ onBeforeUnmount(() => {
 }
 
 .center-divider {
-  font-size: 1.5rem;
-  color: #8a92a2;
+  font-size: 2rem;
+  color: #1a1a1a;
   font-weight: 700;
 }
 

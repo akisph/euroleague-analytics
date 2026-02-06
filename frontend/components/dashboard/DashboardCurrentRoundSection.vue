@@ -17,47 +17,65 @@
           <NuxtLink to="/games" class="section-link">View all</NuxtLink>
         </div>
 
-        <div v-if="currentRoundGames.length" class="games-list">
-          <div
-            v-for="game in currentRoundGames"
-            :key="game.gameCode"
-            class="game-row"
-            @click="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
-          >
-            <div class="game-time" :class="{ 'game-time--center': isMobile, 'game-time--center-desktop': !isMobile }">
-              <div v-if="!isGameLive(game.gameCode)" class="time">{{ formatGameTime(game.gameDate) }}</div>
-              <div class="status" :class="{ live: isGameLive(game.gameCode) }">
-                {{ gameStatusLabel(game) }}
-              </div>
+        <div v-if="groupedGames.length" class="games-list">
+          <div v-for="section in groupedGames" :key="section.key" class="game-section">
+            <div class="section-status" :class="section.className">
+              {{ section.label }} ({{ section.count }})
             </div>
 
-            <div class="game-teams">
-              <div class="team-row">
-                <v-avatar size="22" color="#e0e6f0">
-                  <v-img v-if="game.homeTeamImage" :src="game.homeTeamImage" :alt="game.homeTeamName" />
-                  <span v-else class="team-code">
-                    {{ game.homeTeamCode?.substring(0, 3) }}
-                  </span>
-                </v-avatar>
-                <span class="team-name">{{ game.homeTeamName }}</span>
+            <div v-for="dateGroup in section.dates" :key="dateGroup.key" class="date-group">
+              <div class="date-row">
+                <v-icon icon="mdi-calendar-month" size="16" />
+                <span>{{ dateGroup.label }}</span>
               </div>
-              <div class="team-row">
-                <v-avatar size="22" color="#e0e6f0">
-                  <v-img v-if="game.awayTeamImage" :src="game.awayTeamImage" :alt="game.awayTeamName" />
-                  <span v-else class="team-code">
-                    {{ game.awayTeamCode?.substring(0, 3) }}
-                  </span>
-                </v-avatar>
-                <span class="team-name">{{ game.awayTeamName }}</span>
-              </div>
-            </div>
 
-            <div class="game-score">
-              <div class="score-line">
-                <span>{{ displayScore(game)?.homeScore ?? '-' }}</span>
-              </div>
-              <div class="score-line">
-                <span>{{ displayScore(game)?.awayScore ?? '-' }}</span>
+              <div
+                v-for="game in dateGroup.games"
+                :key="game.gameCode"
+                class="game-row"
+                @click="navigateTo(`/games/${selectedSeasonCode}/${game.gameCode}`)"
+              >
+                <div class="game-time" :class="{ 'game-time--center': isMobile, 'game-time--center-desktop': !isMobile }">
+                  <div
+                    v-if="!isGameLive(game.gameCode) && !game.played && !isFinishedFromLive(game)"
+                    class="time"
+                  >
+                    {{ formatGameTime(game.gameDate) }}
+                  </div>
+                  <div class="status" :class="statusClass(game)">
+                    {{ gameStatusLabel(game) }}
+                  </div>
+                </div>
+
+                <div class="game-teams">
+                  <div class="team-row">
+                    <v-avatar size="22" color="#e0e6f0">
+                      <v-img v-if="game.homeTeamImage" :src="game.homeTeamImage" :alt="game.homeTeamName" />
+                      <span v-else class="team-code">
+                        {{ game.homeTeamCode?.substring(0, 3) }}
+                      </span>
+                    </v-avatar>
+                    <span class="team-name">{{ game.homeTeamName }}</span>
+                  </div>
+                  <div class="team-row">
+                    <v-avatar size="22" color="#e0e6f0">
+                      <v-img v-if="game.awayTeamImage" :src="game.awayTeamImage" :alt="game.awayTeamName" />
+                      <span v-else class="team-code">
+                        {{ game.awayTeamCode?.substring(0, 3) }}
+                      </span>
+                    </v-avatar>
+                    <span class="team-name">{{ game.awayTeamName }}</span>
+                  </div>
+                </div>
+
+                <div class="game-score">
+                  <div class="score-line">
+                    <span>{{ displayScore(game)?.homeScore ?? '-' }}</span>
+                  </div>
+                  <div class="score-line">
+                    <span>{{ displayScore(game)?.awayScore ?? '-' }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -136,6 +154,76 @@ const currentRoundGames = computed(() => {
   return games.value
     .filter(g => (g.roundNumber || 0) === currentRoundNumber.value)
     .sort((a, b) => parseGameTime(a.gameDate) - parseGameTime(b.gameDate))
+})
+
+const formatGameDate = (value?: string) => {
+  if (!value) return '-'
+  const date = new Date(value)
+  const athens = toAthensDate(date) ?? date
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(athens)
+}
+
+const gameStatusKey = (game: Game) => {
+  if (isGameLive(game.gameCode)) return 'live'
+  if (game.played || isFinishedFromLive(game)) return 'final'
+  return 'tbp'
+}
+
+const groupedGames = computed(() => {
+  const buckets: Record<string, Game[]> = {
+    live: [],
+    final: [],
+    tbp: [],
+  }
+
+  currentRoundGames.value.forEach((game) => {
+    buckets[gameStatusKey(game)].push(game)
+  })
+
+  const makeDateGroups = (items: Game[]) => {
+    const map = new Map<string, Game[]>()
+    items.forEach((game) => {
+      const label = formatGameDate(game.gameDate)
+      const key = label
+      const list = map.get(key) ?? []
+      list.push(game)
+      map.set(key, list)
+    })
+    return Array.from(map.entries()).map(([key, gamesList]) => ({
+      key,
+      label: key,
+      games: gamesList.sort((a, b) => parseGameTime(a.gameDate) - parseGameTime(b.gameDate)),
+    }))
+  }
+
+  return [
+    {
+      key: 'live',
+      label: 'LIVE',
+      className: 'section-status--live',
+      count: buckets.live.length,
+      dates: makeDateGroups(buckets.live),
+    },
+    {
+      key: 'final',
+      label: 'FINAL',
+      className: 'section-status--final',
+      count: buckets.final.length,
+      dates: makeDateGroups(buckets.final),
+    },
+    {
+      key: 'tbp',
+      label: 'TBP',
+      className: 'section-status--tbp',
+      count: buckets.tbp.length,
+      dates: makeDateGroups(buckets.tbp),
+    },
+  ].filter((section) => section.count > 0)
 })
 
 const getLiveScore = (gameCode: number) => liveMap.value[gameCode]
@@ -254,6 +342,12 @@ const gameStatusLabel = (game: Game) => {
   return 'TBP'
 }
 
+const statusClass = (game: Game) => {
+  if (isGameLive(game.gameCode)) return 'status--live'
+  if (game.played || isFinishedFromLive(game)) return 'status--final'
+  return 'status--tbp'
+}
+
 watch(selectedSeasonCode, () => {
   loadGamesData()
 }, { immediate: true })
@@ -319,6 +413,50 @@ onBeforeUnmount(() => {
   gap: 0.5rem;
 }
 
+.game-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1a2742;
+}
+
+.section-status--live {
+  color: #28a745;
+}
+
+.section-status--final {
+  color: #5aa7ff;
+}
+
+.section-status--tbp {
+  color: #F05323;
+}
+
+.date-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.date-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
 .game-row {
   display: grid;
   grid-template-columns: 56px 1fr 40px;
@@ -365,8 +503,16 @@ onBeforeUnmount(() => {
   color: #8a92a2;
 }
 
-.game-time .status.live {
+.game-time .status.status--live {
   color: #28a745;
+}
+
+.game-time .status.status--final {
+  color: #5aa7ff;
+}
+
+.game-time .status.status--tbp {
+  color: #F05323;
 }
 
 .game-teams {
