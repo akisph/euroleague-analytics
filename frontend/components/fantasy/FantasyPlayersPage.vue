@@ -33,6 +33,7 @@
       <v-text-field
         v-model="searchModel"
         label="Search player"
+        persistent-label
         density="compact"
         variant="outlined"
         hide-details
@@ -171,6 +172,11 @@ const searchModel = computed({
 .search-input :deep(.v-field__input) {
   color: #1a2742;
   font-weight: 600;
+}
+
+.search-input :deep(.v-label) {
+  color: #1a2742;
+  font-weight: 700;
 }
 
 @media (max-width: 768px) {

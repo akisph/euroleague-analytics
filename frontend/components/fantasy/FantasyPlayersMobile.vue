@@ -1,99 +1,96 @@
 <template>
   <div class="fantasy-table-card">
-    <table class="fantasy-table">
-      <thead>
-        <tr>
-          <th>
+    <v-data-table-virtual
+      class="fantasy-table"
+      :items="sortedItems"
+      :headers="headers"
+      :height="tableHeight"
+      :item-height="rowHeight"
+      item-value="id"
+      fixed-header
+    >
+      <template #headers>
+        <div class="table-header">
+          <div class="cell name">
             <button class="sort-btn" type="button" @click="setSort('name')">
               Player
               <span class="sort-indicator">{{ sortIndicator('name') }}</span>
             </button>
-          </th>
-          <th>
+          </div>
+          <div class="cell center">
             <button class="sort-btn" type="button" @click="setSort('cr')">
               CR
               <span class="sort-indicator">{{ sortIndicator('cr') }}</span>
             </button>
-          </th>
-          <th>
+          </div>
+          <div class="cell center">
             <button class="sort-btn" type="button" @click="setSort('pdk')">
               PIR
               <span class="sort-indicator">{{ sortIndicator('pdk') }}</span>
             </button>
-          </th>
-          <th>
+          </div>
+          <div class="cell center">
             <button class="sort-btn" type="button" @click="setSort('min')">
               MIN
               <span class="sort-indicator">{{ sortIndicator('min') }}</span>
             </button>
-          </th>
-          <th class="eye-col"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <template v-for="player in sortedItems" :key="player.id">
-          <tr>
-            <td class="player-name">
-              <span class="player-left">
-                <span v-if="player.imageUrl" class="player-avatar">
-                  <img :src="player.imageUrl" :alt="`${player.first_name} ${player.last_name}`" />
-                </span>
-                <span class="player-text">
-                  <span class="player-main">
-                    {{ player.first_name }} {{ player.last_name }}
-                    <span class="player-pos">({{ player.position }})</span>
-                  </span>
-                  <span class="player-sub">{{ player.team_name }}</span>
-                </span>
+          </div>
+          <div class="cell center"></div>
+        </div>
+      </template>
+      <template #item="{ item }">
+        <div class="table-row">
+          <div class="cell name">
+            <span class="player-left">
+              <span v-if="item.imageUrl" class="player-avatar">
+                <img :src="item.imageUrl" :alt="`${item.first_name} ${item.last_name}`" />
               </span>
-            </td>
-            <td>{{ formatValue(player.cr) }}</td>
-            <td>{{ formatValue(player.pdk) }}</td>
-            <td>{{ formatValue(player.min) }}</td>
-            <td class="eye-col">
-              <button
-                class="expand-btn"
-                type="button"
-                :aria-expanded="isExpanded(player.id)"
-                :aria-label="isExpanded(player.id) ? 'Hide details' : 'Show details'"
-                @click="toggleExpanded(player.id)"
-              >
-                <v-icon size="14">
-                  {{ isExpanded(player.id) ? 'mdi-eye-off-outline' : 'mdi-eye-outline' }}
-                </v-icon>
-              </button>
-            </td>
-          </tr>
-          <tr v-if="isExpanded(player.id)" class="expanded-row">
-            <td :colspan="5">
-              <div class="expanded-grid">
-                <div class="expanded-item"><span>PTS</span><strong>{{ formatValue(player.pts) }}</strong></div>
-                <div class="expanded-item"><span>REB</span><strong>{{ formatValue(player.reb) }}</strong></div>
-                <div class="expanded-item"><span>AST</span><strong>{{ formatValue(player.ast) }}</strong></div>
-                <div class="expanded-item"><span>OREB</span><strong>{{ formatValue(player.oreb) }}</strong></div>
-                <div class="expanded-item"><span>DREB</span><strong>{{ formatValue(player.dreb) }}</strong></div>
-                <div class="expanded-item"><span>STL</span><strong>{{ formatValue(player.stl) }}</strong></div>
-                <div class="expanded-item"><span>BLK</span><strong>{{ formatValue(player.blk) }}</strong></div>
-                <div class="expanded-item"><span>TOV</span><strong>{{ formatValue(player.tov) }}</strong></div>
-                <div class="expanded-item"><span>PF</span><strong>{{ formatValue(player.pf) }}</strong></div>
-                <div class="expanded-item">
-                  <span>FGM/FGA</span>
-                  <strong>{{ formatValue(player.fgm) }}/{{ formatValue(player.fga) }} ({{ formatPercent(player.fgp) }})</strong>
-                </div>
-                <div class="expanded-item">
-                  <span>3PM/3PA</span>
-                  <strong>{{ formatValue(player.tpm) }}/{{ formatValue(player.tpa) }} ({{ formatPercent(player.tpp) }})</strong>
-                </div>
-                <div class="expanded-item">
-                  <span>FTM/FTA</span>
-                  <strong>{{ formatValue(player.ftm) }}/{{ formatValue(player.fta) }} ({{ formatPercent(player.ftp) }})</strong>
-                </div>
-              </div>
-            </td>
-          </tr>
-        </template>
-      </tbody>
-    </table>
+              <span v-else class="player-avatar player-avatar--empty" aria-hidden="true"></span>
+              <span class="player-text">
+                <span class="player-main">
+                  {{ item.first_name }} {{ item.last_name }}
+                  <span class="player-pos">({{ item.position }})</span>
+                </span>
+                <span class="player-sub">{{ item.team_name }}</span>
+              </span>
+            </span>
+          </div>
+          <div class="cell center">{{ formatValue(item.cr) }}</div>
+          <div class="cell center">{{ formatValue(item.pdk) }}</div>
+          <div class="cell center">{{ formatValue(item.min) }}</div>
+          <div class="cell center">
+            <button class="expand-btn" type="button" @click="toggleExpanded(item.id)">
+              <v-icon size="14">mdi-eye-outline</v-icon>
+            </button>
+          </div>
+        </div>
+        <div v-if="isExpanded(item.id)" class="row-details">
+          <div class="detail-grid">
+            <div class="expanded-item"><span>PTS</span><strong>{{ formatValue(item.pts) }}</strong></div>
+            <div class="expanded-item"><span>REB</span><strong>{{ formatValue(item.reb) }}</strong></div>
+            <div class="expanded-item"><span>AST</span><strong>{{ formatValue(item.ast) }}</strong></div>
+            <div class="expanded-item"><span>OREB</span><strong>{{ formatValue(item.oreb) }}</strong></div>
+            <div class="expanded-item"><span>DREB</span><strong>{{ formatValue(item.dreb) }}</strong></div>
+            <div class="expanded-item"><span>STL</span><strong>{{ formatValue(item.stl) }}</strong></div>
+            <div class="expanded-item"><span>BLK</span><strong>{{ formatValue(item.blk) }}</strong></div>
+            <div class="expanded-item"><span>TOV</span><strong>{{ formatValue(item.tov) }}</strong></div>
+            <div class="expanded-item"><span>PF</span><strong>{{ formatValue(item.pf) }}</strong></div>
+            <div class="expanded-item">
+              <span>FGM/FGA</span>
+              <strong>{{ formatValue(item.fgm) }}/{{ formatValue(item.fga) }} ({{ formatPercent(item.fgp) }})</strong>
+            </div>
+            <div class="expanded-item">
+              <span>3PM/3PA</span>
+              <strong>{{ formatValue(item.tpm) }}/{{ formatValue(item.tpa) }} ({{ formatPercent(item.tpp) }})</strong>
+            </div>
+            <div class="expanded-item">
+              <span>FTM/FTA</span>
+              <strong>{{ formatValue(item.ftm) }}/{{ formatValue(item.fta) }} ({{ formatPercent(item.ftp) }})</strong>
+            </div>
+          </div>
+        </div>
+      </template>
+    </v-data-table-virtual>
   </div>
 </template>
 
@@ -109,7 +106,17 @@ const props = defineProps<Props>()
 
 const sortKey = ref<'name' | 'min' | 'pdk' | 'cr'>('pdk')
 const sortDir = ref<'asc' | 'desc'>('desc')
+const tableHeight = '70vh'
+const rowHeight = 58
 const expandedRows = ref(new Set<string>())
+
+const headers = [
+  { title: 'Player', key: 'name' },
+  { title: 'CR', key: 'cr' },
+  { title: 'PIR', key: 'pdk' },
+  { title: 'MIN', key: 'min' },
+  { title: '', key: 'eye' },
+]
 
 const formatValue = (value?: string) => {
   if (!value) return '-'
@@ -164,7 +171,8 @@ const sortIndicator = (key: typeof sortKey.value) => {
   return sortDir.value === 'asc' ? '^' : 'v'
 }
 
-const toggleExpanded = (id: string) => {
+const toggleExpanded = (id?: string) => {
+  if (!id) return
   const next = new Set(expandedRows.value)
   if (next.has(id)) {
     next.delete(id)
@@ -174,7 +182,11 @@ const toggleExpanded = (id: string) => {
   expandedRows.value = next
 }
 
-const isExpanded = (id: string) => expandedRows.value.has(id)
+const isExpanded = (id?: string) => {
+  if (!id) return false
+  return expandedRows.value.has(id)
+}
+
 </script>
 
 <style scoped>
@@ -186,25 +198,20 @@ const isExpanded = (id: string) => expandedRows.value.has(id)
   box-shadow: 0 2px 10px rgba(26, 39, 66, 0.06);
 }
 
+.fantasy-table :deep(.v-table__wrapper) {
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.fantasy-table :deep(.v-table__wrapper::-webkit-scrollbar) {
+  width: 0;
+  height: 0;
+}
+
 .fantasy-table {
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
-}
-
-.fantasy-table thead {
-  background: linear-gradient(135deg, #1a2742, #24365a);
-}
-
-.fantasy-table th {
-  text-align: left;
-  padding: 0.5rem 0.45rem;
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #ffffff;
-  white-space: nowrap;
-  box-sizing: border-box;
 }
 
 .sort-btn {
@@ -224,17 +231,6 @@ const isExpanded = (id: string) => expandedRows.value.has(id)
 .sort-indicator {
   font-size: 0.55rem;
   opacity: 0.7;
-}
-
-.fantasy-table td {
-  padding: 0.5rem 0.45rem;
-  border-bottom: 1px solid #eef1f6;
-  font-weight: 600;
-  color: #1a2742;
-  font-size: 0.68rem;
-  transition: background-color 0.2s ease;
-  word-break: break-word;
-  box-sizing: border-box;
 }
 
 .player-name {
@@ -286,10 +282,15 @@ const isExpanded = (id: string) => expandedRows.value.has(id)
   flex-shrink: 0;
 }
 
+.player-avatar--empty {
+  background: #f1f5f9;
+}
+
 .player-avatar img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
 }
 
 .expand-btn {
@@ -304,13 +305,13 @@ const isExpanded = (id: string) => expandedRows.value.has(id)
   flex-shrink: 0;
 }
 
-.expanded-row td {
+.row-details {
+  padding: 0 0.45rem 0.7rem;
+  border-bottom: 1px solid #eef1f6;
   background: #f9fbff;
-  border-bottom: 1px solid #e8edf5;
-  padding: 0.6rem 0.45rem 0.8rem;
 }
 
-.expanded-grid {
+.detail-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.45rem;
@@ -335,32 +336,44 @@ const isExpanded = (id: string) => expandedRows.value.has(id)
   letter-spacing: 0.05em;
 }
 
-.fantasy-table th:first-child,
-.fantasy-table td:first-child {
-  width: 60%;
+.table-header {
+  display: grid;
+  grid-template-columns: 40% 15% 15% 15% 15%;
+  gap: 0;
+  background: linear-gradient(135deg, #1a2742, #24365a);
+  color: #ffffff;
+  padding: 0.5rem 0.45rem;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-sizing: border-box;
 }
 
-.fantasy-table th:nth-child(2),
-.fantasy-table td:nth-child(2) {
-  width: 15%;
-  text-align: center;
+.table-row {
+  display: grid;
+  grid-template-columns: 40% 15% 15% 15% 15%;
+  align-items: center;
+  padding: 0.5rem 0.45rem;
+  border-bottom: 1px solid #eef1f6;
+  font-weight: 600;
+  color: #1a2742;
+  font-size: 0.68rem;
+  transition: background-color 0.2s ease;
+  word-break: break-word;
+  box-sizing: border-box;
 }
 
-.fantasy-table th:nth-child(3),
-.fantasy-table td:nth-child(3) {
-  width: 15%;
-  text-align: center;
+.cell {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
-.fantasy-table th:nth-child(4),
-.fantasy-table td:nth-child(4) {
-  width: 15%;
-  text-align: center;
+.cell.center {
+  justify-content: center;
 }
 
-.fantasy-table th.eye-col,
-.fantasy-table td.eye-col {
-  width: 15%;
-  text-align: center;
+.cell.name {
+  justify-content: flex-start;
 }
 </style>
