@@ -157,7 +157,7 @@ const classifyOutcome = (text: string) => {
 const formatPlayInfo = (text: string) => {
   const normalized = text.toLowerCase()
   if (normalized.includes('missed free throw')) return text.replace(/missed\s+free throw/ig, 'Missed FT')
-  if (normalized.includes('missed two pointer')) return `2PT X · ${text}`
+  if (normalized.includes('missed two pointer')) return `Missed 2PT`
   if (normalized.includes('missed three pointer')) return text.replace(/missed\s+three pointer/ig, 'Missed +3 PT')
   if (normalized.includes('free throw in') || normalized.includes('free throw made')) return text.replace(/free throw in/ig, '+1 FT').replace(/free throw made/ig, '+1 FT')
   if (normalized.includes('two pointer') || normalized.includes('2pt made')) return text.replace(/two pointer/ig, '+2 PT')
